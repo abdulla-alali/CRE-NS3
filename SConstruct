@@ -1,4 +1,7 @@
 ## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+#
+
 import os.path
 import build
 
@@ -482,5 +485,11 @@ example_simple_p2p.set_executable()
 ns3.add(example_simple_p2p)
 example_simple_p2p.add_deps(['core', 'simulator', 'node', 'p2p', 'internet-node', 'applications'])
 example_simple_p2p.add_source('simple-p2p.cc')
+
+example_static_routing = build.Ns3Module('simple-static-routing', 'examples')
+example_static_routing.set_executable()
+ns3.add(example_static_routing)
+example_static_routing.add_deps(['core', 'simulator', 'node', 'p2p', 'internet-node', 'applications'])
+example_static_routing.add_source('simple-static-routing.cc')
 
 ns3.generate_dependencies()
