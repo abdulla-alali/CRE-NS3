@@ -29,14 +29,13 @@
 //     / 5 Mb/s, 2ms
 //   n1
 //
-// - all links are point-to-point links with indicated one-way BW/delay
+// - all links are p2p links with indicated one-way BW/delay
 // - CBR/UDP flows from n0 to n3, and from n3 to n1
 // - FTP/TCP flow from n0 to n3, starting at time 1.2 to time 1.35 sec.
 // - UDP packet size of 210 bytes, with per-packet interval 0.00375 sec.
 //   (i.e., DataRate of 448,000 bps)
 // - DropTail queues 
-// - Tracing of queues and packet receptions to file 
-//   "simple-point-to-point.tr"
+// - Tracing of queues and packet receptions to file "simple-p2p.tr"
 
 #include <iostream>
 #include <fstream>
@@ -55,14 +54,14 @@
 #include "ns3/ascii-trace.h"
 #include "ns3/pcap-trace.h"
 #include "ns3/internet-node.h"
-#include "ns3/point-to-point-channel.h"
-#include "ns3/point-to-point-net-device.h"
+#include "ns3/p2p-channel.h"
+#include "ns3/p2p-net-device.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/inet-socket-address.h"
 #include "ns3/ipv4.h"
 #include "ns3/socket.h"
 #include "ns3/ipv4-route.h"
-#include "ns3/point-to-point-topology.h"
+#include "ns3/p2p-topology.h"
 #include "ns3/onoff-application.h"
 
 using namespace ns3;
@@ -144,7 +143,7 @@ int main (int argc, char *argv[])
   // 210 bytes at a rate of 448 Kb/s
   Ptr<OnOffApplication> ooff = Create<OnOffApplication> (
     n0, 
-    InetSocketAddress (Ipv4Address("10.1.3.2"), 80).ConvertTo (), 
+    InetSocketAddress("10.1.3.2", 80).ConvertTo (), 
     "Udp",
     ConstantVariable(1), 
     ConstantVariable(0));
@@ -155,7 +154,7 @@ int main (int argc, char *argv[])
   // Create a similar flow from n3 to n1, starting at time 1.1 seconds
   ooff = Create<OnOffApplication> (
     n3, 
-    InetSocketAddress (Ipv4Address("10.1.2.1"), 80).ConvertTo (), 
+    InetSocketAddress("10.1.2.1", 80).ConvertTo (),
     "Udp",
     ConstantVariable(1), 
     ConstantVariable(0));
@@ -172,17 +171,16 @@ int main (int argc, char *argv[])
   ipv4->SetDefaultRoute (Ipv4Address ("10.1.3.1"), 1);
   
   // Configure tracing of all enqueue, dequeue, and NetDevice receive events
-  // Trace output will be sent to the simple-point-to-point.tr file
-  AsciiTrace asciitrace ("simple-point-to-point.tr");
+  // Trace output will be sent to the simple-p2p.tr file
+  AsciiTrace asciitrace ("simple-p2p.tr");
   asciitrace.TraceAllQueues ();
   asciitrace.TraceAllNetDeviceRx ();
 
   // Also configure some tcpdump traces; each interface will be traced
-  // The output files will be named 
-  // simple-point-to-point.pcap-<nodeId>-<interfaceId>
+  // The output files will be named simple-p2p.pcap-<nodeId>-<interfaceId>
   // and can be read by the "tcpdump -r" command (use "-tt" option to
   // display timestamps correctly)
-  PcapTrace pcaptrace ("simple-point-to-point.pcap");
+  PcapTrace pcaptrace ("simple-p2p.pcap");
   pcaptrace.TraceAllIp ();
 
   Simulator::Run ();
