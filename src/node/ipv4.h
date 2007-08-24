@@ -70,6 +70,7 @@ public:
   /**
    * \brief Asynchronously requests a route for a given packet and IP header
    *
+   * \param ifIndex The interface index on which the packet was received.
    * \param ipHeader IP header of the packet
    * \param packet packet that is being sent or forwarded
    * \param routeReply callback that will receive the route reply
@@ -99,9 +100,22 @@ public:
    * immediately after the IP header, although most routing do not
    * insert any extra header.
    */
-  virtual bool RequestRoute (const Ipv4Header &ipHeader,
+  virtual bool RequestRoute (uint32_t ifIndex,
+                             const Ipv4Header &ipHeader,
                              Packet packet,
                              RouteReplyCallback routeReply) = 0;
+  /**
+   * \brief Synchronously request the interface index that will be used to
+   * send a packet to a hypothetical destination.
+   *
+   * \param destination IP address of a hypothetical destination packet
+   * \param ifIndex Reference to interface index.
+   * \returns True if the protocol has a route, false otherwise.
+   */
+  virtual bool RequestIfIndex (Ipv4Address destination, 
+                              uint32_t& ifIndex) = 0;
+
+  static const uint32_t IF_INDEX_ANY = 0xffffffff;
 };
 
 /**
@@ -202,7 +216,49 @@ public:
    * \param i index of route to remove from routing table.
    */
   virtual void RemoveRoute (uint32_t i) = 0;
+
+  /**
+   * \brief Add a static multicast route for a given multicast source and 
+   *        group.
+   *
+   * \param origin The Ipv4 address of the multicast source.
+   * \param group The multicast group address.
+   * \param inputInterface The interface index over which the packet arrived.
+   * \param outputInterfaces The list of output interface indices over which 
+   *        the packet should be sent (excluding the inputInterface).
+   */
+  virtual void AddMulticastRoute (Ipv4Address origin,
+                                  Ipv4Address group,
+                                  uint32_t inputInterface,
+                                  std::vector<uint32_t> outputInterfaces) = 0;
+  /**
+   * \brief Remove a static multicast route for a given multicast source and
+   *        group.
+   *
+   * \param origin The Ipv4 address of the multicast source.
+   * \param group The multicast group address.
+   * \param inputInterface The interface index over which the packet arrived.
+   */
+  virtual void RemoveMulticastRoute (Ipv4Address origin,
+                                     Ipv4Address group,
+                                     uint32_t inputInterface) = 0;
   
+  /**
+   * \returns the number of entries in the multicast routing table.
+   */
+  virtual uint32_t GetNMulticastRoutes (void) const = 0;
+
+  /**
+   * \param i index of route to return
+   * \returns the route whose index is i
+   */
+  virtual Ipv4MulticastRoute GetMulticastRoute (uint32_t i) const = 0;
+
+  /**
+   * \param i index of route to remove from routing table.
+   */
+  virtual void RemoveMulticastRoute (uint32_t i) = 0;
+
   /**
    * \param device device to add to the list of ipv4 interfaces
    *        which can be used as output interfaces during packet forwarding.
@@ -225,6 +281,24 @@ public:
   virtual Ptr<NetDevice> GetNetDevice (uint32_t i) = 0;
 
   /**
+   * \brief Join a multicast group for a given multicast source and 
+   *        group.
+   *
+   * \param origin The Ipv4 address of the multicast source.
+   * \param group The multicast group address.
+   */
+  virtual void JoinMulticastGroup (Ipv4Address origin, Ipv4Address group) = 0;
+
+  /**
+   * \brief Leave a multicast group for a given multicast source and 
+   *        group.
+   *
+   * \param origin The Ipv4 address of the multicast source.
+   * \param group The multicast group address.
+   */
+  virtual void LeaveMulticastGroup (Ipv4Address origin, Ipv4Address group) = 0;
+
+  /**
    * \param i index of ipv4 interface
    * \param address address to associate to the underlying ipv4 interface
    */
@@ -244,6 +318,12 @@ public:
    * \returns the address associated to the underlying ipv4 interface
    */
   virtual Ipv4Address GetAddress (uint32_t i) const = 0;
+  /**
+   * \param destination The IP address of a hypothetical destination.
+   * \returns The IP address assigned to the interface that will be used
+   * if we were to send a packet to destination.
+   */
+  virtual Ipv4Address GetSourceAddress (Ipv4Address destination) const = 0;
   /**
    * \param i index of ipv4 interface
    * \returns the Maximum Transmission Unit (in bytes) associated
