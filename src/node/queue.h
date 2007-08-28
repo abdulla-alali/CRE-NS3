@@ -52,6 +52,7 @@ public:
   bool IsDequeue (void) const;
   bool IsDrop (void) const;
   void Print (std::ostream &os) const;
+  std::string GetName (void) const;
 private:
   enum Type m_type;
 };
@@ -69,8 +70,6 @@ public:
 
   Queue ();
   virtual ~Queue ();
-
-  TraceResolver *CreateTraceResolver (TraceContext const &context);
   
   /**
    * \return true if the queue is empty; false otherwise
@@ -167,6 +166,7 @@ private:
   virtual bool DoPeek (Packet &p) = 0;
 
 protected:
+  Ptr<TraceResolver> GetTraceResolver (void);
   // called by subclasses to notify parent of packet drops.
   void Drop (const Packet& p);
 

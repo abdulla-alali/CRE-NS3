@@ -44,6 +44,7 @@ public:
   PointToPointTraceType ();
   void Print (std::ostream &os) const;
   static uint16_t GetUid (void);
+  std::string GetName (void) const;
 };
 
 /**
@@ -152,6 +153,12 @@ public:
    */
   void Receive (Packet& p);
 protected:
+  /**
+   * Create a Trace Resolver for events in the net device.
+   *
+   * @see class TraceResolver
+   */
+  virtual Ptr<TraceResolver> GetTraceResolver (void);
   virtual void DoDispose (void);
   /**
    * Get a copy of the attached Queue.
@@ -237,12 +244,6 @@ private:
    *
    */
   void TransmitComplete(void);
-  /**
-   * Create a Trace Resolver for events in the net device.
-   *
-   * @see class TraceResolver
-   */
-  virtual TraceResolver* DoCreateTraceResolver (TraceContext const &context);
   virtual bool DoNeedsArp (void) const;
   /**
    * Enumeration of the states of the transmit machine of the net device.

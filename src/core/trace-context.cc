@@ -20,7 +20,7 @@
  */
 #include "trace-context.h"
 #include "trace-context-element.h"
-#include "ns3/assert.h"
+#include "assert.h"
 
 namespace ns3 {
 
@@ -68,7 +68,7 @@ TraceContext::~TraceContext ()
 }
 
 void 
-TraceContext::Add (TraceContext const &o)
+TraceContext::Union (TraceContext const &o)
 {
   if (o.m_data == 0)
     {
@@ -231,9 +231,83 @@ TraceContext::Print (std::ostream &os) const
   } while (true);
 }
 
+void 
+TraceContext::PrintAvailable (std::ostream &os, std::string separator) const
+{
+  if (m_data == 0)
+    {
+      return;
+    }
+  uint8_t currentUid;
+  uint16_t i = 0;
+  do {
+    currentUid = m_data->data[i];
+    uint8_t size = ElementRegistry::GetSize (currentUid);
+    os << ElementRegistry::GetName (currentUid);
+    i += 1 + size;
+    if (i < m_data->size && currentUid != 0)
+      {
+        os << separator;
+      }
+    else
+      {
+        break;
+      }
+  } while (true);
+}
+
+bool 
+TraceContext::IsSimilar (const TraceContext &o) const
+{
+  if (m_data == 0 && o.m_data == 0)
+    {
+      return true;
+    }
+  if ((m_data != 0 && o.m_data == 0) || 
+      (m_data == 0 && o.m_data != 0))
+    {
+      return false;
+    }
+  uint8_t myCurrentUid;
+  uint16_t myI = 0;
+  uint8_t otherCurrentUid;
+  uint16_t otherI = 0;
+
+  myCurrentUid = m_data->data[myI];
+  otherCurrentUid = o.m_data->data[otherI];
+
+  while (myCurrentUid == otherCurrentUid && 
+         myCurrentUid != 0 && 
+         otherCurrentUid != 0 &&
+         myI < m_data->size &&
+         otherI < o.m_data->size)
+    {
+      uint8_t mySize = ElementRegistry::GetSize (myCurrentUid);
+      uint8_t otherSize = ElementRegistry::GetSize (otherCurrentUid);
+      myI += 1 + mySize;
+      otherI += 1 + otherSize;
+      myCurrentUid = m_data->data[myI];
+      otherCurrentUid = o.m_data->data[otherI];
+    }
+  if (myCurrentUid == 0 && otherCurrentUid == 0)
+    {
+      return true;
+    }
+  else
+    {
+      return false;
+    }
+}
+
+std::ostream& operator<< (std::ostream& os, const TraceContext &context)
+{
+  context.Print (os);
+  return os;
+}
+
 }//namespace ns3
 
-#include "ns3/test.h"
+#include "test.h"
 #include <sstream>
 
 namespace ns3 {
@@ -278,14 +352,14 @@ TraceContextTest::RunTests (void)
     {
       ok = false;
     }
-  ctx.Add (v0);
-  ctx.Add (v0);
+  ctx.AddElement (v0);
+  ctx.AddElement (v0);
   if (ctx.SafeAdd (v01))
     {
       ok = false;
     }
   ctx.Get (v0);
-  ctx.Add (v1);
+  ctx.AddElement (v1);
   ctx.Get (v1);
   ctx.Get (v0);
   ctx.Get (v1);
@@ -295,11 +369,11 @@ TraceContextTest::RunTests (void)
   ctx.Get (v1);
   copy.Get (v0);
   copy.Get (v1);
-  copy.Add (v2);
+  copy.AddElement (v2);
   copy.Get (v0);
   copy.Get (v1);
   copy.Get (v2);
-  ctx.Add (v3);
+  ctx.AddElement (v3);
   ctx.Get (v0);
   ctx.Get (v1);
   ctx.Get (v3);
@@ -312,13 +386,13 @@ TraceContextTest::RunTests (void)
     {
       ok = false;
     }
-  ctx.Add (copy);
+  ctx.Union (copy);
   ctx.Get (v2);
   if (copy.SafeGet (v3))
     {
       ok = false;
     }
-  copy.Add (ctx);
+  copy.Union (ctx);
   copy.Get (v3);  
   
   return ok;

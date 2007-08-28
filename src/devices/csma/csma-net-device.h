@@ -52,6 +52,7 @@ public:
   CsmaTraceType ();
   void Print (std::ostream &os) const;
   static uint16_t GetUid (void);
+  std::string GetName (void) const;
 private:
   enum Type m_type;
 };
@@ -207,6 +208,13 @@ protected:
   virtual bool DoNeedsArp (void) const;
   virtual void DoDispose (void);
   /**
+   * Create a Trace Resolver for events in the net device.
+   * (NOT TESTED)
+   * @see class TraceResolver
+   */
+  virtual Ptr<TraceResolver> GetTraceResolver (void);
+
+  /**
    * Get a copy of the attached Queue.
    *
    * This method is provided for any derived class that may need to get
@@ -321,12 +329,6 @@ private:
    * @see TransmitStart ()
    */
   void TransmitReadyEvent (void);
-  /**
-   * Create a Trace Resolver for events in the net device.
-   * (NOT TESTED)
-   * @see class TraceResolver
-   */
-  virtual TraceResolver *DoCreateTraceResolver (TraceContext const &context);
 
   /**
    * Aborts the transmission of the current packet

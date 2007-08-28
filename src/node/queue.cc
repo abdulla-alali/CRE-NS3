@@ -32,6 +32,11 @@ static ClassIdDefaultValue g_classIdDefaultValue ("Queue", "Packet Queue",
                                                   Queue::iid, "DropTailQueue");
 
 
+std::string 
+QueueTraceType::GetName (void) const
+{
+  return "QueueTraceType";
+}
 uint16_t 
 QueueTraceType::GetUid (void)
 {
@@ -94,13 +99,23 @@ Queue::~Queue()
   NS_DEBUG("Queue::~Queue ()");
 }
 
-TraceResolver *
-Queue::CreateTraceResolver (TraceContext const &context)
+Ptr<TraceResolver>
+Queue::GetTraceResolver (void)
 {
-  CompositeTraceResolver *resolver = new CompositeTraceResolver (context);
-  resolver->Add ("enqueue", m_traceEnqueue, QueueTraceType (QueueTraceType::ENQUEUE));
-  resolver->Add ("dequeue", m_traceDequeue, QueueTraceType (QueueTraceType::DEQUEUE));
-  resolver->Add ("drop", m_traceDrop, QueueTraceType (QueueTraceType::DROP));
+  Ptr<CompositeTraceResolver> resolver = Create<CompositeTraceResolver> ();
+  resolver->AddSource ("enqueue", 
+                       TraceDoc ("store packet in queue",
+                                 "const Packet &", "packet queued"),
+                       m_traceEnqueue, QueueTraceType (QueueTraceType::ENQUEUE));
+  resolver->AddSource ("dequeue", 
+                       TraceDoc ("remove packet from queue",
+                                 "const Packet &", "packet dequeued"),
+                       m_traceDequeue, QueueTraceType (QueueTraceType::DEQUEUE));
+  resolver->AddSource ("drop", 
+                       TraceDoc ("drop packet from queue", 
+                                 "const Packet &", "packet dropped"),
+                       m_traceDrop, QueueTraceType (QueueTraceType::DROP));
+  resolver->SetParent (Object::GetTraceResolver ());
   return resolver;
 }
 

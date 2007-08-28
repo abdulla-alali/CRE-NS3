@@ -23,12 +23,12 @@
 #define CALLBACK_TRACE_H
 
 #include <list>
-#include "ns3/callback.h"
-#include "ns3/fatal-error.h"
+#include "callback.h"
+#include "fatal-error.h"
 #include "trace-context.h"
+#include "trace-source.h"
 
 namespace ns3 {
-
 
 /**
  * \brief log arbitrary number of parameters to a matching ns3::Callback
@@ -39,16 +39,16 @@ namespace ns3 {
  */
 template<typename T1 = empty, typename T2 = empty, 
          typename T3 = empty, typename T4 = empty>
-class CallbackTraceSource {
+class CallbackTraceSource : public TraceSource {
 public:
   CallbackTraceSource ();
-  void AddCallback (CallbackBase const & callback, TraceContext const & context);
-  void RemoveCallback (CallbackBase const & callback);
-  void operator() (void);
-  void operator() (T1 a1);
-  void operator() (T1 a1, T2 a2);
-  void operator() (T1 a1, T2 a2, T3 a3);
-  void operator() (T1 a1, T2 a2, T3 a3, T4 a4);
+  virtual void AddCallback (CallbackBase const & callback, TraceContext const & context);
+  virtual void RemoveCallback (CallbackBase const & callback);
+  void operator() (void) const;
+  void operator() (T1 a1) const;
+  void operator() (T1 a1, T2 a2) const;
+  void operator() (T1 a1, T2 a2, T3 a3) const;
+  void operator() (T1 a1, T2 a2, T3 a3, T4 a4) const;
 
 private:
   typedef std::list<Callback<void,TraceContext const &,T1,T2,T3,T4> > CallbackList;
@@ -75,7 +75,7 @@ CallbackTraceSource<T1,T2,T3,T4>::AddCallback (CallbackBase const & callback,
 {
   Callback<void,TraceContext const &,T1,T2,T3,T4> cb;
   cb.Assign (callback);
-  m_context.Add (context);
+  m_context.Union (context);
   m_callbackList.push_back (cb);
 }
 template<typename T1, typename T2, 
@@ -99,9 +99,9 @@ CallbackTraceSource<T1,T2,T3,T4>::RemoveCallback (CallbackBase const & callback)
 template<typename T1, typename T2, 
          typename T3, typename T4>
 void 
-CallbackTraceSource<T1,T2,T3,T4>::operator() (void) 
+CallbackTraceSource<T1,T2,T3,T4>::operator() (void) const
 {
-  for (typename CallbackList::iterator i = m_callbackList.begin ();
+  for (typename CallbackList::const_iterator i = m_callbackList.begin ();
        i != m_callbackList.end (); i++)
     {
       (*i) (m_context);
@@ -110,9 +110,9 @@ CallbackTraceSource<T1,T2,T3,T4>::operator() (void)
 template<typename T1, typename T2, 
          typename T3, typename T4>
 void 
-CallbackTraceSource<T1,T2,T3,T4>::operator() (T1 a1) 
+CallbackTraceSource<T1,T2,T3,T4>::operator() (T1 a1) const
 {
-  for (typename CallbackList::iterator i = m_callbackList.begin ();
+  for (typename CallbackList::const_iterator i = m_callbackList.begin ();
        i != m_callbackList.end (); i++)
     {
       (*i) (m_context, a1);
@@ -121,9 +121,9 @@ CallbackTraceSource<T1,T2,T3,T4>::operator() (T1 a1)
 template<typename T1, typename T2, 
          typename T3, typename T4>
 void 
-CallbackTraceSource<T1,T2,T3,T4>::operator() (T1 a1, T2 a2) 
+CallbackTraceSource<T1,T2,T3,T4>::operator() (T1 a1, T2 a2) const
 {
-  for (typename CallbackList::iterator i = m_callbackList.begin ();
+  for (typename CallbackList::const_iterator i = m_callbackList.begin ();
        i != m_callbackList.end (); i++)
     {
       (*i) (m_context, a1, a2);
@@ -132,9 +132,9 @@ CallbackTraceSource<T1,T2,T3,T4>::operator() (T1 a1, T2 a2)
 template<typename T1, typename T2, 
          typename T3, typename T4>
 void 
-CallbackTraceSource<T1,T2,T3,T4>::operator() (T1 a1, T2 a2, T3 a3) 
+CallbackTraceSource<T1,T2,T3,T4>::operator() (T1 a1, T2 a2, T3 a3) const
 {
-  for (typename CallbackList::iterator i = m_callbackList.begin ();
+  for (typename CallbackList::const_iterator i = m_callbackList.begin ();
        i != m_callbackList.end (); i++)
     {
       (*i) (m_context, a1, a2, a3);
@@ -143,9 +143,9 @@ CallbackTraceSource<T1,T2,T3,T4>::operator() (T1 a1, T2 a2, T3 a3)
 template<typename T1, typename T2, 
          typename T3, typename T4>
 void 
-CallbackTraceSource<T1,T2,T3,T4>::operator() (T1 a1, T2 a2, T3 a3, T4 a4) 
+CallbackTraceSource<T1,T2,T3,T4>::operator() (T1 a1, T2 a2, T3 a3, T4 a4) const
 {
-  for (typename CallbackList::iterator i = m_callbackList.begin ();
+  for (typename CallbackList::const_iterator i = m_callbackList.begin ();
        i != m_callbackList.end (); i++)
     {
       (*i) (m_context, a1, a2, a3, a4);

@@ -20,23 +20,11 @@
  *  Mathieu Lacage <mathieu.lacage@sophia.inria.fr>,
  */
 
-#include "ns3/array-trace-resolver.h"
-#include "ns3/trace-root.h"
+#include "ns3/composite-trace-resolver.h"
 #include "ns3/simulator.h"
 #include "ns3/simulation-singleton.h"
 #include "node-list.h"
 #include "node.h"
-
-namespace {
-static class Initialization 
-{
-public:
-  Initialization ()
-  {
-    ns3::TraceRoot::Register ("nodes", ns3::MakeCallback (&ns3::NodeList::CreateTraceResolver));
-  }
-} g_initialization;
-}
 
 namespace ns3 {
 
@@ -62,6 +50,11 @@ NodeListIndex::Get (void) const
 {
   return m_index;
 }
+std::string 
+NodeListIndex::GetName (void) const
+{
+  return "NodeListIndex";
+}
 
 
 /**
@@ -76,7 +69,7 @@ public:
   uint32_t Add (Ptr<Node> node);
   NodeList::Iterator Begin (void);
   NodeList::Iterator End (void);
-  TraceResolver *CreateTraceResolver (TraceContext const &context);
+  Ptr<TraceResolver> GetTraceResolver (void);
   Ptr<Node> GetNode (uint32_t n);
   uint32_t GetNNodes (void);
 
@@ -130,14 +123,11 @@ NodeListPriv::GetNode (uint32_t n)
 }
 
 
-TraceResolver *
-NodeListPriv::CreateTraceResolver (TraceContext const &context)
+Ptr<TraceResolver>
+NodeListPriv::GetTraceResolver (void)
 {
-  ArrayTraceResolver<Ptr<Node>, NodeListIndex> *resolver =
-    new ArrayTraceResolver<Ptr<Node>, NodeListIndex>
-    (context, 
-     MakeCallback (&NodeListPriv::GetNNodes, this),
-     MakeCallback (&NodeListPriv::GetNode, this));
+  Ptr<CompositeTraceResolver> resolver = Create<CompositeTraceResolver> ();
+  resolver->AddArray ("nodes", Begin (), End (), NodeListIndex ());
   return resolver;
 }
 
@@ -165,17 +155,25 @@ NodeList::End (void)
 {
   return SimulationSingleton<NodeListPriv>::Get ()->End ();
 }
-TraceResolver *
-NodeList::CreateTraceResolver (TraceContext const &context)
-{
-  return SimulationSingleton<NodeListPriv>::Get ()->CreateTraceResolver (context);
-}
 Ptr<Node>
 NodeList::GetNode (uint32_t n)
 {
   return SimulationSingleton<NodeListPriv>::Get ()->GetNode (n);
 }
 
-
-
+void 
+NodeList::Connect (std::string name, const CallbackBase &cb)
+{
+  SimulationSingleton<NodeListPriv>::Get ()->GetTraceResolver ()->Connect (name, cb, TraceContext ());
+}
+void 
+NodeList::Disconnect (std::string name, const CallbackBase &cb)
+{
+  SimulationSingleton<NodeListPriv>::Get ()->GetTraceResolver ()->Disconnect (name, cb);
+}
+Ptr<TraceResolver> 
+NodeList::GetTraceResolver (void)
+{
+  return SimulationSingleton<NodeListPriv>::Get ()->GetTraceResolver ();
+}
 }//namespace ns3
