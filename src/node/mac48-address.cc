@@ -160,13 +160,17 @@ bool operator != (const Mac48Address &a, const Mac48Address &b)
 
 bool operator < (const Mac48Address &a, const Mac48Address &b)
 {
+  uint8_t aP[6];
+  uint8_t bP[6];
+  a.CopyTo (aP);
+  b.CopyTo (bP);
   for (uint8_t i = 0; i < 6; i++) 
     {
-      if (a.m_address[i] < b.m_address[i]) 
+       if (a.m_address[i] < b.m_address[i]) 
         {
           return true;
         } 
-      else if (a.m_address[i] > b.m_address[i]) 
+       else if (a.m_address[i] > b.m_address[i]) 
         {
           return false;
         }
