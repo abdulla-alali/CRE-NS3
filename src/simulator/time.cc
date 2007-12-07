@@ -268,7 +268,6 @@ Time FemtoSeconds (uint64_t fs)
   uint64_t ts = TimeUnit<1>::UnitsToTimestep(fs, TimeStepPrecision::FS_FACTOR);
   return TimeStep(ts);
 }
-
 /*
  * The timestep value passed to this function must be of the precision
  * of TimeStepPrecision::Get
