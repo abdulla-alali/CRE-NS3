@@ -31,6 +31,7 @@ def build(bld):
         'callback-test.cc',
         'log.cc',
         'breakpoint.cc',
+        'object-base.cc',
         'ptr.cc',
         'object.cc',
         'test.cc',
@@ -52,6 +53,14 @@ def build(bld):
         'type-traits-test.cc',
         'array-trace-resolver.cc',
         'type-id-default-value.cc',
+        'value.cc',
+        'boolean-value.cc',
+        'value-test.cc',
+        'int-value.cc',
+        'uint-value.cc',
+        'enum-value.cc',
+        'fp-value.cc',
+        'object-factory.cc',
         ]
 
     if sys.platform == 'win32':
@@ -68,6 +77,7 @@ def build(bld):
         'system-wall-clock-ms.h',
         'empty.h',
         'callback.h',
+        'object-base.h',
         'ptr.h',
         'object.h',
         'log.h',
@@ -95,5 +105,12 @@ def build(bld):
         'trace-doc.h',
         'int-to-type.h',
         'type-id-default-value.h',
+        'value.h',
+        'param-spec-helper.h',
+        'int-value.h',
+        'uint-value.h',
+        'fp-value.h',
+        'enum-value.h',
+        'object-factory.h',
         ]
 

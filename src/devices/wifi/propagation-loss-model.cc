@@ -104,23 +104,21 @@ PropagationLossModel::CreateDefault (void)
   }
 }
 RandomPropagationLossModel::RandomPropagationLossModel ()
-  : m_variable (g_random.GetCopy ())
+  : m_variable (g_random.Get ())
 {}
 
 RandomPropagationLossModel::RandomPropagationLossModel (const RandomVariable &variable)
-  : m_variable (variable.Copy ())
+  : m_variable (variable)
 {}
 RandomPropagationLossModel::~RandomPropagationLossModel ()
-{
-  delete m_variable;
-}
+{}
 
 double 
 RandomPropagationLossModel::GetRxPower (double txPowerDbm,
 					Ptr<MobilityModel> a,
 					Ptr<MobilityModel> b) const
 {
-  double rxPower = txPowerDbm - m_variable->GetValue ();
+  double rxPower = txPowerDbm - m_variable.GetValue ();
   NS_LOG_DEBUG ("tx power="<<txPowerDbm<<"dbm, rx power="<<rxPower<<"Dbm");
   return rxPower;
 }
@@ -288,8 +286,12 @@ LogDistancePropagationLossModel::GetRxPower (double txPowerDbm,
    *      
    * rx = rx0(tx) - 10 * n * log (d/d0)
    */
-  static Ptr<StaticMobilityModel> zero = CreateObject<StaticMobilityModel> (Vector (0.0, 0.0, 0.0));
-  static Ptr<StaticMobilityModel> reference = CreateObject<StaticMobilityModel> (Vector (m_referenceDistance, 0.0, 0.0));
+  static Ptr<StaticMobilityModel> zero = 
+    CreateObjectWith<StaticMobilityModel> ("position", 
+                                           Vector (0.0, 0.0, 0.0));
+  static Ptr<StaticMobilityModel> reference = 
+    CreateObjectWith<StaticMobilityModel> ("position", 
+                                           Vector (m_referenceDistance, 0.0, 0.0));
   double rx0 = m_reference->GetRxPower (txPowerDbm, zero, reference);
   double pathLossDb = 10 * m_exponent * log10 (distance / m_referenceDistance);
   double rxPowerDbm = rx0 - pathLossDb;
