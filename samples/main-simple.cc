@@ -23,9 +23,13 @@ GenerateTraffic (Ptr<Socket> socket, uint32_t size)
 }
 
 static void
-SocketPrinter (Ptr<Socket> socket, Ptr<Packet> packet, const Address &from)
+SocketPrinter (Ptr<Socket> socket)
 {
-  std::cout << "at=" << Simulator::Now ().GetSeconds () << "s, rx bytes=" << packet->GetSize () << std::endl;
+  Ptr<Packet> packet;
+  while (packet = socket->Recv ())
+    { 
+      std::cout << "at=" << Simulator::Now ().GetSeconds () << "s, rx bytes=" << packet->GetSize () << std::endl;
+    }
 }
 
 static void

@@ -28,10 +28,24 @@
 #include "ipv4-end-point.h"
 #include "ipv4-l4-demux.h"
 #include "ns3/ipv4.h"
+#include "ns3/udp.h"
+#include "ns3/trace-source-accessor.h"
 
 NS_LOG_COMPONENT_DEFINE ("UdpSocket");
 
 namespace ns3 {
+
+TypeId
+UdpSocket::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::UdpSocket")
+    .SetParent<Socket> ()
+    .AddConstructor<UdpSocket> ()
+    .AddTraceSource ("Drop", "Drop UDP packet due to receive buffer overflow",
+                     MakeTraceSourceAccessor (&UdpSocket::m_dropTrace))
+    ;
+  return tid;
+}
 
 UdpSocket::UdpSocket ()
   : m_endPoint (0),
@@ -40,7 +54,9 @@ UdpSocket::UdpSocket ()
     m_errno (ERROR_NOTERROR),
     m_shutdownSend (false),
     m_shutdownRecv (false),
-    m_connected (false)
+    m_connected (false),
+    m_rxAvailable (0),
+    m_udp_rmem (0)
 {
   NS_LOG_FUNCTION_NOARGS ();
 }
@@ -72,6 +88,9 @@ void
 UdpSocket::SetNode (Ptr<Node> node)
 {
   m_node = node;
+  Ptr<Udp> u = node->GetObject<Udp> ();
+  m_udp_rmem =u->GetDefaultRxBuffer ();
+
 }
 void 
 UdpSocket::SetUdp (Ptr<UdpL4Protocol> udp)
@@ -315,14 +334,49 @@ UdpSocket::DoSendTo (Ptr<Packet> p, Ipv4Address dest, uint16_t port)
   return 0;
 }
 
+uint32_t
+UdpSocket::GetTxAvailable (void) const
+{
+  // No finite send buffer is modelled
+  return std::numeric_limits<uint32_t>::max ();
+}
+
 int 
-UdpSocket::SendTo(const Address &address, Ptr<Packet> p)
+UdpSocket::SendTo (const Address &address, Ptr<Packet> p)
 {
   NS_LOG_FUNCTION (this << address << p);
   InetSocketAddress transport = InetSocketAddress::ConvertFrom (address);
   Ipv4Address ipv4 = transport.GetIpv4 ();
   uint16_t port = transport.GetPort ();
   return DoSendTo (p, ipv4, port);
+}
+
+Ptr<Packet>
+UdpSocket::Recv (uint32_t maxSize, uint32_t flags)
+{
+  if (m_deliveryQueue.empty() )
+    {
+      return 0;
+    }
+  Ptr<Packet> p = m_deliveryQueue.front ();
+  if (p->GetSize () <= maxSize) 
+    {
+      m_deliveryQueue.pop ();
+      m_rxAvailable -= p->GetSize ();
+    }
+  else
+    {
+      p = 0; 
+    }
+  return p;
+}
+
+uint32_t
+UdpSocket::GetRxAvailable (void) const
+{
+  // We separately maintain this state to avoid walking the queue 
+  // every time this might be called
+  return m_rxAvailable;
 }
 
 void 
@@ -334,10 +388,55 @@ UdpSocket::ForwardUp (Ptr<Packet> packet, Ipv4Address ipv4, uint16_t port)
     {
       return;
     }
-  
-  Address address = InetSocketAddress (ipv4, port);
-  NotifyDataReceived (packet, address);
+  if ((m_rxAvailable + packet->GetSize ()) <= m_udp_rmem) 
+    {
+      Address address = InetSocketAddress (ipv4, port);
+      SocketRxAddressTag tag;
+      tag.SetAddress (address);
+      packet->AddTag (tag);
+      m_deliveryQueue.push (packet);
+      m_rxAvailable += packet->GetSize ();
+      NotifyDataRecv ();
+    }
+  else
+    {
+      // In general, this case should not occur unless the
+      // receiving application reads data from this socket slowly
+      // in comparison to the arrival rate
+      //
+      // drop and trace packet
+      NS_LOG_WARN ("No receive buffer space available.  Drop.");
+      m_dropTrace (packet);
+    }
 }
+
+void 
+UdpSocket::SetSndBuf (uint32_t size)
+{
+  // return EINVAL since we are not modelling a finite send buffer
+  // Enforcing buffer size should be added if we ever start to model
+  // non-zero processing delay in the UDP/IP stack
+  NS_LOG_WARN ("UdpSocket has infinite send buffer");
+}
+
+uint32_t 
+UdpSocket::GetSndBuf (void) const
+{
+  return std::numeric_limits<uint32_t>::max ();
+}
+
+void 
+UdpSocket::SetRcvBuf (uint32_t size)
+{
+  m_udp_rmem = size;
+}
+
+uint32_t 
+UdpSocket::GetRcvBuf (void) const
+{
+  return m_udp_rmem;
+}
+
 
 } //namespace ns3
 
@@ -367,6 +466,8 @@ public:
 
   void ReceivePacket (Ptr<Socket> socket, Ptr<Packet> packet, const Address &from);
   void ReceivePacket2 (Ptr<Socket> socket, Ptr<Packet> packet, const Address &from);
+  void ReceivePkt (Ptr<Socket> socket);
+  void ReceivePkt2 (Ptr<Socket> socket);
 };
 
 
@@ -382,6 +483,20 @@ void UdpSocketTest::ReceivePacket (Ptr<Socket> socket, Ptr<Packet> packet, const
 void UdpSocketTest::ReceivePacket2 (Ptr<Socket> socket, Ptr<Packet> packet, const Address &from)
 {
   m_receivedPacket2 = packet;
+}
+
+void UdpSocketTest::ReceivePkt (Ptr<Socket> socket)
+{
+  uint32_t availableData = socket->GetRxAvailable ();
+  m_receivedPacket = socket->Recv (std::numeric_limits<uint32_t>::max(), 0);
+  NS_ASSERT (availableData == m_receivedPacket->GetSize ());
+}
+
+void UdpSocketTest::ReceivePkt2 (Ptr<Socket> socket)
+{
+  uint32_t availableData = socket->GetRxAvailable ();
+  m_receivedPacket2 = socket->Recv (std::numeric_limits<uint32_t>::max(), 0);
+  NS_ASSERT (availableData == m_receivedPacket2->GetSize ());
 }
 
 bool
@@ -457,10 +572,10 @@ UdpSocketTest::RunTests (void)
   Ptr<SocketFactory> rxSocketFactory = rxNode->GetObject<Udp> ();
   Ptr<Socket> rxSocket = rxSocketFactory->CreateSocket ();
   NS_TEST_ASSERT_EQUAL (rxSocket->Bind (InetSocketAddress (Ipv4Address ("10.0.0.1"), 1234)), 0);
-  rxSocket->SetRecvCallback (MakeCallback (&UdpSocketTest::ReceivePacket, this));
+  rxSocket->SetRecvCallback (MakeCallback (&UdpSocketTest::ReceivePkt, this));
 
   Ptr<Socket> rxSocket2 = rxSocketFactory->CreateSocket ();
-  rxSocket2->SetRecvCallback (MakeCallback (&UdpSocketTest::ReceivePacket2, this));
+  rxSocket2->SetRecvCallback (MakeCallback (&UdpSocketTest::ReceivePkt2, this));
   NS_TEST_ASSERT_EQUAL (rxSocket2->Bind (InetSocketAddress (Ipv4Address ("10.0.1.1"), 1234)), 0);
 
   Ptr<SocketFactory> txSocketFactory = txNode->GetObject<Udp> ();
@@ -477,6 +592,8 @@ UdpSocketTest::RunTests (void)
   NS_TEST_ASSERT_EQUAL (m_receivedPacket->GetSize (), 123);
   NS_TEST_ASSERT_EQUAL (m_receivedPacket2->GetSize (), 0); // second interface should receive it
 
+  m_receivedPacket->RemoveAllTags ();
+  m_receivedPacket2->RemoveAllTags ();
 
   // Simple broadcast test
 
@@ -489,6 +606,8 @@ UdpSocketTest::RunTests (void)
   // second socket should not receive it (it is bound specifically to the second interface's address
   NS_TEST_ASSERT_EQUAL (m_receivedPacket2->GetSize (), 0);
 
+  m_receivedPacket->RemoveAllTags ();
+  m_receivedPacket2->RemoveAllTags ();
 
   // Broadcast test with multiple receiving sockets
 
@@ -497,7 +616,7 @@ UdpSocketTest::RunTests (void)
   // the socket address matches.
   rxSocket2->Dispose ();
   rxSocket2 = rxSocketFactory->CreateSocket ();
-  rxSocket2->SetRecvCallback (MakeCallback (&UdpSocketTest::ReceivePacket2, this));
+  rxSocket2->SetRecvCallback (MakeCallback (&UdpSocketTest::ReceivePkt2, this));
   NS_TEST_ASSERT_EQUAL (rxSocket2->Bind (InetSocketAddress (Ipv4Address ("0.0.0.0"), 1234)), 0);
 
   m_receivedPacket = Create<Packet> ();
@@ -507,6 +626,9 @@ UdpSocketTest::RunTests (void)
   Simulator::Run ();
   NS_TEST_ASSERT_EQUAL (m_receivedPacket->GetSize (), 123);
   NS_TEST_ASSERT_EQUAL (m_receivedPacket2->GetSize (), 123);
+
+  m_receivedPacket->RemoveAllTags ();
+  m_receivedPacket2->RemoveAllTags ();
 
   Simulator::Destroy ();
 

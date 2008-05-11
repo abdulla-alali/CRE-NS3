@@ -29,7 +29,7 @@ NS_LOG_COMPONENT_DEFINE ("PacketSocket");
 
 namespace ns3 {
 
-PacketSocket::PacketSocket ()
+PacketSocket::PacketSocket () : m_rxAvailable (0)
 {
   NS_LOG_FUNCTION_NOARGS ();
   m_state = STATE_OPEN;
@@ -214,6 +214,13 @@ PacketSocket::Send (Ptr<Packet> p)
   return SendTo (m_destAddr, p);
 }
 
+uint32_t 
+PacketSocket::GetTxAvailable (void) const
+{
+  // No finite send buffer is modelled
+  return 0xffffffff;
+}
+
 int
 PacketSocket::SendTo(const Address &address, Ptr<Packet> p)
 {
@@ -301,8 +308,62 @@ PacketSocket::ForwardUp (Ptr<NetDevice> device, Ptr<Packet> packet,
   address.SetSingleDevice (device->GetIfIndex ());
   address.SetProtocol (protocol);
 
+  SocketRxAddressTag tag;
+  tag.SetAddress (address);
+  packet->AddTag (tag);
+  m_deliveryQueue.push (packet);
+  m_rxAvailable += packet->GetSize ();
   NS_LOG_LOGIC ("UID is " << packet->GetUid() << " PacketSocket " << this);
-  NotifyDataReceived (packet, address);
+  NotifyDataRecv ();
+}
+
+Ptr<Packet> 
+PacketSocket::Recv (uint32_t maxSize, uint32_t flags)
+{
+  if (m_deliveryQueue.empty() )
+    {
+      return 0;
+    }
+  Ptr<Packet> p = m_deliveryQueue.front ();
+  if (p->GetSize () <= maxSize)
+    {
+      m_deliveryQueue.pop ();
+      m_rxAvailable -= p->GetSize ();
+    }
+  else
+    {
+      p = 0;
+    }
+  return p;
+}
+
+uint32_t
+PacketSocket::GetRxAvailable (void) const
+{
+  // We separately maintain this state to avoid walking the queue 
+  // every time this might be called
+  return m_rxAvailable;
+}
+
+void 
+PacketSocket::SetSndBuf (uint32_t size)
+{
+}
+
+uint32_t 
+PacketSocket::GetSndBuf (void) const
+{
+  return 0;
+}
+void 
+PacketSocket::SetRcvBuf (uint32_t size)
+{
+}
+
+uint32_t 
+PacketSocket::GetRcvBuf (void) const
+{
+  return 0;
 }
 
 }//namespace ns3

@@ -38,7 +38,7 @@ public:
   Experiment (std::string name);
   GnuplotDataset Run (const WifiHelper &wifi);
 private:
-  void ReceivePacket (Ptr<Socket> socket, Ptr<Packet> packet, const Address &address);
+  void ReceivePacket (Ptr<Socket> socket);
   void SetPosition (Ptr<Node> node, Vector position);
   Vector GetPosition (Ptr<Node> node);
   void AdvancePosition (Ptr<Node> node);
@@ -90,9 +90,13 @@ Experiment::AdvancePosition (Ptr<Node> node)
 }
 
 void
-Experiment::ReceivePacket (Ptr<Socket> socket, Ptr<Packet> packet, const Address &address)
+Experiment::ReceivePacket (Ptr<Socket> socket)
 {
-  m_bytesTotal += packet->GetSize ();
+  Ptr<Packet> packet;
+  while (packet = socket->Recv ())
+    {
+      m_bytesTotal += packet->GetSize ();
+    }
 }
 
 Ptr<Socket>

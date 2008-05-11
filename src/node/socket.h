@@ -25,14 +25,46 @@
 
 #include "ns3/callback.h"
 #include "ns3/ptr.h"
+#include "ns3/tag.h"
 #include "ns3/object.h"
 #include "address.h"
 #include <stdint.h>
 
 namespace ns3 {
 
+
 class Node;
 class Packet;
+
+/**
+ * \brief Support for socket options at the socket level.
+ *
+ * A SocketOptions object is aggregated to each Socket.  This object
+ * can be fetched using GetObject() by any user of a Socket.  An 
+ * instance of SocketOptions is aggregated to each Socket when the
+ * Socket is constructed.
+ * 
+ * This implements the equivalent of getsockopt() and setsockopt()  
+ * function calls to manipulate the options associated with the
+ * socket at the uppermost ``socket'' level.  Socket options that
+ * exist at a lower level (such as TCP socket options) are manipulated
+ * using a different aggregated class (TcpSocketOptions).
+ */
+class SocketOptions : public Object
+{
+public:
+  static TypeId GetTypeId (void);
+
+  SocketOptions (void);
+  virtual ~SocketOptions (void);
+
+  virtual void SetSndBuf (uint32_t size);
+  virtual uint32_t GetSndBuf (void) const;
+  virtual void SetRcvBuf (uint32_t size);
+  virtual uint32_t GetRcvBuf (void) const;
+
+  // all others
+};
 
 /**
  * \brief Define a Socket API based on the BSD Socket API.
@@ -46,8 +78,10 @@ class Packet;
  */
 class Socket : public Object
 {
+  friend class SocketOptions;
 public:
-  virtual ~Socket();
+  Socket (void);
+  virtual ~Socket (void);
 
   enum SocketErrno {
     ERROR_NOTERROR,
@@ -151,13 +185,13 @@ public:
    */
   void SetSendCallback (Callback<void, Ptr<Socket>, uint32_t> sendCb);
   /**
-   * \brief Receive data
-   * \param receivedData Invoked whenever new data is received.
+   * \brief Notify application when new data is available to be read.
    *
+   *        This callback is intended to notify a socket that would
+   *        have been blocked in a blocking socket model that data
+   *        is available to be read.
    */
-  void SetRecvCallback (Callback<void, Ptr<Socket>, Ptr<Packet>,
-                          const Address&> receivedData);
-
+  void SetRecvCallback (Callback<void, Ptr<Socket> >);
   /** 
    * \param address the address to try to allocate
    * \returns 0 on success, -1 on failure.
@@ -219,6 +253,12 @@ public:
   virtual int Send (Ptr<Packet> p) = 0;
   
   /**
+   * returns the number of bytes which can be sent in a single call
+   * to Send. 
+   */
+  virtual uint32_t GetTxAvailable (void) const = 0;
+
+  /**
    * \brief Send data (or dummy data) to the remote host
    * \param buf A pointer to a raw byte buffer of some data to send.  If this 
    * is 0, we send dummy data whose size is specified by the second parameter
@@ -252,6 +292,32 @@ public:
    */
   int SendTo (const Address &address, const uint8_t* buf, uint32_t size);
 
+  /**
+   * \brief Read a single packet from the socket
+   * \param maxSize reader will accept packet up to maxSize
+   * \param flags Socket recv flags
+   * \returns Ptr<Packet> of the next in-sequence packet.  Returns
+   * 0 if the socket cannot return a next in-sequence packet conforming
+   * to the maxSize and flags.
+   */
+  virtual Ptr<Packet> Recv (uint32_t maxSize, uint32_t flags) = 0;
+  /**
+   * \brief Read a single packet from the socket
+   *
+   *      Overloaded version of Recv(maxSize, flags) with maxSize
+   *      implicitly set to maximum sized integer, and flags set to zero.
+   *
+   * \returns Ptr<Packet> of the next in-sequence packet.  Returns
+   * 0 if the socket cannot return a next in-sequence packet.
+   */
+   Ptr<Packet> Recv (void);
+  /**
+   * Return number of bytes which can be returned from one or 
+   * multiple calls to Recv.
+   * Must be possible to call this method from the Recv callback.
+   */
+  virtual uint32_t GetRxAvailable (void) const = 0;
+ 
 protected:
   void NotifyCloseCompleted (void);
   void NotifyConnectionSucceeded (void);
@@ -262,7 +328,7 @@ protected:
   void NotifyCloseRequested (void);
   void NotifyDataSent (uint32_t size);
   void NotifySend (uint32_t spaceAvailable);
-  void NotifyDataReceived (Ptr<Packet> p, const Address &from);
+  void NotifyDataRecv (void);
 
   Callback<void,Ptr<Socket> >    m_closeCompleted;
   Callback<void, Ptr<Socket> >   m_connectionSucceeded;
@@ -273,7 +339,33 @@ protected:
   Callback<void, Ptr<Socket>, const Address&>    m_newConnectionCreated;
   Callback<void, Ptr<Socket>, uint32_t>          m_dataSent;
   Callback<void, Ptr<Socket>, uint32_t >         m_sendCb;
-  Callback<void, Ptr<Socket>, Ptr<Packet>,const Address&> m_receivedData;
+  Callback<void, Ptr<Socket> > m_receivedData;
+
+  // Socket options at level socket
+  virtual void SetSndBuf (uint32_t size) = 0;
+  virtual uint32_t GetSndBuf (void) const = 0;
+  virtual void SetRcvBuf (uint32_t size) = 0;
+  virtual uint32_t GetRcvBuf (void) const = 0;
+};
+
+/**
+ * \brief This class implements a tag that carries the source address
+ * of a packet across the receiving socket interface.
+ */
+class SocketRxAddressTag : public Tag
+{
+public:
+  SocketRxAddressTag ();
+  static uint32_t GetUid (void);
+  void Print (std::ostream &os) const;
+  uint32_t GetSerializedSize (void) const;
+  void Serialize (Buffer::Iterator i) const;
+  uint32_t Deserialize (Buffer::Iterator i);
+
+  void SetAddress (Address addr);
+  Address GetAddress (void) const;
+private:
+  Address m_address;
 };
 
 } //namespace ns3

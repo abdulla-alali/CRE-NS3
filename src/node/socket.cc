@@ -28,6 +28,56 @@ NS_LOG_COMPONENT_DEFINE ("Socket");
 
 namespace ns3 {
 
+TypeId
+SocketOptions::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::SocketOptions")
+    .SetParent<Object> ()
+    .AddConstructor<SocketOptions> ()
+    ;
+  return tid;
+}
+
+SocketOptions::SocketOptions (void)
+{
+  NS_LOG_FUNCTION_NOARGS ();
+}
+
+SocketOptions::~SocketOptions (void)
+{
+  NS_LOG_FUNCTION_NOARGS ();
+}
+
+
+void 
+SocketOptions::SetSndBuf (uint32_t size)
+{
+}
+
+uint32_t 
+SocketOptions::GetSndBuf (void) const
+{
+  return 0;
+}
+
+void 
+SocketOptions::SetRcvBuf (uint32_t size)
+{
+}
+
+uint32_t 
+SocketOptions::GetRcvBuf (void) const
+{
+  return 0;
+}
+
+Socket::Socket (void)
+{
+  NS_LOG_FUNCTION_NOARGS ();
+  Ptr<SocketOptions> s = CreateObject<SocketOptions> ();
+  AggregateObject (s);
+}
+
 Socket::~Socket ()
 {
   NS_LOG_FUNCTION_NOARGS ();
@@ -80,7 +130,7 @@ Socket::SetSendCallback (Callback<void, Ptr<Socket>, uint32_t> sendCb)
 }
 
 void 
-Socket::SetRecvCallback (Callback<void, Ptr<Socket>, Ptr<Packet>,const Address&> receivedData)
+Socket::SetRecvCallback (Callback<void, Ptr<Socket> > receivedData)
 {
   NS_LOG_FUNCTION_NOARGS ();
   m_receivedData = receivedData;
@@ -105,6 +155,12 @@ int Socket::Send (const uint8_t* buf, uint32_t size)
       p = Create<Packet> (size);
     }
   return Send (p);
+}
+
+Ptr<Packet>
+Socket::Recv (void)
+{
+  return Recv (std::numeric_limits<uint32_t>::max(), 0);
 }
 
 int Socket::SendTo (const Address &address, const uint8_t* buf, uint32_t size)
@@ -221,13 +277,61 @@ Socket::NotifySend (uint32_t spaceAvailable)
 }
 
 void 
-Socket::NotifyDataReceived (Ptr<Packet> p, const Address &from)
+Socket::NotifyDataRecv (void)
 {
   NS_LOG_FUNCTION_NOARGS ();
   if (!m_receivedData.IsNull ())
     {
-      m_receivedData (this, p, from);
+      m_receivedData (this);
     }
+}
+
+SocketRxAddressTag::SocketRxAddressTag ()  
+{
+}
+
+uint32_t 
+SocketRxAddressTag::GetUid (void)
+{
+  static uint32_t uid = ns3::Tag::AllocateUid<SocketRxAddressTag> ("SocketRxAddressTag.ns3");
+  return uid;
+}
+
+void
+SocketRxAddressTag::Print (std::ostream &os) const
+{
+  os << "address="<< m_address;
+}
+
+uint32_t 
+SocketRxAddressTag::GetSerializedSize (void) const
+{
+  return 0;
+}
+
+void 
+SocketRxAddressTag::Serialize (Buffer::Iterator i) const
+{
+  // for local use in stack only
+}
+
+uint32_t 
+SocketRxAddressTag::Deserialize (Buffer::Iterator i)
+{
+  // for local use in stack only
+  return 0;
+}
+
+void 
+SocketRxAddressTag::SetAddress (Address addr)
+{
+  m_address = addr;
+}
+
+Address 
+SocketRxAddressTag::GetAddress (void) const
+{
+  return m_address;
 }
 
 }//namespace ns3

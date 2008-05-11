@@ -307,10 +307,16 @@ void AgentImpl::SetMainInterface (uint32_t interface)
 //
 // \brief Processes an incoming %OLSR packet following RFC 3626 specification.
 void
-AgentImpl::RecvOlsr (Ptr<Socket> socket,
-                     Ptr<Packet> receivedPacket,
-                     const Address &sourceAddress)
+AgentImpl::RecvOlsr (Ptr<Socket> socket)
 {
+  Ptr<Packet> receivedPacket;
+  receivedPacket = socket->Recv ();
+
+  SocketRxAddressTag tag;
+  bool found = receivedPacket->PeekTag (tag);
+  NS_ASSERT (found);
+  Address sourceAddress = tag.GetAddress ();
+
   InetSocketAddress inetSourceAddr = InetSocketAddress::ConvertFrom (sourceAddress);
   Ipv4Address senderIfaceAddr = inetSourceAddr.GetIpv4 ();
   Ipv4Address receiverIfaceAddr = m_socketAddresses[socket];
