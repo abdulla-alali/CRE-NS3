@@ -24,10 +24,10 @@
 
 NS_LOG_COMPONENT_DEFINE ("Buffer");
 
-#define LOG_INTERNAL_STATE(y)                                                                    \
-NS_LOG_LOGIC (y << "start="<<m_start<<", end="<<m_end<<", zero start="<<m_zeroAreaStart<<              \
-          ", zero end="<<m_zeroAreaEnd<<", count="<<m_data->m_count<<", size="<<m_data->m_size<<   \
-          ", dirty start="<<m_data->m_dirtyStart<<", dirty end="<<m_data->m_dirtyEnd)
+#define LOG_INTERNAL_STATE(y)                                           \
+  NS_LOG_LOGIC (y << "start="<<m_start<<", end="<<m_end<<", zero start="<<m_zeroAreaStart<< \
+                ", zero end="<<m_zeroAreaEnd<<", count="<<m_data->m_count<<", size="<<m_data->m_size<< \
+                ", ownerId=" << m_ownerId << ", data owner=" << m_data->m_ownerId)
 
 #ifdef BUFFER_HEURISTICS
 #define HEURISTICS(x) x
@@ -58,17 +58,10 @@ struct BufferData {
    * Each buffer which references an instance holds a count.
    */
   uint32_t m_count;
+  uint32_t m_ownerId;
   /* the size of the m_data field below.
    */
   uint32_t m_size;
-  /* offset from the start of the m_data field below to the
-   * start of the area in which user bytes were written.
-   */
-  uint32_t m_dirtyStart;
-  /* offset from the start of the m_data field below to the
-   * end of the area in which user bytes were written.
-   */
-  uint32_t m_dirtyEnd;
   /* The real data buffer holds _at least_ one byte.
    * Its real size is stored in the m_size field.
    */
@@ -137,6 +130,7 @@ BufferAllocate (uint32_t reqSize)
   struct BufferData *data = reinterpret_cast<struct BufferData*>(b);
   data->m_size = reqSize;
   data->m_count = 1;
+  data->m_ownerId = 0;
   return data;
 }
 
@@ -203,11 +197,13 @@ Buffer::Create (uint32_t size)
 
 Buffer::Buffer ()
 {
+  NS_LOG_FUNCTION (this);
   Initialize (0);
 }
 
 Buffer::Buffer (uint32_t dataSize)
 {
+  NS_LOG_FUNCTION (this << dataSize);
   Initialize (dataSize);
 }
 
@@ -218,25 +214,26 @@ Buffer::CheckInternalState (void) const
     m_start <= m_zeroAreaStart &&
     m_zeroAreaStart <= m_zeroAreaEnd &&
     m_zeroAreaEnd <= m_end;
-  bool dirtyOk =
-    m_start >= m_data->m_dirtyStart &&
-    m_end <= m_data->m_dirtyEnd;
   bool internalSizeOk = m_end - (m_zeroAreaEnd - m_zeroAreaStart) <= m_data->m_size &&
     m_start <= m_data->m_size &&
     m_zeroAreaStart <= m_data->m_size;
 
-  NS_ASSERT (offsetsOk);
-  NS_ASSERT (dirtyOk);
-  NS_ASSERT (internalSizeOk);
-
-  return m_data->m_count > 0 && offsetsOk && dirtyOk && 
-    internalSizeOk;
+  bool ok = m_data->m_count > 0 && offsetsOk && internalSizeOk;
+  if (!ok)
+    {
+      LOG_INTERNAL_STATE ("check " << this << 
+                          ", " << (offsetsOk?"true":"false") << 
+                          ", " << (internalSizeOk?"true":"false") << " ");
+    }
+  return ok;
 }
 
 void
 Buffer::Initialize (uint32_t zeroSize)
 {
+  NS_LOG_FUNCTION (this << zeroSize);
   m_data = Buffer::Create (0);
+  m_ownerId = m_data->m_ownerId;
 #ifdef BUFFER_HEURISTICS
   m_start = std::min (m_data->m_size, g_recommendedStart);
   m_maxZeroAreaStart = m_start;
@@ -246,13 +243,12 @@ Buffer::Initialize (uint32_t zeroSize)
   m_zeroAreaStart = m_start;
   m_zeroAreaEnd = m_zeroAreaStart + zeroSize;
   m_end = m_zeroAreaEnd;
-  m_data->m_dirtyStart = m_start;
-  m_data->m_dirtyEnd = m_end;
   NS_ASSERT (CheckInternalState ());
 }
 
 Buffer::Buffer (Buffer const&o)
   : m_data (o.m_data),
+    m_ownerId (o.m_ownerId),
 #ifdef BUFFER_HEURISTICS
     m_maxZeroAreaStart (o.m_zeroAreaStart),
 #endif
@@ -261,6 +257,7 @@ Buffer::Buffer (Buffer const&o)
     m_start (o.m_start),
     m_end (o.m_end)
 {
+  NS_LOG_FUNCTION (this << &o);
   m_data->m_count++;
   NS_ASSERT (CheckInternalState ());
 }
@@ -268,6 +265,7 @@ Buffer::Buffer (Buffer const&o)
 Buffer &
 Buffer::operator = (Buffer const&o)
 {
+  NS_LOG_FUNCTION (this << &o);
   NS_ASSERT (CheckInternalState ());
   if (m_data != o.m_data) 
     {
@@ -278,6 +276,7 @@ Buffer::operator = (Buffer const&o)
           Recycle (m_data);
         }
       m_data = o.m_data;
+      m_ownerId = o.m_ownerId;
       m_data->m_count++;
     }
   HEURISTICS (
@@ -294,6 +293,8 @@ Buffer::operator = (Buffer const&o)
 
 Buffer::~Buffer ()
 {
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (CheckInternalState ());
   HEURISTICS (g_recommendedStart = std::max (g_recommendedStart, m_maxZeroAreaStart));
   m_data->m_count--;
   if (m_data->m_count == 0) 
@@ -336,9 +337,10 @@ Buffer::GetInternalEnd (void) const
 bool
 Buffer::AddAtStart (uint32_t start)
 {
+  NS_LOG_FUNCTION (this << start);
   bool dirty;
   NS_ASSERT (CheckInternalState ());
-  bool isDirty = m_data->m_count > 1 && m_start > m_data->m_dirtyStart;
+  bool isDirty = m_data->m_count > 1 && m_ownerId != m_data->m_ownerId;
   if (m_start >= start && !isDirty)
     {
       /* enough space in the buffer and not dirty. 
@@ -346,9 +348,11 @@ Buffer::AddAtStart (uint32_t start)
        * Before: |*****---------***|
        * After:  |***..---------***|
        */
-      NS_ASSERT (m_data->m_count == 1 || m_start == m_data->m_dirtyStart);
+      NS_ASSERT (m_data->m_count == 1 || m_ownerId == m_data->m_ownerId);
       m_start -= start;
-      dirty = m_start > m_data->m_dirtyStart;
+      dirty = m_ownerId != m_data->m_ownerId;
+      m_ownerId++;
+      m_data->m_ownerId = m_ownerId;
       HEURISTICS (g_nAddNoRealloc++);
     } 
   else
@@ -362,6 +366,7 @@ Buffer::AddAtStart (uint32_t start)
           Buffer::Recycle (m_data);
         }
       m_data = newData;
+      m_ownerId = newData->m_ownerId;
 
       int32_t delta = start - m_start;
       m_start += delta;
@@ -375,9 +380,6 @@ Buffer::AddAtStart (uint32_t start)
       HEURISTICS (g_nAddRealloc++);
     }
   HEURISTICS (m_maxZeroAreaStart = std::max (m_maxZeroAreaStart, m_zeroAreaStart));
-  // update dirty area
-  m_data->m_dirtyStart = m_start;
-  m_data->m_dirtyEnd = m_end;
   LOG_INTERNAL_STATE ("add start=" << start << ", ");
   NS_ASSERT (CheckInternalState ());
   return dirty;
@@ -385,9 +387,10 @@ Buffer::AddAtStart (uint32_t start)
 bool
 Buffer::AddAtEnd (uint32_t end)
 {
+  NS_LOG_FUNCTION (this << end);
   bool dirty;
   NS_ASSERT (CheckInternalState ());
-  bool isDirty = m_data->m_count > 1 && m_end < m_data->m_dirtyEnd;
+  bool isDirty = m_data->m_count > 1 && m_ownerId != m_data->m_ownerId;
   if (GetInternalEnd () + end <= m_data->m_size && !isDirty)
     {
       /* enough space in buffer and not dirty
@@ -395,10 +398,12 @@ Buffer::AddAtEnd (uint32_t end)
        * Before: |**----*****|
        * After:  |**----...**|
        */
-      NS_ASSERT (m_data->m_count == 1 || m_end == m_data->m_dirtyEnd);
+      NS_ASSERT (m_data->m_count == 1 || m_ownerId == m_data->m_ownerId);
       m_end += end;
 
-      dirty = m_end < m_data->m_dirtyEnd;
+      dirty = m_ownerId != m_data->m_ownerId;
+      m_ownerId++;
+      m_data->m_ownerId = m_ownerId;
 
       HEURISTICS (g_nAddNoRealloc++);
     } 
@@ -413,6 +418,7 @@ Buffer::AddAtEnd (uint32_t end)
           Buffer::Recycle (m_data);
         }
       m_data = newData;
+      m_ownerId = newData->m_ownerId;
 
       int32_t delta = -m_start;
       m_zeroAreaStart += delta;
@@ -426,9 +432,6 @@ Buffer::AddAtEnd (uint32_t end)
       HEURISTICS (g_nAddRealloc++);
     } 
   HEURISTICS (m_maxZeroAreaStart = std::max (m_maxZeroAreaStart, m_zeroAreaStart));
-  // update dirty area
-  m_data->m_dirtyStart = m_start;
-  m_data->m_dirtyEnd = m_end;
   LOG_INTERNAL_STATE ("add end=" << end << ", ");
   NS_ASSERT (CheckInternalState ());
 
@@ -438,9 +441,10 @@ Buffer::AddAtEnd (uint32_t end)
 void
 Buffer::AddAtEnd (const Buffer &o)
 {
+  NS_LOG_FUNCTION (this << &o);
   if (m_data->m_count == 1 &&
       m_end == m_zeroAreaEnd &&
-      m_end == m_data->m_dirtyEnd &&
+      m_ownerId == m_data->m_ownerId &&
       o.m_start == o.m_zeroAreaStart &&
       o.m_zeroAreaEnd - o.m_zeroAreaStart > 0)
     {
@@ -452,7 +456,6 @@ Buffer::AddAtEnd (const Buffer &o)
       uint32_t zeroSize = o.m_zeroAreaEnd - o.m_zeroAreaStart;
       m_zeroAreaEnd += zeroSize;
       m_end = m_zeroAreaEnd;
-      m_data->m_dirtyEnd = m_zeroAreaEnd;
       uint32_t endData = o.m_end - o.m_zeroAreaEnd;
       AddAtEnd (endData);
       Buffer::Iterator dst = End ();
@@ -460,6 +463,7 @@ Buffer::AddAtEnd (const Buffer &o)
       Buffer::Iterator src = o.End ();
       src.Prev (endData);
       dst.Write (src, o.End ());
+      NS_ASSERT (CheckInternalState ());
       return;
     }
 
@@ -471,11 +475,13 @@ Buffer::AddAtEnd (const Buffer &o)
   destStart.Prev (src.GetSize ());
   destStart.Write (src.Begin (), src.End ());
   *this = dst;
+  NS_ASSERT (CheckInternalState ());
 }
 
 void 
 Buffer::RemoveAtStart (uint32_t start)
 {
+  NS_LOG_FUNCTION (this << start);
   NS_ASSERT (CheckInternalState ());
   uint32_t newStart = m_start + start;
   if (newStart <= m_zeroAreaStart)
@@ -520,6 +526,7 @@ Buffer::RemoveAtStart (uint32_t start)
 void 
 Buffer::RemoveAtEnd (uint32_t end)
 {
+  NS_LOG_FUNCTION (this << end);
   NS_ASSERT (CheckInternalState ());
   uint32_t newEnd = m_end - std::min (end, m_end - m_start);
   if (newEnd > m_zeroAreaEnd)
@@ -555,6 +562,7 @@ Buffer::RemoveAtEnd (uint32_t end)
 Buffer 
 Buffer::CreateFragment (uint32_t start, uint32_t length) const
 {
+  NS_LOG_FUNCTION (this << start << length);
   NS_ASSERT (CheckInternalState ());
   Buffer tmp = *this;
   tmp.RemoveAtStart (start);
@@ -566,6 +574,7 @@ Buffer::CreateFragment (uint32_t start, uint32_t length) const
 Buffer 
 Buffer::CreateFullCopy (void) const
 {
+  NS_LOG_FUNCTION (this);
   NS_ASSERT (CheckInternalState ());
   if (m_zeroAreaEnd - m_zeroAreaStart != 0) 
     {
@@ -580,6 +589,7 @@ Buffer::CreateFullCopy (void) const
       Buffer::Iterator i = tmp.End ();
       i.Prev (dataEnd);
       i.Write (m_data->m_data+m_zeroAreaStart,dataEnd);
+      NS_ASSERT (tmp.CheckInternalState ());
       return tmp;
     }
   NS_ASSERT (CheckInternalState ());
@@ -730,7 +740,6 @@ Buffer::Iterator::Write (Iterator start, Iterator end)
   NS_ASSERT (start.m_current <= end.m_current);
   NS_ASSERT (start.m_zeroStart == end.m_zeroStart);
   NS_ASSERT (start.m_zeroEnd == end.m_zeroEnd);
-  NS_ASSERT (m_data != start.m_data);
   uint32_t size = end.m_current - start.m_current;
   Iterator cur = start;
   for (uint32_t i = 0; i < size; i++)
