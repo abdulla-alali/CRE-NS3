@@ -26,10 +26,10 @@
 #include "ns3/object.h"
 #include "ns3/callback.h"
 #include "ns3/ptr.h"
+#include "ns3/net-device.h"
 
 namespace ns3 {
 
-class NetDevice;
 class Application;
 class Packet;
 class Address;
@@ -137,7 +137,8 @@ public:
   /**
    * A protocol handler
    */
-  typedef Callback<void,Ptr<NetDevice>, Ptr<Packet>,uint16_t,const Address &> ProtocolHandler;
+  typedef Callback<void,Ptr<NetDevice>, Ptr<Packet>,uint16_t,const Address &,
+                   const Address &, NetDevice::PacketType> ProtocolHandler;
   /**
    * \param handler the handler to register
    * \param protocolType the type of protocol this handler is 
@@ -161,6 +162,35 @@ public:
    */
   void UnregisterProtocolHandler (ProtocolHandler handler);
 
+  /**
+   * A promiscuous protocol handler
+   */
+  typedef Callback<void,Ptr<NetDevice>, Ptr<Packet>,uint16_t,
+                   const Address &, const Address &, bool> PromiscuousProtocolHandler;
+  /**
+   * \param handler the handler to register
+   * \param protocolType the type of protocol this handler is 
+   *        interested in. This protocol type is a so-called
+   *        EtherType, as registered here:
+   *        http://standards.ieee.org/regauth/ethertype/eth.txt
+   *        the value zero is interpreted as matching all
+   *        protocols.
+   * \param device the device attached to this handler. If the
+   *        value is zero, the handler is attached to all
+   *        devices on this node.
+   */
+  void RegisterPromiscuousProtocolHandler (PromiscuousProtocolHandler handler, 
+                                           uint16_t protocolType,
+                                           Ptr<NetDevice> device);
+  /**
+   * \param handler the handler to unregister
+   *
+   * After this call returns, the input handler will never
+   * be invoked anymore.
+   */
+  void UnregisterPromiscuousProtocolHandler (PromiscuousProtocolHandler handler);
+
+
 protected:
   /**
    * The dispose method. Subclasses must override this method
@@ -177,8 +207,8 @@ private:
    */
   virtual void NotifyDeviceAdded (Ptr<NetDevice> device);
 
-  bool ReceiveFromDevice (Ptr<NetDevice> device, Ptr<Packet>, 
-                          uint16_t protocol, const Address &from);
+  bool ReceiveFromDevice (Ptr<NetDevice> device, Ptr<Packet>, uint16_t protocol,
+                          const Address &from, const Address &to, NetDevice::PacketType packetType);
   void Construct (void);
 
   struct ProtocolHandlerEntry {
@@ -192,6 +222,7 @@ private:
   std::vector<Ptr<NetDevice> > m_devices;
   std::vector<Ptr<Application> > m_applications;
   ProtocolHandlerList m_handlers;
+
 };
 
 } //namespace ns3
