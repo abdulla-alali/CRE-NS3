@@ -96,6 +96,7 @@ public:
   virtual Address MakeMulticastAddress (Ipv4Address multicastGroup) const;
   virtual bool IsPointToPoint (void) const;
   virtual bool Send(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
+  virtual bool SendFrom (Ptr<Packet> packet, const Address& src, const Address& dest, uint16_t protocolNumber);
   virtual Ptr<Node> GetNode (void) const;
   virtual void SetNode (Ptr<Node> node);
   virtual bool NeedsArp (void) const;
@@ -113,7 +114,7 @@ private:
   Ptr<WifiChannel> m_channel;
   Ptr<WifiMac> m_mac;
   Ptr<WifiRemoteStationManager> m_stationManager;
-  Callback <bool,Ptr<NetDevice>,Ptr<Packet>,uint16_t,const Address &> m_forwardUp;
+  ReceiveCallback m_forwardUp;
   TracedCallback<Ptr<const Packet>, Mac48Address> m_rxLogger;
   TracedCallback<Ptr<const Packet>, Mac48Address> m_txLogger;
   uint32_t m_ifIndex;

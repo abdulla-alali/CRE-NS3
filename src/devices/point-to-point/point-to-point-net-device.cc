@@ -241,7 +241,7 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
 //
       m_rxTrace (packet);
       ProcessHeader(packet, protocol);
-      m_rxCallback (this, packet, protocol, GetBroadcast ());
+      m_rxCallback (this, packet, protocol, GetBroadcast (), m_address, PACKET_HOST);
     }
 }
 
@@ -432,6 +432,15 @@ PointToPointNetDevice::Send(
     {
       return m_queue->Enqueue(packet);
     }
+}
+
+bool
+PointToPointNetDevice::SendFrom (Ptr<Packet> packet, 
+                                 const Address &source, 
+                                 const Address &dest, 
+                                 uint16_t protocolNumber)
+{
+  return Send (packet, dest, protocolNumber);
 }
 
   Ptr<Node> 

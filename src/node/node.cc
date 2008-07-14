@@ -194,8 +194,8 @@ Node::UnregisterProtocolHandler (ProtocolHandler handler)
 }
 
 bool
-Node::ReceiveFromDevice (Ptr<NetDevice> device, Ptr<Packet> packet, 
-                         uint16_t protocol, const Address &from)
+Node::ReceiveFromDevice (Ptr<NetDevice> device, Ptr<Packet> packet, uint16_t protocol,
+                         const Address &from, const Address &to, NetDevice::PacketType packetType)
 {
   bool found = false;
   // if there are (potentially) multiple handlers, we need to copy the
@@ -212,7 +212,7 @@ Node::ReceiveFromDevice (Ptr<NetDevice> device, Ptr<Packet> packet,
           if (i->protocol == 0 || 
               i->protocol == protocol)
             {
-              i->handler (device, (copyNeeded ? packet->Copy () : packet), protocol, from);
+              i->handler (device, (copyNeeded ? packet->Copy () : packet), protocol, from, to, packetType);
               found = true;
             }
         }
