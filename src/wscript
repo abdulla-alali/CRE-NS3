@@ -19,6 +19,9 @@ all_modules = (
     'internet-stack',
     'devices/point-to-point',
     'devices/csma',
+    'devices/bridge',
+    'devices/tap',
+    'devices/emu',
     'applications/onoff',
     'applications/packet-sink',
     'applications/udp-echo',
@@ -27,7 +30,6 @@ all_modules = (
     'mobility',
     'devices/wifi',
     'helper',
-    'devices/bridge',
     'contrib/stats',
     'applications/v4ping',
     )
