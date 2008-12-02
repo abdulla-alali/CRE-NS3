@@ -745,7 +745,6 @@ Ipv4L3Protocol::SendRealOut (bool found,
     }
   else
     {
-      m_txTrace (packet, route.GetInterface ());
       if (route.IsGateway ()) 
         {
           if (outInterface->IsUp ())
