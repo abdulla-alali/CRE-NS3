@@ -164,6 +164,7 @@ private:
   bool m_accessOngoing;
   Ptr<const Packet> m_currentPacket;
   WifiMacHeader m_currentHdr;
+  uint8_t m_currentRetry;
   uint8_t m_fragmentNumber;
 };
 

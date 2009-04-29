@@ -271,6 +271,7 @@ void
 MacLow::DoDispose (void)
 {
   NS_LOG_FUNCTION (this);
+  m_listener = 0;
   CancelAllEvents ();
   m_phy = 0;
   m_stationManager = 0;
@@ -537,7 +538,7 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, WifiMode txMode, WifiPreamb
     {
       NS_LOG_DEBUG ("receive cts from="<<m_currentHdr.GetAddr1 ());
       SnrTag tag;
-      packet->FindFirstMatchingTag (tag);
+      packet->RemovePacketTag (tag);
       WifiRemoteStation *station = GetStation (m_currentHdr.GetAddr1 ());
       station->ReportRxOk (rxSnr, txMode);
       station->ReportRtsOk (rxSnr, txMode, tag.Get ());
@@ -560,7 +561,7 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, WifiMode txMode, WifiPreamb
     {
       NS_LOG_DEBUG ("receive ack from="<<m_currentHdr.GetAddr1 ());
       SnrTag tag;
-      packet->FindFirstMatchingTag (tag);
+      packet->RemovePacketTag (tag);
       WifiRemoteStation *station = GetStation (m_currentHdr.GetAddr1 ());
       station->ReportRxOk (rxSnr, txMode);
       station->ReportDataOk (rxSnr, txMode, tag.Get ());
@@ -1080,7 +1081,7 @@ MacLow::SendCtsAfterRts (Mac48Address source, Time duration, WifiMode rtsTxMode,
 
   struct SnrTag tag;
   tag.Set (rtsSnr);
-  packet->AddTag (tag);
+  packet->AddPacketTag (tag);
 
   ForwardDown (packet, &cts, ctsTxMode);
 }
@@ -1159,7 +1160,7 @@ MacLow::SendAckAfterData (Mac48Address source, Time duration, WifiMode dataTxMod
 
   struct SnrTag tag;
   tag.Set (dataSnr);
-  packet->AddTag (tag);
+  packet->AddPacketTag (tag);
 
   ForwardDown (packet, &ack, ackTxMode);
 }
