@@ -260,7 +260,7 @@ public:
    *          handshake.
    */
   WifiMode GetAckMode (WifiMode dataMode);
-
+  double GetAvgSlrc ();
 private:
   virtual Ptr<WifiRemoteStationManager> GetManager (void) const = 0;
   virtual WifiMode DoGetDataMode (uint32_t size) = 0;
@@ -289,6 +289,13 @@ private:
   SupportedModes m_modes;
   TracedValue<uint32_t> m_ssrc;
   TracedValue<uint32_t> m_slrc;
+  ///\name needed to calculate average SLRC
+  ///\{
+  ///\brief the coefficient: we valculate averages slrc as 
+  //m_avgSlrc = m_avgSlr*coefficient + m_slrc*(1-coefficient);
+  double m_avgSlrcCoefficient;
+  double m_avgSlrc;
+  ///\}
 };
 
 } // namespace ns3 
