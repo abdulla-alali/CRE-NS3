@@ -97,6 +97,7 @@ void
 UdpEchoClient::DoDispose (void)
 {
   NS_LOG_FUNCTION_NOARGS ();
+  NS_LOG_UNCOND("TOTAL SENT:"<<m_sent);
   Application::DoDispose ();
 }
 

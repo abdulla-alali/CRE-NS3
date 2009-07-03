@@ -28,6 +28,8 @@ def build(bld):
         'ipv4-global-routing-helper.cc',
         'ipv4-list-routing-helper.cc',
         'ipv4-routing-helper.cc',
+        'mesh-interface-helper.cc',
+        'mesh-helper.cc',
         ]
 
     headers = bld.new_task_gen('ns3header')
@@ -58,6 +60,8 @@ def build(bld):
         'ipv4-global-routing-helper.h',
         'ipv4-list-routing-helper.h',
         'ipv4-routing-helper.h',
+        'mesh-interface-helper.h',
+        'mesh-helper.h',
         ]
 
     env = bld.env_of_name('default')
