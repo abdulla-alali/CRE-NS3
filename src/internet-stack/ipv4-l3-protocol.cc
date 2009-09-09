@@ -404,6 +404,7 @@ Ipv4L3Protocol::Receive( Ptr<NetDevice> device, Ptr<const Packet> p, uint16_t pr
 
   for (SocketList::iterator i = m_sockets.begin (); i != m_sockets.end (); ++i)
     {
+      NS_LOG_LOGIC ("Forwarding to raw socket");
       Ptr<Ipv4RawSocketImpl> socket = *i;
       socket->ForwardUp (packet, ipHeader, device);
     }
@@ -467,7 +468,6 @@ Ipv4L3Protocol::Send (Ptr<Packet> packet,
   if (destination.IsBroadcast ()) 
     {
       NS_LOG_LOGIC ("Ipv4L3Protocol::Send case 1:  limited broadcast");
-      ttl = 1;
       ipHeader = BuildHeader (source, destination, protocol, packet->GetSize (), ttl, mayFragment);
       uint32_t ifaceIndex = 0;
       for (Ipv4InterfaceList::iterator ifaceIter = m_interfaces.begin ();
@@ -498,7 +498,6 @@ Ipv4L3Protocol::Send (Ptr<Packet> packet,
               destination.CombineMask (ifAddr.GetMask ()) == ifAddr.GetLocal ().CombineMask (ifAddr.GetMask ())   )  
             {
               NS_LOG_LOGIC ("Ipv4L3Protocol::Send case 2:  subnet directed bcast to " << ifAddr.GetLocal ());
-              ttl = 1;
               ipHeader = BuildHeader (source, destination, protocol, packet->GetSize (), ttl, mayFragment);
               Ptr<Packet> packetCopy = packet->Copy ();
               packetCopy->AddHeader (ipHeader);
@@ -682,9 +681,9 @@ Ipv4L3Protocol::IpForward (Ptr<Ipv4Route> rtentry, Ptr<const Packet> p, const Ip
   ipHeader.SetTtl (ipHeader.GetTtl () - 1);
   if (ipHeader.GetTtl () == 0)
     {
-      // Do not reply to ICMP or to multicast/broadcast IP address 
-      if (ipHeader.GetProtocol () != Icmpv4L4Protocol::PROT_NUMBER && 
-        ipHeader.GetDestination ().IsBroadcast () == false && 
+      // Do not reply to ICMP or to multicast/broadcast IP address
+      if (ipHeader.GetProtocol () != Icmpv4L4Protocol::PROT_NUMBER &&
+        ipHeader.GetDestination ().IsBroadcast () == false &&
         ipHeader.GetDestination ().IsMulticast () == false)
         {
           Ptr<Icmpv4L4Protocol> icmp = GetIcmp ();
