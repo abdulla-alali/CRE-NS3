@@ -26,7 +26,7 @@
 // //             ====|_|====
 // //                router
 // //
-// // - Tracing of queues and packet receptions to file "simple-routing-ping6.tr"
+// // - Tracing of queues and packet receptions to file "fragmentation-ipv6.tr"
 
 #include <fstream>
 #include "ns3/core-module.h"
@@ -37,7 +37,7 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("SimpleRoutingPing6Example");
+NS_LOG_COMPONENT_DEFINE ("FragmentationIpv6Example");
 
 /**
  * \class StackHelper
@@ -136,7 +136,7 @@ int main (int argc, char** argv)
   stackHelper.PrintRoutingTable(n0);
 
   /* Create a Ping6 application to send ICMPv6 echo request from n0 to n1 via r */
-  uint32_t packetSize = 1024;
+  uint32_t packetSize = 4096;
   uint32_t maxPacketCount = 5;
   Time interPacketInterval = Seconds (1.);
   Ping6Helper ping6;
@@ -152,8 +152,8 @@ int main (int argc, char** argv)
   apps.Stop (Seconds (20.0));
 
 	std::ofstream ascii;
-  ascii.open ("simple-routing-ping6.tr");
-  CsmaHelper::EnablePcapAll (std::string ("simple-routing-ping6"), true);
+  ascii.open ("fragmentation-ipv6.tr");
+  CsmaHelper::EnablePcapAll (std::string ("fragmentation-ipv6"), true);
   CsmaHelper::EnableAsciiAll (ascii);
 
   NS_LOG_INFO ("Run Simulation.");

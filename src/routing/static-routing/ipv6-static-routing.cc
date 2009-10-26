@@ -99,7 +99,6 @@ void Ipv6StaticRouting::AddNetworkRouteTo (Ipv6Address network, Ipv6Prefix netwo
   m_networkRoutes.push_back (std::make_pair (route, metric));
 }
 
-
 void Ipv6StaticRouting::AddNetworkRouteTo (Ipv6Address network, Ipv6Prefix networkPrefix, uint32_t interface, uint32_t metric)
 {
   NS_LOG_FUNCTION (this << network << networkPrefix << interface);
@@ -449,7 +448,6 @@ uint32_t Ipv6StaticRouting::GetMetric (uint32_t index)
   return 0;
 }
 
-
 void Ipv6StaticRouting::RemoveRoute (uint32_t index)
 {
   NS_LOG_FUNCTION (this << index);
@@ -529,8 +527,8 @@ bool Ipv6StaticRouting::RouteInput (Ptr<const Packet> p, const Ipv6Header &heade
   {
     NS_LOG_LOGIC ("Multicast destination");
     Ptr<Ipv6MulticastRoute> mrtentry = LookupStatic (header.GetSourceAddress (),
-                                                    header.GetDestinationAddress ()
-                                                    , m_ipv6->GetInterfaceForDevice (idev));
+                                                    header.GetDestinationAddress (),
+                                                    m_ipv6->GetInterfaceForDevice (idev));
 
     if (mrtentry)
     {
