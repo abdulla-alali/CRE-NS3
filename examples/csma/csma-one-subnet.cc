@@ -122,6 +122,10 @@ main (int argc, char *argv[])
   std::ofstream ascii;
   ascii.open ("csma-one-subnet.tr", std::ios_base::binary | std::ios_base::out);
   CsmaHelper::EnableAsciiAll (ascii);
+
+  csma.EnableAsciiAllXXX ("csma-one-subnet");
+
+
 //
 // Also configure some tcpdump traces; each interface will be traced.
 // The output files will be named:
@@ -129,7 +133,7 @@ main (int argc, char *argv[])
 // and can be read by the "tcpdump -r" command (use "-tt" option to
 // display timestamps correctly)
 //
-  CsmaHelper::EnablePcapAll ("csma-one-subnet", false);
+  csma.EnablePcapAll ("csma-one-subnet", false);
 //
 // Now, do the actual simulation.
 //
