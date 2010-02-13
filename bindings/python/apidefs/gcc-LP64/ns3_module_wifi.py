@@ -30,7 +30,7 @@ def register_types(module):
     ## dcf-manager.h: ns3::DcfState [class]
     module.add_class('DcfState', allow_subclassing=True)
     ## interference-helper.h: ns3::InterferenceHelper [class]
-    module.add_class('InterferenceHelper', allow_subclassing=False)
+    module.add_class('InterferenceHelper')
     ## interference-helper.h: ns3::InterferenceHelper::SnrPer [struct]
     module.add_class('SnrPer', outer_class=root_module['ns3::InterferenceHelper'])
     ## mac-low.h: ns3::MacLowBlockAckEventListener [class]

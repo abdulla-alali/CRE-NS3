@@ -4,7 +4,7 @@ def register_types(module):
     root_module = module.get_root()
     
     ## constant-velocity-helper.h: ns3::ConstantVelocityHelper [class]
-    module.add_class('ConstantVelocityHelper', allow_subclassing=False)
+    module.add_class('ConstantVelocityHelper')
     ## rectangle.h: ns3::Rectangle [class]
     module.add_class('Rectangle')
     ## rectangle.h: ns3::Rectangle::Side [enumeration]

@@ -211,7 +211,7 @@ Ns3TcpSocketTestCase1::DoRun (void)
 
   if (m_writeResults)
     {
-      PointToPointHelper::EnablePcapAll ("tcp-socket-test-case-1");
+      pointToPoint.EnablePcapAll ("tcp-socket-test-case-1");
     }
 
   Simulator::Stop (simStopTimeObj);
@@ -326,7 +326,7 @@ Ns3TcpSocketTestCase2::DoRun (void)
 
   if (m_writeResults)
     {
-      CsmaHelper::EnablePcapAll ("tcp-socket-test-case-2", false);
+      csma.EnablePcapAll ("tcp-socket-test-case-2", false);
     }
   Simulator::Stop (simStopTimeObj);
   Simulator::Run ();
