@@ -109,7 +109,9 @@ JakesFadingLossModel::SetValue (void)
 
   int downlinkSubChannels = GetPhy ()->GetDownlinkSubChannels ().size ();
 
-  Ptr<MobilityModel> mobility = GetPhy ()->GetDownlinkSpectrumPhy ()->GetMobility ()->GetObject<MobilityModel> ();
+  Ptr<MobilityModel> mobility = 0;
+  // this needs to be fixed, we cannot allow a propagation model to need pointers to all PHYs
+  // mobility = GetPhy ()->GetDownlinkSpectrumPhy ()->GetMobility ()->GetObject<MobilityModel> ();
   Vector speedVector = mobility->GetVelocity ();
 
   double speed = sqrt (pow (speedVector.x,2) +  pow (speedVector.y,2));
@@ -118,10 +120,10 @@ JakesFadingLossModel::SetValue (void)
 
 
   /*
-   * Several 3GPP standards propose a simulation scenario to use duirng the 
+   * Several 3GPP standards propose a simulation scenario to use duirng the
    * LTE performance evaluation. In particular they suggest to consider these
    * user speeds: 0, 3, 30, 120 km/h. To this aim, we should map user speed
-   * into one of the suggested values. 
+   * into one of the suggested values.
    */
   if (speed < 3.)
     {

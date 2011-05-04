@@ -21,6 +21,8 @@ IMAGES_EPS = \
 	$(FIGURES)/WifiArchitecture.eps \
 	$(FIGURES)/WimaxArchitecture.eps \
         $(FIGURES)/auvmobility-classes.eps \
+        $(FIGURES)/ff-mac-saps.eps \
+        $(FIGURES)/ff-example.eps \
 
 # missing figure 
 #        $(FIGURES)/lte-transmission.eps

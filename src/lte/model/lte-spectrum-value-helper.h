@@ -34,13 +34,48 @@ namespace ns3 {
 class LteSpectrumValueHelper
 {
 public:
+
+
+  /**  
+   * Calculates the carrier frequency from the E-UTRA Absolute
+   * Radio Frequency Channel Number (EARFCN) according to 3GPP TS
+   * 36.101 section 5.7.3 "Carrier frequency and EARFCN".
+   *
+   * \param earfcn the EARFCN
+   * 
+   * \return the carrier frequency in MHz
+   */
+  static double GetCarrierFrequency (uint16_t earfcn);
+
+  /**  
+   * Calculates the dowlink carrier frequency from the E-UTRA Absolute
+   * Radio Frequency Channel Number (EARFCN) using the formula in 3GPP TS
+   * 36.101 section 5.7.3 "Carrier frequency and EARFCN".
+   *
+   * \param earfcn the EARFCN
+   * 
+   * \return the dowlink carrier frequency in MHz
+   */
+  static double GetDownlinkCarrierFrequency (uint16_t earfcn);
+
+  /**  
+   * Calculates the uplink carrier frequency from the E-UTRA Absolute
+   * Radio Frequency Channel Number (EARFCN) using the formula in 3GPP TS
+   * 36.101 section 5.7.3 "Carrier frequency and EARFCN".
+   *
+   * \param earfcn the EARFCN
+   * 
+   * \return the uplink carrier frequency in MHz
+   */
+  static double GetUplinkCarrierFrequency (uint16_t earfcn);  
+
   /**
    * \brief create spectrum value
    * \param powerTx the power transmission in dBm
    * \param channels the list of sub channels where the signal will be sent
    * \return a Ptr to a newly created SpectrumValue instance
    */
-  Ptr<SpectrumValue> CreateDownlinkTxPowerSpectralDensity (double powerTx, std::vector <int> channels);
+  static Ptr<SpectrumValue> CreateDownlinkTxPowerSpectralDensity (double powerTx, std::vector <int> channels);
 
   /**
    * \brief create spectrum value
@@ -48,21 +83,36 @@ public:
    * \param channels the list of sub channels where the signal will be sent
    * \return a Ptr to a newly created SpectrumValue instance
    */
-  Ptr<SpectrumValue> CreateUplinkTxPowerSpectralDensity (double powerTx, std::vector <int> channels);
+  static Ptr<SpectrumValue> CreateUplinkTxPowerSpectralDensity (double powerTx, std::vector <int> channels);
 
 
   /**
-   * \brief create spectrum value for noise
+   * create a SpectrumValue that models the power spectral density of AWGN
+   * 
+   * \param noiseFigure the noise figure in dB w.r.t. a reference temperature of 290K
+   * 
    * \return a Ptr to a newly created SpectrumValue instance
    */
-  Ptr<SpectrumValue> CreateDownlinkNoisePowerSpectralDensity (void);
+  static Ptr<SpectrumValue> CreateDownlinkNoisePowerSpectralDensity (double noiseFigure);
 
   /**
-   * \brief create spectrum value for noise
+   *  create a SpectrumValue that models the power spectral density of AWGN
+   * 
+   * \param noiseFigure the noise figure in dB w.r.t. a reference temperature of 290K
+   * 
    * \return a Ptr to a newly created SpectrumValue instance
    */
-  Ptr<SpectrumValue> CreateUplinkNoisePowerSpectralDensity (void);
+  static Ptr<SpectrumValue> CreateUplinkNoisePowerSpectralDensity (double noiseFigure);
 
+  /** 
+   *  create a SpectrumValue that models the power spectral density of AWGN
+   * 
+   * \param noiseFigure  the noise figure in dB  w.r.t. a reference temperature of 290K
+   * \param spectrumModel the SpectrumModel instance to be used
+   * 
+   * \return a Ptr to a newly created SpectrumValue instance
+   */
+  static Ptr<SpectrumValue> CreateNoisePowerSpectralDensity (double noiseFigure, Ptr<SpectrumModel> spectrumModel);
 
 };
 

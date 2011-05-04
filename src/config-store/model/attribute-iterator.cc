@@ -21,6 +21,7 @@
 #include "ns3/log.h"
 #include "ns3/pointer.h"
 #include "ns3/object-vector.h"
+#include "ns3/object-map.h"
 #include "ns3/string.h"
 #include <fstream>
 
@@ -125,6 +126,28 @@ AttributeIterator::DoEndVisitArrayItem (void)
 {
 }
 
+void
+AttributeIterator::DoStartVisitMapAttribute (Ptr<Object> object, std::string name, const ObjectMapValue &map)
+{
+
+}
+void
+AttributeIterator::DoEndVisitMapAttribute (void)
+{
+
+}
+
+void
+AttributeIterator::DoStartVisitMapItem (const ObjectMapValue &vector, uint32_t index, Ptr<Object> item)
+{
+
+}
+void
+AttributeIterator::DoEndVisitMapItem (void)
+{
+
+}
+
 void 
 AttributeIterator::VisitAttribute (Ptr<Object> object, std::string name)
 {
@@ -138,6 +161,7 @@ AttributeIterator::StartVisitObject (Ptr<Object> object)
 {
   m_currentPath.push_back ("$" + object->GetInstanceTypeId ().GetName ());
   DoStartVisitObject (object);
+  NS_LOG_INFO(this << GetCurrentPath() );
 }
 void 
 AttributeIterator::EndVisitObject (void)
@@ -151,6 +175,7 @@ AttributeIterator::StartVisitPointerAttribute (Ptr<Object> object, std::string n
   m_currentPath.push_back (name);
   m_currentPath.push_back ("$" + value->GetInstanceTypeId ().GetName ());
   DoStartVisitPointerAttribute (object, name, value);
+  NS_LOG_INFO(this << GetCurrentPath() );
 }
 void 
 AttributeIterator::EndVisitPointerAttribute (void)
@@ -164,6 +189,7 @@ AttributeIterator::StartVisitArrayAttribute (Ptr<Object> object, std::string nam
 {
   m_currentPath.push_back (name);
   DoStartVisitArrayAttribute (object, name, vector);
+  NS_LOG_INFO(this << GetCurrentPath() );
 }
 void 
 AttributeIterator::EndVisitArrayAttribute (void)
@@ -180,6 +206,7 @@ AttributeIterator::StartVisitArrayItem (const ObjectVectorValue &vector, uint32_
   m_currentPath.push_back (oss.str ());
   m_currentPath.push_back ("$" + item->GetInstanceTypeId ().GetName ());
   DoStartVisitArrayItem (vector, index, item);
+  NS_LOG_INFO(this << GetCurrentPath() );
 }
 void 
 AttributeIterator::EndVisitArrayItem (void)
@@ -189,6 +216,39 @@ AttributeIterator::EndVisitArrayItem (void)
   DoEndVisitArrayItem ();
 }
 
+void
+AttributeIterator::StartVisitMapAttribute (Ptr<Object> object, std::string name, const ObjectMapValue &map)
+{
+  m_currentPath.push_back (name);
+  DoStartVisitMapAttribute (object, name, map);
+  NS_LOG_INFO(this << GetCurrentPath() );
+}
+
+void
+AttributeIterator::EndVisitMapAttribute (void)
+{
+  m_currentPath.pop_back ();
+  DoEndVisitMapAttribute ();
+}
+
+void
+AttributeIterator::StartVisitMapItem (const ObjectMapValue &map, uint32_t index, Ptr<Object> item)
+{
+  std::ostringstream oss;
+  oss << index;
+  m_currentPath.push_back (oss.str ());
+  m_currentPath.push_back ("$" + item->GetInstanceTypeId ().GetName ());
+  DoStartVisitMapItem (map, index, item);
+  NS_LOG_INFO(this << GetCurrentPath() );
+}
+
+void
+AttributeIterator::EndVisitMapItem (void)
+{
+  m_currentPath.pop_back ();
+  m_currentPath.pop_back ();
+  DoEndVisitMapItem ();
+}
 
 void
 AttributeIterator::DoIterate (Ptr<Object> object)
@@ -241,6 +301,26 @@ AttributeIterator::DoIterate (Ptr<Object> object)
                   EndVisitArrayItem ();
                 }
               EndVisitArrayAttribute ();
+              continue;
+            }
+          // attempt to cast to an object map.
+          const ObjectMapChecker *mapChecker = dynamic_cast<const ObjectMapChecker *> (PeekPointer (checker));
+          if (mapChecker != 0)
+            {
+              NS_LOG_DEBUG ("map attribute " << tid.GetAttributeName (i));
+              ObjectMapValue map;
+              object->GetAttribute (tid.GetAttributeName (i), map);
+              StartVisitMapAttribute (object, tid.GetAttributeName (i), map);
+              for (ObjectMapValue::Iterator it = map.Begin () ; it != map.End(); it++ )
+                {
+                  NS_LOG_DEBUG ("map attribute item " << (*it).first << (*it).second );
+                  StartVisitMapItem (map, (*it).first, (*it).second);
+                  m_examined.push_back (object);
+                  DoIterate ((*it).second);
+                  m_examined.pop_back ();
+                  EndVisitMapItem ();
+                }
+              EndVisitMapAttribute ();
               continue;
             }
           uint32_t flags = tid.GetAttributeFlags (i);
