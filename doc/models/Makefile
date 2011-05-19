@@ -30,6 +30,9 @@ SOURCES = \
 	$(SRC)/tap-bridge/doc/tap.rst \
 	$(SRC)/mesh/doc/mesh.rst \
 	$(SRC)/lte/doc/lte.rst \
+	$(SRC)/lte/doc/lte-user.rst \
+	$(SRC)/lte/doc/lte-design.rst \
+	$(SRC)/lte/doc/lte-testing.rst \
 	$(SRC)/propagation/doc/propagation.rst \
 	$(SRC)/network/doc/network-overview.rst \
 	$(SRC)/network/doc/packets.rst \
@@ -65,8 +68,10 @@ SOURCEFIGS = \
 	$(SRC)/wifi/doc/WifiArchitecture.dia \
 	$(SRC)/wifi/doc/snir.dia \
 	$(SRC)/wimax/doc/WimaxArchitecture.dia \
-	$(SRC)/lte/doc/lte-transmission.png \
-	$(SRC)/lte/doc/lte-transmission.pdf \
+	$(SRC)/lte/doc/ff-mac-saps.dia \
+	$(SRC)/lte/doc/ff-example.dia \
+	$(SRC)/lte/doc/lte-enb-architecture.dia \
+	$(SRC)/lte/doc/lte-ue-architecture.dia \
         $(SRC)/uan/doc/auvmobility-classes.dia \
 	$(SRC)/netanim/doc/animation-dumbbell.png \
 	$(SRC)/netanim/doc/animation-dumbbell.pdf \
@@ -86,6 +91,10 @@ IMAGES_EPS = \
 	$(FIGURES)/WifiArchitecture.eps \
 	$(FIGURES)/snir.eps \
 	$(FIGURES)/WimaxArchitecture.eps \
+	$(FIGURES)/ff-mac-saps.eps \
+	$(FIGURES)/ff-example.eps \
+	$(FIGURES)/lte-enb-architecture.eps \
+	$(FIGURES)/lte-ue-architecture.eps \
         $(FIGURES)/auvmobility-classes.eps \
 
 # rescale figures as necessary

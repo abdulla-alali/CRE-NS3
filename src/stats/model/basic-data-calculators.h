@@ -49,15 +49,15 @@ public:
   double getMin() const { return m_min; }
   double getMax() const { return m_max; }
   double getMean() const { return m_total / (double)m_count; }
-  double getStddev() const { return NaN; }   // unsupported
-  double getVariance() const { return NaN; }   // unsupported
-  double getSqrSum() const { return NaN; }   // unsupported
+    double getStddev() const { return sqrt (getVariance ()); }
+    double getVariance() const { return  ( m_count * m_totalSquare - m_total * m_total ) / (double) (m_count * (m_count - 1) ); }
+    double getSqrSum() const { return m_totalSquare; }
 
 protected:
   virtual void DoDispose(void);
 
   uint32_t m_count;
-  T m_total, m_min, m_max;
+    T m_total, m_min, m_max, m_totalSquare;
 
   // end MinMaxAvgTotalCalculator
 };
@@ -68,6 +68,7 @@ MinMaxAvgTotalCalculator<T>::MinMaxAvgTotalCalculator()
 {
   m_count = 0;
   m_total = 0;
+    m_totalSquare = 0;
   m_min = ~0;
   m_max = 0;
 }
@@ -90,6 +91,7 @@ MinMaxAvgTotalCalculator<T>::Update(const T i)
 {
   if (m_enabled) {
       m_total += i;
+      m_totalSquare += i*i;
 
       if (i < m_min)
         m_min = i;
