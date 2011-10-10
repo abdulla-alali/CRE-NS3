@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: Giuseppe Piro  <g.piro@poliba.it>
+ * Author: Marco Miozzo <marco.miozzo@cttc.es>
+ *        remove dependencies from Phy and Mobility models
  */
 
 #ifndef MULTIPATH_LOSS_MODEL_H
@@ -46,23 +48,32 @@ public:
   static TypeId GetTypeId (void);
 
   /**
-   * \brief Set the value of the considered loss model
-   */
-  void SetValue (void);
+  * \brief Set the value of the considered loss model
+  * \param speed the relative speed of the two devices
+  */
+  void SetValue (double speed);
   /**
    * \brief Get the value for a particular sub channel
    * \param subChannel the sub channel for which a value is requested
    * \return the loss for a particular sub channel
    */
   double GetValue (int subChannel);
+  
+  /**
+  * \brief Get the value for a particular sub channel and a given speed
+  * \param subChannel the sub channel for which a value is requested
+  * \param speed the relative speed of the two devices
+  * \return the loss for a particular sub channel
+  */
+  double GetValue (int subChannel, double speed);
 
   /**
-   * \brief Set the physical layer 
+   * \brief Set the physical layer
    * \param phy the physical layer
    */
   void SetPhy (Ptr<LtePhy> phy);
   /**
-   * \brief Get the physical layer 
+   * \brief Get the physical layer
    * \return the pointer to the physical layer
    */
   Ptr<LtePhy> GetPhy (void);
@@ -80,22 +91,23 @@ public:
    */
 
   /**
-   * brief a list of multipath values for the time domain 
+   * brief a list of multipath values for the time domain
    */
-  typedef std::vector<double> MultipathForTimeDomain;
+  typedef std::vector<double*> MultipathForTimeDomain;
   /**
-   * brief a list of multipath values for the frequency domain 
+   * brief a list of multipath values for the frequency domain
    */
   typedef std::vector<MultipathForTimeDomain> MultipathForFrequencyDomain;
 
 private:
-
   MultipathForFrequencyDomain m_multipath;
 
   UniformVariable m_nbOfPaths;
   UniformVariable m_startJakes;
 
   Ptr<LtePhy> m_phy;
+  
+  uint8_t m_subChannelsNum;
 };
 
 }

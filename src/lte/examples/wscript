@@ -1,27 +1,15 @@
 ## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 
 def build(bld):
-    obj = bld.create_ns3_program('lte-phy-downlink',
+    obj = bld.create_ns3_program('lena-first-sim',
                                  ['lte'])
-    obj.source = 'lte-phy-downlink.cc'
-
-    obj = bld.create_ns3_program('lte-phy-uplink',
+    obj.source = 'lena-first-sim.cc'
+    obj = bld.create_ns3_program('inter-cell-interference',
                                  ['lte'])
-    obj.source = 'lte-phy-uplink.cc'
-
-    obj = bld.create_ns3_program('lte-device',
+    obj.source = 'inter-cell-interference.cc'
+    obj = bld.create_ns3_program('lena-rlc-calculator',
                                  ['lte'])
-    obj.source = 'lte-device.cc'
-
-    obj = bld.create_ns3_program('lte-channel-model',
-                                 ['lte', 'network'])
-    obj.source = 'lte-channel-model.cc'
-
-    obj = bld.create_ns3_program('lte-amc',
+    obj.source = 'lena-rlc-calculator.cc'    
+    obj = bld.create_ns3_program('profiling-reference',
                                  ['lte'])
-    obj.source = 'lte-amc.cc'
-
-    obj = bld.create_ns3_program('lte-multiple-flows',
-                                 ['lte'])
-    obj.source = 'lte-multiple-flows.cc'
-
+    obj.source = 'profiling-reference.cc'

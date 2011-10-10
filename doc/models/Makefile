@@ -28,7 +28,11 @@ SOURCES = \
 	$(SRC)/emu/doc/emu.rst \
 	$(SRC)/tap-bridge/doc/tap.rst \
 	$(SRC)/mesh/doc/mesh.rst \
-	$(SRC)/lte/doc/lte.rst \
+	$(SRC)/lte/doc/source/lte.rst \
+	$(SRC)/lte/doc/source/lte-user.rst \
+	$(SRC)/lte/doc/source/lte-design.rst \
+	$(SRC)/lte/doc/source/lte-testing.rst \
+	$(SRC)/lte/doc/source/lte-references.rst \
 	$(SRC)/propagation/doc/propagation.rst \
 	$(SRC)/network/doc/network-overview.rst \
 	$(SRC)/network/doc/packets.rst \
@@ -69,8 +73,16 @@ SOURCEFIGS = \
 	$(SRC)/wifi/doc/WifiArchitecture.dia \
 	$(SRC)/wifi/doc/snir.dia \
 	$(SRC)/wimax/doc/WimaxArchitecture.dia \
-	$(SRC)/lte/doc/lte-transmission.png \
-	$(SRC)/lte/doc/lte-transmission.pdf \
+	$(SRC)/lte/doc/source/figures/ff-mac-saps.dia \
+	$(SRC)/lte/doc/source/figures/ff-example.dia \
+	$(SRC)/lte/doc/source/figures/lte-enb-architecture.dia \
+	$(SRC)/lte/doc/source/figures/lte-ue-architecture.dia \
+	$(SRC)/lte/doc/source/figures/lte-interference-test-scenario.dia \
+	$(SRC)/lte/doc/source/figures/lte-mcs-index.eps \
+	$(SRC)/lte/doc/source/figures/lenaThrTestCase1.eps \
+	$(SRC)/lte/doc/source/figures/lenaThrTestCase2.eps \
+	$(SRC)/lte/doc/source/figures/simulationTime.eps \
+	$(SRC)/lte/doc/source/figures/memoryUsage.eps \
 	$(SRC)/uan/doc/auvmobility-classes.dia \
 	$(SRC)/stats/doc/Stat-framework-arch.png \
 	$(SRC)/stats/doc/Wifi-default.png \
@@ -93,6 +105,16 @@ IMAGES_EPS = \
 	$(FIGURES)/WifiArchitecture.eps \
 	$(FIGURES)/snir.eps \
 	$(FIGURES)/WimaxArchitecture.eps \
+	$(FIGURES)/ff-mac-saps.eps \
+	$(FIGURES)/ff-example.eps \
+	$(FIGURES)/lte-enb-architecture.eps \
+	$(FIGURES)/lte-ue-architecture.eps \
+	$(FIGURES)/lte-interference-test-scenario.eps \
+	$(FIGURES)/lte-mcs-index.eps \
+	$(FIGURES)/lenaThrTestCase1.eps \
+	$(FIGURES)/lenaThrTestCase2.eps \
+	$(FIGURES)/simulationTime.eps \
+	$(FIGURES)/memoryUsage.eps \
         $(FIGURES)/auvmobility-classes.eps \
 
 # rescale pdf figures as necessary
