@@ -398,6 +398,7 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
   std::map <uint16_t,uint8_t>::iterator itLcRnti;
   for (it = m_rlcBufferReq.begin (); it != m_rlcBufferReq.end (); it++)
     {
+//       NS_LOG_INFO (this << " User " << (*it).m_rnti << " LC " << (uint16_t)(*it).m_logicalChannelIdentity);
       // remove old entries of this UE-LC
       if ( ((*it).m_rlcTransmissionQueueSize > 0)
            || ((*it).m_rlcRetransmissionQueueSize > 0)
@@ -430,7 +431,7 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
             }
         }
     }
-
+    
   if (nflows == 0)
     {
       return;
@@ -506,13 +507,13 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
       std::vector <struct RlcPduListElement_s> newRlcPduLe;
       int totRbg = lcNum * rbgPerFlow;
       int tbSize = (LteAmc::GetTbSizeFromMcs (newDci.m_mcs.at (0), totRbg * rbgSize) / 8);
-//       NS_LOG_DEBUG (this << "Allocate user " << newEl.m_rnti << " LCs " << (uint16_t)(*itLcRnti).second << " bytes " << tbSize << " PRBs " << totRbg * rbgSize << " mcs " << (uint16_t) newDci.m_mcs.at (0));
+      NS_LOG_DEBUG (this << "Allocate user " << newEl.m_rnti << " LCs " << (uint16_t)(*itLcRnti).second << " bytes " << tbSize << " PRBs " << totRbg * rbgSize << " mcs " << (uint16_t) newDci.m_mcs.at (0));
       uint16_t rlcPduSize = tbSize / lcNum;
       for (int i = 0; i < lcNum ; i++)
         {
           RlcPduListElement_s newRlcEl;
           newRlcEl.m_logicalChannelIdentity = (*it).m_logicalChannelIdentity;
-          //NS_LOG_DEBUG (this << "LCID " << (uint32_t) newRlcEl.m_logicalChannelIdentity << " size " << rlcPduSize);
+          NS_LOG_DEBUG (this << "LCID " << (uint32_t) newRlcEl.m_logicalChannelIdentity << " size " << rlcPduSize << " ID " << (*it).m_rnti);
           newRlcEl.m_size = rlcPduSize;
           newRlcPduLe.push_back (newRlcEl);
           it++;
