@@ -24,6 +24,11 @@ GRAPHS_EPS = \
 	$(FIGURES)/propagationModel.eps \
 	$(FIGURES)/simulationTime.eps \
 	$(FIGURES)/profiling-memory.eps
+	$(FIGURES)/lte-rlc-implementation-model.eps \
+	$(FIGURES)/lte-rlc-data-txon-dl.eps \
+	$(FIGURES)/lte-rlc-data-retx-dl.eps \
+	$(FIGURES)/lte-rlc-data-txon-ul.eps \
+	$(FIGURES)/lte-rlc-data-retx-ul.eps
 
 # rescale pdf figures as necessary
 $(FIGURES)/testbed.pdf_width = 5in
