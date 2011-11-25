@@ -27,6 +27,7 @@
 #include <ns3/string.h>
 #include <fstream>
 //#include "ns3/gtk-config-store.h"
+
 using namespace ns3;
 
 int main (int argc, char *argv[])
@@ -107,7 +108,7 @@ int main (int argc, char *argv[])
   // Activate an EPS bearer
   enum EpsBearer::Qci q = EpsBearer::GBR_CONV_VOICE;
   EpsBearer bearer (q);
-  lena->ActivateEpsBearer (ueDevs, bearer);
+  lena->ActivateEpsBearer (ueDevs, bearer, LteTft::Default ());
 
 
   Simulator::Stop (Seconds (0.005));

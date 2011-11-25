@@ -72,9 +72,9 @@ int main (int argc, char *argv[])
   // Activate an EPS bearer
   enum EpsBearer::Qci q = EpsBearer::GBR_CONV_VOICE;
   EpsBearer bearer (q);
-  lena->ActivateEpsBearer (ueDevs, bearer);
+  lena->ActivateEpsBearer (ueDevs, bearer, LteTft::Default ());
 
-  Simulator::Stop (Seconds (5));
+  Simulator::Stop (Seconds (0.2));
 
   lena->EnableMacTraces ();
   lena->EnableRlcTraces ();
@@ -87,7 +87,7 @@ int main (int argc, char *argv[])
     {
       Ptr<ConstantPositionMobilityModel> mm = ueNodes.Get (i)->GetObject<ConstantPositionMobilityModel> ();
       mm->SetPosition (Vector (userDistance[i], 0.0, 0.0));
-    } // rkwan
+    } 
 
   Simulator::Run ();
 
