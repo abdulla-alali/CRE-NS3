@@ -968,6 +968,7 @@ RrFfMacScheduler::RefreshUlCqiMaps(void)
 void
 RrFfMacScheduler::UpdateDlRlcBufferInfo (uint16_t rnti, uint8_t lcid, uint16_t size)
 {
+  size = size - 2; // remove the minimum RLC overhead
   std::list<FfMacSchedSapProvider::SchedDlRlcBufferReqParameters>::iterator it;
   for (it = m_rlcBufferReq.begin (); it != m_rlcBufferReq.end (); it++)
     {
@@ -1017,7 +1018,7 @@ void
 RrFfMacScheduler::UpdateUlRlcBufferInfo (uint16_t rnti, uint16_t size)
 {
 
-  
+  size = size - 2; // remove the minimum RLC overhead
   std::map <uint16_t,uint32_t>::iterator it = m_ceBsrRxed.find (rnti);
   if (it!=m_ceBsrRxed.end ())
     {
