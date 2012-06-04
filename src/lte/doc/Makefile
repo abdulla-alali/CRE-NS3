@@ -68,12 +68,18 @@ $(FIGURES)/lte-rlc-data-txon-dl.pdf_width = 10cm
 $(FIGURES)/lte-rlc-data-txon-ul.pdf_width = 10cm
 $(FIGURES)/lte-rlc-data-retx-ul.pdf_width = 10cm
 $(FIGURES)/lte-phy-interference.pdf_width = 12cm
+$(FIGURES)/rrc-connection-establishment.pdf_width = 12cm
 $(FIGURES)/auvmobility-classes.pdf_width = 10cm
 
 
 IMAGES_SEQDIAG = \
 	$(FIGURES)/lte-phy-interference.seqdiag \
-	$(FIGURES)/helpers.seqdiag
+	$(FIGURES)/helpers.seqdiag \
+	$(FIGURES)/rrc-connection-establishment.seqdiag \
+	$(FIGURES)/rrc-connection-reconfiguration.seqdiag \
+	$(FIGURES)/rrc-connection-reconfiguration-handover.seqdiag \
+	$(FIGURES)/nas-attach.seqdiag \
+	$(FIGURES)/nas-activate-dedicated-bearer.seqdiag \
 
 IMAGES_NOBUILD = $(FIGURES)/fading_pedestrian.png \
 	$(FIGURES)/fading_vehicular.png \
@@ -125,9 +131,9 @@ IMAGES = $(IMAGES_NOBUILD) $(IMAGES_BUILD)
 
 %.eps : %.dia; $(DIA) -t eps $< -e $@
 %.png : %.dia; $(DIA) -t png $< -e $@
-%.png : %.seqdiag; $(SEQDIAG) -Tpng -o $@ $< 
+%.png : %.seqdiag; $(SEQDIAG) -Tpng --no-transparency -o $@ $< 
 %.png : %.eps; $(CONVERT) $< $@
-%.pdf : %.seqdiag; $(SEQDIAG) -Tpdf -o $@ $< ; if test x$($@_width) != x; then TMPFILE=`mktemp`; ./rescale-pdf.sh $($@_width) $@ $${TMPFILE} && mv $${TMPFILE} $@; fi
+%.pdf : %.seqdiag; $(SEQDIAG) -Tsvg -o $<.svg $< && $(CONVERT) $<.svg $@ ; if test x$($@_width) != x; then TMPFILE=`mktemp`; ./rescale-pdf.sh $($@_width) $@ $${TMPFILE} && mv $${TMPFILE} $@; fi
 %.pdf : %.eps; $(EPSTOPDF) $< -o=$@; if test x$($@_width) != x; then TMPFILE=`mktemp`; ./rescale-pdf.sh $($@_width) $@ $${TMPFILE} && mv $${TMPFILE} $@; fi
 
 
