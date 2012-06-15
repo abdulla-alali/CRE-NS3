@@ -13,11 +13,15 @@
 
 .. [TS36213] 3GPP TS 36.213 "E-UTRA Physical layer procedures"
 
+.. [TS36304] 3GPP TS 36.104 "E-UTRA User Equipment (UE) procedures in idle mode"
+
 .. [TS36321] 3GPP TS 36.321 "E-UTRA Medium Access Control (MAC) protocol specification"
 
 .. [TS36322] 3GPP TS 36.322 "E-UTRA Radio Link Control (RLC) protocol specification"
 
 .. [TS36323] 3GPP TS 36.323 "E-UTRA Packet Data Convergence Protocol (PDCP) specification"
+
+.. [TS36331] 3GPP TS 36.331 "E-UTRA Radio Resource Control (RRC) protocol specification"
 
 .. [R1-081483] 3GPP R1-081483 `Conveying MCS and TB size via PDCCH <http://www.3gpp.org/ftp/tsg_ran/WG1_RL1/TSGR1_52b/Docs/R1-081483.zip>`_
 
