@@ -49,32 +49,7 @@ public:
    */
   virtual void SendMacPdu (Ptr<Packet> p) = 0;
 
-  /**
-   * \param ulBandwidth the UL bandwidth in RB
-   * \param dlBandwidth the DL bandwidth in RB
-   */
-  virtual void SetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth) = 0;
-  
-  /**
-  * \param rnti the RNTI of the user
-  * \param txMode the transmissionMode of the user
-  */
-  virtual void SetTransmissionMode (uint16_t  rnti, uint8_t txMode) = 0;
-  
-  /**
-  * \param rnti the RNTI of the user
-  * \param txMode the SRS Configuration Index of the user
-  */
-  virtual void SetSrsConfigurationIndex (uint16_t  rnti, uint16_t srsCi) = 0;
-
   /** 
-   * 
-   * 
-   * \param cellId the Cell Identifier
-   */
-  virtual void SetCellId (uint16_t cellId) = 0;
-
-  /**
    * \brief Send SendLteControlMessage (PDCCH map, CQI feedbacks) using the ideal control channel
    * \param msg the Ideal Control Message to send
    */

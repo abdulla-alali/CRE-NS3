@@ -28,14 +28,20 @@
 
 
 #include "lte-enb-phy.h"
+#include "lte-ue-phy.h"
 #include "lte-net-device.h"
 #include "lte-spectrum-value-helper.h"
 #include "lte-control-messages.h"
 #include "lte-enb-net-device.h"
+#include "lte-ue-rrc.h"
 #include "lte-enb-mac.h"
 #include <ns3/lte-common.h>
 #include <ns3/lte-vendor-specific-parameters.h>
 
+// WILD HACK for the inizialization of direct eNB-UE ctrl messaging
+#include <ns3/node-list.h>
+#include <ns3/node.h>
+#include <ns3/lte-ue-net-device.h>
 
 NS_LOG_COMPONENT_DEFINE ("LteEnbPhy");
 
@@ -140,12 +146,15 @@ LteEnbPhy::LteEnbPhy ()
 
 LteEnbPhy::LteEnbPhy (Ptr<LteSpectrumPhy> dlPhy, Ptr<LteSpectrumPhy> ulPhy)
   : LtePhy (dlPhy, ulPhy),
+    m_enbPhySapUser (0),
+    m_enbCphySapUser (0),
     m_nrFrames (0),
     m_nrSubFrames (0),
     m_srsPeriodicity (0),
     m_currentSrsOffset (0)
 {
   m_enbPhySapProvider = new EnbMemberLteEnbPhySapProvider (this);
+  m_enbCphySapProvider = new MemberLteEnbCphySapProvider<LteEnbPhy> (this);
   Simulator::ScheduleNow (&LteEnbPhy::StartFrame, this);
 }
 
@@ -195,6 +204,7 @@ LteEnbPhy::DoDispose ()
   m_ueAttached.clear ();
   m_srsUeOffset.clear ();
   delete m_enbPhySapProvider;
+  delete m_enbCphySapProvider;
   LtePhy::DoDispose ();
 }
 
@@ -218,6 +228,20 @@ LteEnbPhySapProvider*
 LteEnbPhy::GetLteEnbPhySapProvider ()
 {
   return (m_enbPhySapProvider);
+}
+
+void
+LteEnbPhy::SetLteEnbCphySapUser (LteEnbCphySapUser* s)
+{
+  NS_LOG_FUNCTION (this);
+  m_enbCphySapUser = s;
+}
+
+LteEnbCphySapProvider*
+LteEnbPhy::GetLteEnbCphySapProvider ()
+{
+  NS_LOG_FUNCTION (this);
+  return (m_enbCphySapProvider);
 }
 
 void
@@ -251,6 +275,7 @@ LteEnbPhy::GetNoiseFigure () const
 void
 LteEnbPhy::SetMacChDelay (uint8_t delay)
 {
+  NS_LOG_FUNCTION (this);
   m_macChTtiDelay = delay;
   for (int i = 0; i < m_macChTtiDelay; i++)
     {
@@ -274,9 +299,12 @@ LteEnbPhy::GetMacChDelay (void) const
   return (m_macChTtiDelay);
 }
 
+
+
 bool
 LteEnbPhy::AddUePhy (uint16_t rnti)
 {
+  NS_LOG_FUNCTION (this << rnti);
   std::set <uint16_t>::iterator it;
   it = m_ueAttached.find (rnti);
   if (it == m_ueAttached.end ())
@@ -294,6 +322,7 @@ LteEnbPhy::AddUePhy (uint16_t rnti)
 bool
 LteEnbPhy::DeleteUePhy (uint16_t rnti)
 {
+  NS_LOG_FUNCTION (this << rnti);
   std::set <uint16_t>::iterator it;
   it = m_ueAttached.find (rnti);
   if (it == m_ueAttached.end ())
@@ -604,6 +633,48 @@ LteEnbPhy::CreatePuschCqiReport (const SpectrumValue& sinr)
     }
   return (ulcqi);
 	
+}
+
+
+void
+LteEnbPhy::DoSetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth)
+{
+  NS_LOG_FUNCTION (this << (uint32_t) ulBandwidth << (uint32_t) dlBandwidth);
+  m_ulBandwidth = ulBandwidth;
+  m_dlBandwidth = dlBandwidth;
+
+  int Type0AllocationRbg[4] = {
+    10,     // RGB size 1
+    26,     // RGB size 2
+    63,     // RGB size 3
+    110     // RGB size 4
+  };  // see table 7.1.6.1-1 of 36.213
+  for (int i = 0; i < 4; i++)
+    {
+      if (dlBandwidth < Type0AllocationRbg[i])
+        {
+          m_rbgSize = i + 1;
+          break;
+        }
+    }
+}
+
+void 
+LteEnbPhy::DoSetEarfcn (uint16_t ulEarfcn, uint16_t dlEarfcn)
+{
+  NS_LOG_FUNCTION (this << ulEarfcn << dlEarfcn);
+  m_ulEarfcn = ulEarfcn;
+  m_dlEarfcn = dlEarfcn;
+}
+
+
+void 
+LteEnbPhy::DoAddUe (uint16_t rnti)
+{
+  NS_LOG_FUNCTION (this << rnti);
+ 
+  bool success = AddUePhy (rnti);
+  NS_ASSERT_MSG (success, "AddUePhy() failed");
 }
 
 
