@@ -141,6 +141,7 @@ private:
   // forwarded from LteEnbCmacSapProvider
   void DoConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth);
   void DoAddUe (uint16_t rnti);
+  void DoRemoveUe (uint16_t rnti);
   void DoAddLc (LteEnbCmacSapProvider::LcInfo lcinfo, LteMacSapUser* msu);
   void DoReconfigureLc (LteEnbCmacSapProvider::LcInfo lcinfo);
   void DoReleaseLc (uint16_t  rnti, uint8_t lcid);
@@ -163,7 +164,7 @@ private:
   void DoSchedDlConfigInd (FfMacSchedSapUser::SchedDlConfigIndParameters ind);
   void DoSchedUlConfigInd (FfMacSchedSapUser::SchedUlConfigIndParameters params);
   
-  void DoUeUpdateConfigurationReq (LteUeConfig_t params);
+  void DoUeUpdateConfigurationReq (LteEnbCmacSapProvider::UeConfig params);
 
   /**
   * \brief Forwarded from LteEnbPhySapUser: trigger the start from a new frame

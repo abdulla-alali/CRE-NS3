@@ -59,10 +59,11 @@ public:
   // inherited from LteEnbCmacSapProvider
   virtual void ConfigureMac (uint8_t ulBandwidth, uint8_t dlBandwidth);
   virtual void AddUe (uint16_t rnti);
+  virtual void RemoveUe (uint16_t rnti);
   virtual void AddLc (LcInfo lcinfo, LteMacSapUser* msu);
   virtual void ReconfigureLc (LcInfo lcinfo);
   virtual void ReleaseLc (uint16_t rnti, uint8_t lcid);
-  virtual void UeUpdateConfigurationReq (LteUeConfig_t params);
+  virtual void UeUpdateConfigurationReq (UeConfig params);
 
 private:
   LteEnbMac* m_mac;
@@ -87,6 +88,12 @@ EnbMacMemberLteEnbCmacSapProvider::AddUe (uint16_t rnti)
 }
 
 void
+EnbMacMemberLteEnbCmacSapProvider::RemoveUe (uint16_t rnti)
+{
+  m_mac->DoRemoveUe (rnti);
+}
+
+void
 EnbMacMemberLteEnbCmacSapProvider::AddLc (LcInfo lcinfo, LteMacSapUser* msu)
 {
   m_mac->DoAddLc (lcinfo, msu);
@@ -105,7 +112,7 @@ EnbMacMemberLteEnbCmacSapProvider::ReleaseLc (uint16_t rnti, uint8_t lcid)
 }
 
 void
-EnbMacMemberLteEnbCmacSapProvider::UeUpdateConfigurationReq (LteUeConfig_t params)
+EnbMacMemberLteEnbCmacSapProvider::UeUpdateConfigurationReq (UeConfig params)
 {
   m_mac->DoUeUpdateConfigurationReq (params);
 }
@@ -624,6 +631,14 @@ LteEnbMac::DoAddUe (uint16_t rnti)
   m_cschedSapProvider->CschedUeConfigReq (params);
 }
 
+void
+LteEnbMac::DoRemoveUe (uint16_t rnti)
+{
+  NS_LOG_FUNCTION (this << " rnti=" << rnti);
+  FfMacCschedSapProvider::CschedUeReleaseReqParameters params;
+  params.m_rnti = rnti;
+  m_cschedSapProvider->CschedUeReleaseReq (params);
+}
 
 void
 LteEnbMac::DoAddLc (LteEnbCmacSapProvider::LcInfo lcinfo, LteMacSapUser* msu)
@@ -845,19 +860,17 @@ LteEnbMac::DoCschedUeConfigUpdateInd (FfMacCschedSapUser::CschedUeConfigUpdateIn
 {
   NS_LOG_FUNCTION (this);
   // propagates to RRC
-  LteUeConfig_t ueConfigUpdate;
+  LteEnbCmacSapUser::UeConfig ueConfigUpdate;
   ueConfigUpdate.m_rnti = params.m_rnti;
   ueConfigUpdate.m_transmissionMode = params.m_transmissionMode;
   m_cmacSapUser->RrcConfigurationUpdateInd (ueConfigUpdate);
 }
 
 void
-LteEnbMac::DoUeUpdateConfigurationReq (LteUeConfig_t params)
+LteEnbMac::DoUeUpdateConfigurationReq (LteEnbCmacSapProvider::UeConfig params)
 {
   NS_LOG_FUNCTION (this);
-  // propagates to PHY layer
-  m_enbPhySapProvider->SetTransmissionMode (params.m_rnti, params.m_transmissionMode);
-  m_enbPhySapProvider->SetSrsConfigurationIndex (params.m_rnti, params.m_srsConfigurationIndex);
+
   // propagates to scheduler
   FfMacCschedSapProvider::CschedUeConfigReqParameters req;
   req.m_rnti = params.m_rnti;

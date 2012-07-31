@@ -70,9 +70,7 @@ public:
 
   // inherited from LtePhySapProvider
   virtual void SendMacPdu (Ptr<Packet> p);
-  virtual void SetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth);
   virtual void SendLteControlMessage (Ptr<LteControlMessage> msg);
-  virtual void SetTransmissionMode (uint8_t txMode);
   virtual void SetSrsConfigurationIndex (uint16_t srcCi);
 
 private:
@@ -92,21 +90,9 @@ UeMemberLteUePhySapProvider::SendMacPdu (Ptr<Packet> p)
 }
 
 void
-UeMemberLteUePhySapProvider::SetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth)
-{
-  m_phy->DoSetBandwidth (ulBandwidth, dlBandwidth);
-}
-
-void
 UeMemberLteUePhySapProvider::SendLteControlMessage (Ptr<LteControlMessage> msg)
 {
   m_phy->DoSendLteControlMessage (msg);
-}
-
-void
-UeMemberLteUePhySapProvider::SetTransmissionMode (uint8_t   txMode)
-{
-  m_phy->DoSetTransmissionMode (txMode);
 }
 
 void
@@ -117,7 +103,7 @@ UeMemberLteUePhySapProvider::SetSrsConfigurationIndex (uint16_t   srcCi)
 
 
 ////////////////////////////////////////
-// generic LteUePhy methods
+// LteUePhy methods
 ////////////////////////////////////////
 
 
@@ -138,11 +124,14 @@ LteUePhy::LteUePhy (Ptr<LteSpectrumPhy> dlPhy, Ptr<LteSpectrumPhy> ulPhy)
     m_a30CqiPeriocity (MilliSeconds (1)),
     // ideal behavior
     m_a30CqiLast (MilliSeconds (0)),
+    m_uePhySapUser (0),
+    m_ueCphySapUser (0),
     m_rnti (0),
     m_srsPeriodicity (0)
 {
   m_amc = CreateObject <LteAmc> ();
   m_uePhySapProvider = new UeMemberLteUePhySapProvider (this);
+  m_ueCphySapProvider = new MemberLteUeCphySapProvider<LteUePhy> (this);
   m_macChTtiDelay = UL_PUSCH_TTIS_DELAY;
   for (int i = 0; i < m_macChTtiDelay; i++)
     {
@@ -170,6 +159,7 @@ LteUePhy::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
   delete m_uePhySapProvider;
+  delete m_ueCphySapProvider;
   LtePhy::DoDispose ();
 }
 
@@ -242,8 +232,6 @@ void
 LteUePhy::DoStart ()
 {
   NS_LOG_FUNCTION (this);
-  Ptr<SpectrumValue> noisePsd = LteSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_dlEarfcn, m_dlBandwidth, m_noiseFigure);
-  m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
   LtePhy::DoStart ();
 }
 
@@ -259,6 +247,21 @@ LteUePhy::GetLteUePhySapProvider ()
 {
   NS_LOG_FUNCTION (this);
   return (m_uePhySapProvider);
+}
+
+
+void
+LteUePhy::SetLteUeCphySapUser (LteUeCphySapUser* s)
+{
+  NS_LOG_FUNCTION (this);
+  m_ueCphySapUser = s;
+}
+
+LteUeCphySapProvider*
+LteUePhy::GetLteUeCphySapProvider ()
+{
+  NS_LOG_FUNCTION (this);
+  return (m_ueCphySapProvider);
 }
 
 void
@@ -494,8 +497,7 @@ void
 LteUePhy::DoSendLteControlMessage (Ptr<LteControlMessage> msg)
 {
   NS_LOG_FUNCTION (this << msg);
-  Ptr<LteUeNetDevice> thisDevice = GetDevice ()->GetObject<LteUeNetDevice> ();
-  Ptr<LteEnbNetDevice> remoteDevice = thisDevice->GetTargetEnb ();
+
   SetControlMessages (msg);
 }
 
@@ -598,7 +600,7 @@ LteUePhy::QueueSubChannelsForTransmission (std::vector <int> rbMap)
 void
 LteUePhy::SubframeIndication (uint32_t frameNo, uint32_t subframeNo)
 {
-  NS_LOG_LOGIC (this << frameNo << subframeNo);
+  NS_LOG_FUNCTION (this << frameNo << subframeNo);
   
   // update uplink transmission mask according to previous UL-CQIs
   SetSubChannelsForTransmission (m_subChannelsForTransmissionQueue.at (0));
@@ -686,22 +688,55 @@ LteUePhy::SendSrs ()
 
 
 void
-LteUePhy::SetEnbCellId (uint16_t cellId)
-{
-  m_enbCellId = cellId;
-  m_downlinkSpectrumPhy->SetCellId (cellId);
-  m_uplinkSpectrumPhy->SetCellId (cellId);
-}
-
-
-
-void
-LteUePhy::SetRnti (uint16_t rnti)
+LteUePhy::DoSetRnti (uint16_t rnti)
 {
   NS_LOG_FUNCTION (this << rnti);
   m_rnti = rnti;
 }
 
+
+void
+LteUePhy::DoSetBandwidth (uint8_t ulBandwidth, uint8_t dlBandwidth)
+{
+  m_ulBandwidth = ulBandwidth;
+  m_dlBandwidth = dlBandwidth;
+
+  int Type0AllocationRbg[4] = {
+    10,     // RGB size 1
+    26,     // RGB size 2
+    63,     // RGB size 3
+    110     // RGB size 4
+  };  // see table 7.1.6.1-1 of 36.213
+  for (int i = 0; i < 4; i++)
+    {
+      if (dlBandwidth < Type0AllocationRbg[i])
+        {
+          m_rbgSize = i + 1;
+          break;
+        }
+    }
+  UpdateNoisePsd ();
+}
+
+void 
+LteUePhy::DoSetEarfcn (uint16_t dlEarfcn, uint16_t ulEarfcn)
+{
+  m_dlEarfcn = dlEarfcn;
+  m_ulEarfcn = ulEarfcn;
+  UpdateNoisePsd ();
+}
+
+
+void
+LteUePhy::DoSyncronizeWithEnb (Ptr<LteEnbNetDevice> enbDevice, uint16_t cellId)
+{
+  NS_LOG_FUNCTION (this << enbDevice << cellId);
+  m_enbCellId = cellId;
+  m_enbDevice = enbDevice;
+  
+  m_downlinkSpectrumPhy->SetCellId (cellId);
+  m_uplinkSpectrumPhy->SetCellId (cellId);
+}
 
 void
 LteUePhy::DoSetTransmissionMode (uint8_t txMode)
@@ -792,7 +827,12 @@ LteUePhy::SetTxModeGain (uint8_t txMode, double gain)
   m_downlinkSpectrumPhy->SetTxModeGain (txMode, gain);
 }
 
-
+void 
+LteUePhy::UpdateNoisePsd ()
+{
+  Ptr<SpectrumValue> noisePsd = LteSpectrumValueHelper::CreateNoisePowerSpectralDensity (m_dlEarfcn, m_dlBandwidth, m_noiseFigure);
+  m_downlinkSpectrumPhy->SetNoisePowerSpectralDensity (noisePsd);
+}
 
 
 } // namespace ns3

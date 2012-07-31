@@ -208,7 +208,7 @@ LenaDataPhyErrorModelTestCase::DoRun (void)
   // Activate an EPS bearer
   enum EpsBearer::Qci q = EpsBearer::GBR_CONV_VOICE;
   EpsBearer bearer (q);
-  lena->ActivateEpsBearer (ueDevs, bearer, EpcTft::Default ());
+  lena->ActivateDataRadioBearer (ueDevs, bearer);
   
 
   Ptr<LteEnbNetDevice> lteEnbDev = enbDevs.Get (0)->GetObject<LteEnbNetDevice> ();
@@ -392,7 +392,7 @@ LenaDlCtrlPhyErrorModelTestCase::DoRun (void)
   // Activate an EPS bearer
   enum EpsBearer::Qci q = EpsBearer::GBR_CONV_VOICE;
   EpsBearer bearer (q);
-  lena->ActivateEpsBearer (ueDevs, bearer, EpcTft::Default ());
+  lena->ActivateDataRadioBearer (ueDevs, bearer);
   
   // Set UEs' position and power
   for (int i = 0; i < m_nEnb; i++)

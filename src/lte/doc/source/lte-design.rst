@@ -6,6 +6,8 @@
 ++++++++++++++++++++++++++
 
 
+.. _overall-architecture:
+
 -----------------------
 Overall Architecture 
 -----------------------
@@ -118,68 +120,57 @@ have been considered:
 Architecture
 ++++++++++++
 
-For the sake of an easier explanation, we further divide the LTE model
-in two separate parts, which are described in the following.
+For the sake of an easier explanation, we consider separately the architecture of the UE and eNB nodes. 
 
-The overall architecture of the LTE module is represented in the following figures.
 
-The first part is the lower LTE radio protocol stack, which is
-represented in the figures 
-:ref:`fig-lte-enb-architecture` and :ref:`fig-lte-ue-architecture`,
-which deal respectively with the eNB and the UE. 
+UE architecture
+---------------
 
-.. _fig-lte-enb-architecture:
+The architecture of the LTE radio protocol stack model of the UE is represented in the figure :ref:`fig-lte-arch-ue`. 
+
+
+.. _fig-lte-arch-ue:
    
-.. figure:: figures/lte-enb-architecture.*
+.. figure:: figures/lte-arch-ue.*
    :align: center
 
-   Lower LTE radio protocol stack architecture for the eNB
+    LTE radio protocol stack architecture for the UE
+
+The architecture of the PHY/channel model of the UE is represented in figure :ref:`fig-lte-ue-phy`. 
 
 
-
-.. _fig-lte-ue-architecture:
-
-.. figure:: figures/lte-ue-architecture.*
-   :align: center
-
-   Lower LTE radio protocol stack architecture for the UE
-
-
-The LTE lower radio stack model includes in particular the PHY and the MAC layers;
-additionally, also the Scheduler is included (which is commonly
-associated with the MAC layer). The most important difference between
-the eNB and the UE is the presence of the Scheduler in the eNB, which
-is in charge of assigning radio resources to all UEs and Radio Bearers
-both in uplink and downlink. This component is not present within the
-UE.
-
-
-
-
-The second part is the upper LTE radio stack, which is represented in
-the figure :ref:`fig-lte-arch-data-rrc-pdcp-rlc`. 
-
-.. _fig-lte-arch-data-rrc-pdcp-rlc:
+.. _fig-lte-ue-phy:
    
-.. figure:: figures/lte-arch-data-rrc-pdcp-rlc.*
+.. figure:: figures/lte-ue-phy.*
    :align: center
 
-   Architecture of the upper LTE radio stack 
+   PHY and channel model architecture for the UE
 
 
-This part includes the RRC, PDCP and RLC protocols. The architecture
-is very similar between the eNB and the UE: in fact, in
-both cases there is a single MAC instance and a single RRC instance,
-that work together with pairs of RLC and PDCP instances (one RLC and
-one PDCP instance per radio bearer).
 
-We note that in the current version of the simulator the data
-plane of the upper LTE radio protocol stack is modeled accurately; in
-particular, the RLC and PDCP protocol are implemented with actual
-protocol headers that match those specified by the 3GPP standard. 
-On the other hand, the functionality of the control plane (which for
-the upper LTE radio protocol stack involves mainly the RRC) is modeled in a
-significantly simplified fashion.   
+
+eNB architecture
+---------------
+
+The architecture of the LTE radio protocol stack model of the eNB is represented in the figure :ref:`fig-lte-arch-enb`. 
+
+
+.. _fig-lte-arch-enb:
+   
+.. figure:: figures/lte-arch-enb.*
+   :align: center
+
+    LTE radio protocol stack architecture for the eNB
+
+The architecture of the PHY/channel model of the eNB is represented in figure :ref:`fig-lte-enb-phy`. 
+
+
+.. _fig-lte-enb-phy:
+   
+.. figure:: figures/lte-enb-phy.*
+   :align: center
+
+   PHY and channel model architecture for the eNB
 
 
 
@@ -901,6 +892,7 @@ by the AM RLC entity.
    Sequence diagram of data PDU retransmission in uplink
 
 
+.. _am_data_transfer:
 
 AM data transfer
 ----------------
@@ -1055,27 +1047,244 @@ The following features are currently not supported:
 
 
 
+.. only:: latex
 
-RRC
-+++
+    .. raw:: latex
+      
+        \clearpage
 
-At the time of this writing, the RRC model implemented in the
-simulator is not comprehensive of all the funcionalities defined  
-by the 3GPP standard. 
-In particular, RRC messaging over signaling
-radio bearer is not implemented; the corresponding control
-functionality is performed via direct function calls among the
-relevant eNB and UE protocol entities and the helper objects.
 
-The RRC implements the procedures for
-managing the connection of the UEs to the eNBs, and to setup and
-release the Radio Bearers. The RRC entity also takes care of multiplexing
-data packets coming from the upper layers into the appropriate radio
-bearer. In the UE, this is performed in the uplink by using the
-Traffic Flow Template classifier (TftClassifier). In the eNB, this is
-done for downlink traffic, by leveraging on the one-to-one mapping
-between S1-U bearers and Radio Bearers, which is required by the 3GPP
-specifications. 
+
+Radio Resource Control (RRC)
+++++++++++++++++++++++++++++
+
+The RRC model implemented in the simulator provides the following functionality:
+
+ - generation (at the eNB) and interpretation (at the UE) of the Master Information Block and System Information Block Type 1 (including in particular PLMN identity, CSG-indication and CSG-identity)
+ - RRC connection establishment procedure
+ - RRC reconfiguration procedure, supporting the following use cases:
+   + reconfiguration of the PHY TX mode (MIMO)
+   + data radio bearer setup
+   + handover
+ - RRC connection re-establishment, supporting the following use
+   cases:
+   + handover
+
+
+
+RRC connection establishment
+----------------------------
+
+Figure :ref:`fig-rrc-connection-establishment` shows how the RRC
+Connection Establishment procedure is modeled, highlighting the role
+of the RRC layer at both the UE and the eNB, as well as the
+interaction with the lower layers. The figure highlights the different
+type of control messages involved and the interactions with the
+scheduler to allocate the radio resources needed for their transmission.
+
+.. _fig-rrc-connection-establishment:
+
+.. figure:: figures/rrc-connection-establishment.*
+   :align: center
+
+   Sequence diagram of the RRC Connection Establishment procedure
+
+
+
+RRC connection reconfiguration
+------------------------------
+
+Figure :ref:`fig-rrc-connection-reconfiguration` shows how the RRC
+Connection Reconfiguration procedure is modeled for the case where
+MobilityControlInfo is not provided, i.e., handover is not
+performed. In this case, only RRC messages sent over SRB1/DCCH1 are
+involved. The allocation of radio resources to send these messages
+follows the usual procedure of RLC AM described in section 
+:ref:`am_data_transfer`, which is therefore omitted from the figure 
+for simplicity. 
+
+
+.. _fig-rrc-connection-reconfiguration:
+
+.. figure:: figures/rrc-connection-reconfiguration.*
+   :align: center
+
+   Sequence diagram of the RRC Connection Reconfiguration procedure
+
+
+
+Figure :ref:`fig-rrc-connection-reconf-handover` shows how the RRC
+Connection Reconfiguration procedure is modeled for the case where
+MobilityControlInfo is provided, i.e., handover is to be performed.
+As specified in [TS36331]_, *After receiving the handover message,
+the UE attempts to access the target cell at the first available RACH
+occasion according to Random Access resource selection defined in [TS36321]_,
+i.e. the handover is asynchronous. Consequently, when
+allocating a dedicated preamble for the random access in the target
+cell, E-UTRA shall ensure it is available from the first RACH occasion
+the UE may use. Upon successful completion of the handover, the UE
+sends a message used to confirm the handover.* Note that the random
+access procedure in this case is non-contention based, hence in a real
+LTE system it differs slightly from the one used in RRC connection
+established. Also note that the RA Preamble ID is signalled via RRC
+using the RACH-ConfigDedicated IE which is part of MobilityControlInfo.
+
+
+.. _fig-rrc-connection-reconf-handover:
+   
+.. figure:: figures/rrc-connection-reconfiguration-handover.*
+   :align: center
+
+   Sequence diagram of the RRC Connection Reconfiguration procedure
+   for the handover case
+
+
+
+Connection Setup Signaling implementation
+-----------------------------------------
+
+As can be observed from the sequence diagrams of the RRC procedures
+reported in the previous subsection, RRC procedures involve control
+messages of several kinds at various layers (especially for the random
+access procedure). In the following, we describe how they are
+implemented in the simulator.  
+ 
+
+ * **MAC** messages:
+
+   - **Random Access (RA) preamble**: in real LTE systems this
+     corresponds to a Zadoff-Chu (ZC)
+     sequence using one of several formats available and sent in the
+     PRACH slots which could in principle overlap with PUSCH. Since an
+     accurate modeling of the random access procedure is not a
+     requirement of the simulator, the RA preamble will be modeled by
+     an apposite ideal control message, without consuming any radio
+     resources and without any associated error model. 
+
+   - **Random Access Response (RAR)**: in real LTE systems, this is a
+     special MAC PDU sent on the DL-SCH. Since MAC PDUs are not
+     accurately modeled in the simulator (only RLC and above PDUs
+     are), the RAR is modeled as an ideal control message, without any
+     associated error model. Still, the consumption of Radio
+     Resources for sending the RAR is modeled by interaction with
+     the scheduler using the FF MAC Scheduler primitive
+     SCHED_DL_RACH_INFO_REQ. 
+
+   - **Contention Resolution (CR)**: in real LTE system, the CR is
+     sent as a regular MAC PDU with a special LCID and a CR MAC CE sent on the
+     DL-SCH. In the simulator, it is implemented as an
+     ideal control message without any associated error model, but still
+     modeling the associated consumption of scheduler resources by
+     using the FF MAC Scheduler primitive SCHED_DL_MAC_BUFFER_REQ. 
+
+ * **SRB0** messages (over CCCH):
+
+   - **RrcConnectionRequest**: in real LTE systems, this is an RLC TM
+     SDU sent over resources specified in the UL Grant in the RAR (not
+     in UL DCIs); the reason is that C-RNTI is not known yet at this
+     stage. In the simulator, this is modeled as a real RLC TM RLC PDU
+     whose UL resources are allocated by the sched upon call to
+     SCHED_DL_RACH_INFO_REQ. 
+
+   - **RrcConnectionSetup**: in the simulator this is implemented as in
+     real LTE systems, i.e., with an RLC TM SDU sent over resources
+     indicated by a regular UL DCI, allocated with
+     SCHED_DL_RLC_BUFFER_REQ triggered by the RLC TM instance that is
+     mapped to LCID 0 (the CCCH).
+
+ * **SRB1** messages (over DCCH):
+
+   - All the SRB1 messages modeled in the simulator (e.g.,
+     **RrcConnectionCompleted**) are implemented as in real LTE systems,
+     i.e., with a real RLC SDU sent over RLC AM using DL resources
+     allocated via Buffer Status Reports. See the RLC model
+     documentation for details.
+
+ * **SRB2** messages (over DCCH):
+
+     - According to [TS36331]_, "*SRB1 is for RRC messages (which may
+       include a piggybacked NAS message) as well as for NAS messages
+       prior to the establishment of SRB2, all using DCCH logical
+       channel*", whereas "*SRB2 is for NAS messages, using DCCH
+       logical channel*" and "*SRB2 has a lower-priority than SRB1 and is 
+       always configured by E-UTRAN after security
+       activation*". Modeling security-related aspects is not a
+       requirement of the LTE simulation model, hence we always use
+       SRB1 and never activate SRB2.
+
+
+Radio Link Failure
+------------------
+
+Since at this stage the RRC supports the CONNECTED mode only, Radio Link
+Failure (RLF) is not handled. The reason is that one of the possible
+outcomes of RLF (when RRC re-establishment is unsuccessful) is to
+leave RRC CONNECTED notifying the NAS of the RRC connection
+failure. In order to model RLF properly, RRC IDLE mode should be
+supported.
+
+With the current model, an UE that experiences bad link quality will
+just stay associated with the same eNB, and the scheduler will stop
+allocating resources to it for communications. This is also consistent
+with the fact that, at this stage, only handovers explicitly triggered
+within the simulation program are supported (network-driven handovers
+based on UE measurements are planned only at a later stage).
+
+
+Non-Access Stratum (NAS) model
+++++++++++++++++++++++++++++++
+
+
+The focus of the LTE-EPC model is on the NAS Active state, which corresponds to EMM Registered, ECM connected, and RRC connected. Because of this, the following simplifications are made:
+
+ - EMM and ECM are not modeled explicitly; instead, the NAS entity at the UE will interact directy with the EpcHelper to perfom actions that are equivalent (with gross simplifications) to taking the UE to the states EMM Connected and ECM Connected; 
+
+ - the NAS also takes care of multiplexing uplink data packets coming from the upper layers into the appropriate EPS bearer by using the Traffic Flow Template classifier (TftClassifier). (NB: this is currently in the RRC, but it is better to move it to the NAS).
+
+- the NAS does not support PLMN and CSG selection 
+
+- the NAS does not support any location update/paging procedure in idle mode
+
+
+
+Figure :ref:`fig-nas-attach` shows how the simplified NAS model implements the attach procedure. Note that the default EPS bearer is also activated as part of this procedure.
+
+
+.. _fig-nas-attach:
+   
+.. figure:: figures/nas-attach.*
+   :align: center
+
+   Sequence diagram of the attach procedure
+
+
+
+
+Figure :ref:`fig-nas-activate-dedicated-bearer` shows how the
+simplified NAS model implements the activation of a dedicated EPS
+bearer.  
+
+
+.. _fig-nas-activate-dedicated-bearer:
+
+.. figure:: figures/nas-activate-dedicated-bearer.*
+   :align: center
+
+   Sequence diagram of the procedure for the activation of a dedicated EPS bearer
+
+
+
+
+
+
+
+
+.. only:: latex
+
+    .. raw:: latex
+      
+        \clearpage
+
 
 
 
@@ -1508,3 +1717,141 @@ A few notes on the above diagram:
     on control plane only.
 
 
+
+.. only:: latex
+
+    .. raw:: latex
+
+        \clearpage
+
+-----------------
+X2-based handover
+-----------------
+
+The X2 interface interconnects two eNBs [TS36420]_. From a logical point of view, the X2 interface is a point-to-point interface between the two eNBs. In a real E-UTRAN, the logical point-to-point interface should be feasible even in the absence of a physical direct connection between the two eNBs. In the X2 model implemented in the simulator, the X2 interface is a point-to-point link between the two eNBs. A point-to-point device is created in both eNBs and the two point-to-point devices are attached to the point-to-point link.
+
+The overall architecture of the LENA simulation model is depicted in the figure :ref:`fig-epc-topology-x2-enhanced`. It adds the X2 interface between eNBs to the original architecture described in :ref:`overall-architecture`.
+
+.. _fig-epc-topology-x2-enhanced:
+   
+.. figure:: figures/epc-topology-x2-enhanced.*
+   :align: center
+
+   Overall architecture of the LTE-EPC simulation model enhanced with X2 interface
+
+
+X2 model
+++++++++
+
+The X2 model implemented in the simulator provides detailed implementation of the following elementary procedures of the Mobility Management functionality [TS36423]_:
+
+  * Handover Request procedure
+
+  * Handover Request Acknowledgement procedure
+
+  * SN Status Transfer procedure
+
+  * UE Context Release procedure
+
+These procedures are involved in the X2-based handover. You can find the detailed description of the handover in section 10.1.2.1 of [TS36300]_. Figure :ref:`fig-x2-based-handover-seq-diagram` shows the interaction of the entities of the X2 model in the simulator.
+
+.. _fig-x2-based-handover-seq-diagram:
+
+.. figure:: figures/lte-epc-x2-handover-seq-diagram.*
+    :width: 700px
+    :align: center
+
+    Sequence diagram of the X2-based handover
+
+
+The X2 model is an entity that uses services from:
+
+  * the X2 interfaces,
+      
+    * They are implemented as Sockets on top of the point-to-point devices.
+
+    * They are used to send/receive X2 messages through the X2-C and X2-U interfaces (i.e. the point-to-point device attached to the point-to-point link) towards the peer eNB.
+
+  * the S1 application.
+
+    * Currently, it is the EpcEnbApplication.
+
+    * It is used to get some information needed for the Elementary Procedures of the X2 messages.
+
+and it provides services to:
+
+  * the RRC entity (X2 SAP)
+
+    * to send/receive RRC messages. The X2 entity sends the RRC message as a transparent container in the X2 message. This RRC message is sent to the UE. 
+
+Figure :ref:`fig-x2-entity-saps` shows the implentation model of the X2 entity and its relationship with all the other entities and services in the protocol stack.
+
+.. _fig-x2-entity-saps:
+
+.. figure:: figures/lte-epc-x2-entity-saps.*
+    :width: 700px
+    :align: center
+
+    Implementation Model of X2 entity and SAPs
+
+The RRC entity manages the initiation of the handover procedure. This is done in the Handover Management submodule of the eNB RRC entity. The target eNB may perform some Admission Control procedures. This is done in the Admission Control submodule. Initially, this submodule will accept any handover request.
+
+X2 interfaces
++++++++++++++
+
+The X2 model contains two interfaces:
+
+  * the X2-C interface. It is the control interface and it is used to send the X2-AP PDUs
+    (i.e. the elementary procedures).
+
+  * the X2-U interface. It is used to send the bearer data when there is `DL forwarding`.
+
+Figure :ref:`fig-lte-epc-x2-interface` shows the protocol stacks of the X2-U interface and X2-C interface modeled in the simulator.
+
+.. _fig-lte-epc-x2-interface:
+
+.. figure:: figures/lte-epc-x2-interface.*          
+    :align: center
+
+    X2 interface protocol stacks
+
+In the original X2 interface control plane protocol stack, SCTP is used as the transport protocol but currently, the SCTP protocol is not modeled in the ns-3 simulator and its implementation is out-of-scope of the project. The UDP protocol is used as the datagram oriented protocol instead of the SCTP protocol.
+
+X2 Service Interface
+++++++++++++++++++++
+
+The X2 service interface is used by the RRC entity to send and receive messages of the X2 procedures. It is divided into two parts:
+
+  * the ``EpcX2SapProvider`` part is provided by the X2 entity and used by the RRC entity and
+
+  * the ``EpcX2SapUser`` part is provided by the RRC entity and used by the RRC enity.
+
+X2 Service Primitives
+---------------------
+
+The following list specifies which service primitives are provided by the X2 service interface:
+
+  * ``EpcX2SapProvider::SendHandoverRequest``
+
+    * The RRC entity uses this primitive to indicate to the X2 entity that it must initiate a handover preparation procedure by sending a HANDOVER REQUEST message.
+
+  * ``EpcX2SapUser::RecvHandoverRequest``
+
+    * The X2 entity in the target eNB uses this primitive to indicate to the RRC entity that a HANDOVER REQUEST message has been received from the source eNB.
+
+  * ``EpcX2Sapuser::SendHandoverRequestAck``
+
+    * The RRC entity uses this primitive to indicate to the X2 entity that it must send a HANDOVER REQUEST ACKNOWLEDGE message back to the source eNB.
+
+  * ``EpcX2SapProvider::RecvHandoverRequestAck``
+
+    * The X2 entity in the source eNB uses this primitive to indicate to the RRC entity that a HANDOVER REQUEST ACKNOWLEDGE message has been received from the target eNB.
+
+S1 Service Interface
+++++++++++++++++++++
+
+The S1 service interface is used by the X2 entity to get some information neeeded to build the X2 messages. It is divided into two parts:
+
+  * the ``S1SapProvider`` part is provided by the S1 entity and used by the X2 entity and
+
+  * the ``S1SapUser`` part is provided by the X2 entity and used by the S1 entity.
