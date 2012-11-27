@@ -39,23 +39,23 @@ NS_LOG_COMPONENT_DEFINE ("EpcX2HandoverExample");
 int
 main (int argc, char *argv[])
 {
-  LogLevel logLevel = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_LEVEL_ALL);
+  // LogLevel logLevel = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_LEVEL_ALL);
 
-  LogComponentEnable ("LteHelper", logLevel);
-  LogComponentEnable ("EpcHelper", logLevel);
-  LogComponentEnable ("EpcEnbApplication", logLevel);
-  LogComponentEnable ("EpcX2", logLevel);
-  LogComponentEnable ("EpcSgwPgwApplication", logLevel);
+  // LogComponentEnable ("LteHelper", logLevel);
+  // LogComponentEnable ("EpcHelper", logLevel);
+  // LogComponentEnable ("EpcEnbApplication", logLevel);
+  // LogComponentEnable ("EpcX2", logLevel);
+  // LogComponentEnable ("EpcSgwPgwApplication", logLevel);
 
-  LogComponentEnable ("LteEnbRrc", logLevel);
-  LogComponentEnable ("LteEnbNetDevice", logLevel);
-  LogComponentEnable ("LteUeRrc", logLevel);
-  LogComponentEnable ("LteUeNetDevice", logLevel);
+  // LogComponentEnable ("LteEnbRrc", logLevel);
+  // LogComponentEnable ("LteEnbNetDevice", logLevel);
+  // LogComponentEnable ("LteUeRrc", logLevel);
+  // LogComponentEnable ("LteUeNetDevice", logLevel);
 
   uint16_t numberOfUes = 1;
   uint16_t numberOfEnbs = 2;
-  double simTime = 6.0;
-  double distance = 60.0;
+  double simTime = 0.300;
+  double distance = 100.0;
 
   // Command line arguments
   CommandLine cmd;
@@ -104,7 +104,11 @@ main (int argc, char *argv[])
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
   for (uint16_t i = 0; i < numberOfEnbs; i++)
     {
-      positionAlloc->Add (Vector(distance * i, 0, 0));
+      positionAlloc->Add (Vector(distance * 2*i - distance, 0, 0));
+    }
+  for (uint16_t i = 0; i < numberOfUes; i++)
+    {
+      positionAlloc->Add (Vector(0, 0, 0));
     }
   MobilityHelper mobility;
   mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
@@ -145,11 +149,13 @@ main (int argc, char *argv[])
   lteHelper->AddX2Interface (enbNodes);
 
   // X2-based Handover
-  lteHelper->HandoverRequest (Seconds (2.0), ueLteDevs.Get (0), enbLteDevs.Get (0), enbLteDevs.Get (1));
+  lteHelper->HandoverRequest (Seconds (0.100), ueLteDevs.Get (0), enbLteDevs.Get (0), enbLteDevs.Get (1));
   
   
   // Uncomment to enable PCAP tracing
   //p2ph.EnablePcapAll("lena-x2-handover");
+
+  lteHelper->EnableMacTraces ();
 
   Simulator::Stop(Seconds(simTime));
   Simulator::Run();

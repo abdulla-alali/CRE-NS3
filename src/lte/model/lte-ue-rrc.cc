@@ -527,6 +527,11 @@ LteUeRrc::DoRecvSystemInformation (LteRrcSap::SystemInformation msg)
       m_receivedSib2 = true;
       m_ulBandwidth = msg.sib2.freqInfo.ulBandwidth;
       m_ulEarfcn = msg.sib2.freqInfo.ulCarrierFreq;
+      LteUeCmacSapProvider::RachConfig rc;
+      rc.numberOfRaPreambles = msg.sib2.radioResourceConfigCommon.rachConfigCommon.preambleInfo.numberOfRaPreambles;
+      rc.preambleTransMax = msg.sib2.radioResourceConfigCommon.rachConfigCommon.raSupervisionInfo.preambleTransMax;
+      rc.raResponseWindowSize = msg.sib2.radioResourceConfigCommon.rachConfigCommon.raSupervisionInfo.raResponseWindowSize;
+      m_cmacSapProvider->ConfigureRach (rc);
       m_cphySapProvider->ConfigureUplink (m_ulEarfcn, m_ulBandwidth);
     }
   if (m_state == IDLE_WAIT_SYSTEM_INFO && m_receivedMib && m_receivedSib2)
@@ -572,6 +577,7 @@ LteUeRrc::DoRecvRrcConnectionReconfiguration (LteRrcSap::RrcConnectionReconfigur
         }      
       if (msg.haveMobilityControlInfo)
         {
+          NS_LOG_INFO ("haveMobilityControlInfo == true");
           SwitchToState (CONNECTED_HANDOVER);
           const LteRrcSap::MobilityControlInfo& mci = msg.mobilityControlInfo;
           m_cellId = mci.targetPhysCellId;
@@ -590,6 +596,7 @@ LteUeRrc::DoRecvRrcConnectionReconfiguration (LteRrcSap::RrcConnectionReconfigur
         }
       else
         {
+          NS_LOG_INFO ("haveMobilityControlInfo == false");
           LteRrcSap::RrcConnectionReconfigurationCompleted msg2;
           msg2.rrcTransactionIdentifier = msg.rrcTransactionIdentifier;
           m_rrcSapUser->SendRrcConnectionReconfigurationCompleted (msg2);
@@ -717,7 +724,7 @@ LteUeRrc::ApplyRadioResourceConfigDedicated (LteRrcSap::RadioResourceConfigDedic
        dtamIt != rrcd.drbToAddModList.end ();
        ++dtamIt)
     {
-      NS_LOG_INFO (this << " IMSI " << m_imsi << " adding/modifying DRBID " << dtamIt->drbIdentity << " LC " << (uint32_t) dtamIt->logicalChannelIdentity);
+      NS_LOG_INFO (this << " IMSI " << m_imsi << " adding/modifying DRBID " << (uint32_t) dtamIt->drbIdentity << " LC " << (uint32_t) dtamIt->logicalChannelIdentity);
       NS_ASSERT_MSG (dtamIt->logicalChannelIdentity > 2, "LCID value " << dtamIt->logicalChannelIdentity << " is reserved for SRBs");
 
       std::map<uint8_t, Ptr<LteDataRadioBearerInfo> >::iterator drbMapIt = m_drbMap.find (dtamIt->drbIdentity);
@@ -755,9 +762,12 @@ LteUeRrc::ApplyRadioResourceConfigDedicated (LteRrcSap::RadioResourceConfigDedic
           rlc->SetRnti (m_rnti);
           rlc->SetLcId (dtamIt->logicalChannelIdentity);
 
-          Ptr<LteDataRadioBearerInfo> rbInfo = CreateObject<LteDataRadioBearerInfo> ();
-          rbInfo->m_rlc = rlc;
-
+          Ptr<LteDataRadioBearerInfo> drbInfo = CreateObject<LteDataRadioBearerInfo> ();
+          drbInfo->m_rlc = rlc;
+          drbInfo->m_epsBearerIdentity = dtamIt->epsBearerIdentity;
+          drbInfo->m_logicalChannelIdentity = dtamIt->logicalChannelIdentity;
+          drbInfo->m_drbIdentity = dtamIt->drbIdentity;
+ 
           // we need PDCP only for real RLC, i.e., RLC/UM or RLC/AM
           // if we are using RLC/SM we don't care of anything above RLC
           if (rlcTypeId != LteRlcSm::GetTypeId ())
@@ -768,12 +778,12 @@ LteUeRrc::ApplyRadioResourceConfigDedicated (LteRrcSap::RadioResourceConfigDedic
               pdcp->SetLtePdcpSapUser (m_pdcpSapUser);
               pdcp->SetLteRlcSapProvider (rlc->GetLteRlcSapProvider ());
               rlc->SetLteRlcSapUser (pdcp->GetLteRlcSapUser ());
-              rbInfo->m_pdcp = pdcp;
+              drbInfo->m_pdcp = pdcp;
             }
 
           m_bid2DrbidMap[dtamIt->epsBearerIdentity] = dtamIt->drbIdentity;
   
-          m_drbMap.insert (std::pair<uint8_t, Ptr<LteDataRadioBearerInfo> > (dtamIt->drbIdentity, rbInfo));
+          m_drbMap.insert (std::pair<uint8_t, Ptr<LteDataRadioBearerInfo> > (dtamIt->drbIdentity, drbInfo));
   
 
           struct LteUeCmacSapProvider::LogicalChannelConfig lcConfig;
@@ -788,9 +798,9 @@ LteUeRrc::ApplyRadioResourceConfigDedicated (LteRrcSap::RadioResourceConfigDedic
         }
       else
         {
-          NS_LOG_INFO ("request to modify existing DRBID (skipping as currently not implemented)");
-          Ptr<LteDataRadioBearerInfo> rbInfo = drbMapIt->second;
-          // would need to modify rbInfo, and then propagate changes to the MAC
+          NS_LOG_INFO ("request to modify existing DRBID");
+          Ptr<LteDataRadioBearerInfo> drbInfo = drbMapIt->second;
+          // TODO: currently not implemented. Would need to modify drbInfo, and then propagate changes to the MAC
         }
     }
   

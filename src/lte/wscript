@@ -14,6 +14,7 @@ def build(bld):
         'model/lte-amc.cc',
         'model/lte-enb-rrc.cc',
         'model/lte-ue-rrc.cc',
+        'model/lte-rrc-sap.cc',
         'model/lte-rrc-protocol-ideal.cc',
         'model/lte-rlc-sap.cc',
         'model/lte-rlc.cc',
@@ -77,6 +78,7 @@ def build(bld):
         'model/epc-enb-s1-sap.cc',
         'model/lte-as-sap.cc',
         'model/epc-ue-nas.cc',
+        'model/lte-harq-phy.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('lte')
@@ -107,7 +109,9 @@ def build(bld):
         'test/test-lte-antenna.cc',
         'test/lte-test-phy-error-model.cc',
         'test/lte-test-mimo.cc',
-        'test/test-lte-rrc.cc'
+        'test/lte-test-harq.cc',
+        'test/test-lte-rrc.cc',
+        'test/test-lte-x2-handover.cc',
         ]
 
     headers = bld.new_task_gen(features=['ns3header'])
@@ -189,6 +193,7 @@ def build(bld):
         'model/epc-enb-s1-sap.h',
         'model/lte-as-sap.h',
         'model/epc-ue-nas.h',
+        'model/lte-harq-phy.h',
         ]
 
     if (bld.env['ENABLE_EXAMPLES']):

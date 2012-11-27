@@ -410,7 +410,7 @@ UeManager::GetRadioResourceConfigForHandoverPreparationInfo ()
 }
 
 LteRrcSap::RrcConnectionReconfiguration 
-UeManager::GetHandoverCommand ()
+UeManager::GetRrcConnectionReconfigurationForHandover ()
 {
   NS_LOG_FUNCTION (this);
   return BuildRrcConnectionReconfiguration ();
@@ -509,14 +509,20 @@ UeManager::RecvRrcConnectionReconfigurationCompleted (LteRrcSap::RrcConnectionRe
     case CONNECTION_RECONFIGURATION:      
       SwitchToState (CONNECTED_NORMALLY);
       break;
+
+    case HANDOVER_LEAVING:      
+      NS_LOG_INFO ("ignoring RecvRrcConnectionReconfigurationCompleted in state " << ToString (m_state));
+      break;
       
     case HANDOVER_JOINING:
       NS_LOG_INFO ("Send UE CONTEXT RELEASE from target eNB to source eNB");
       EpcX2SapProvider::UeContextReleaseParams ueCtxReleaseParams;
       ueCtxReleaseParams.oldEnbUeX2apId = m_sourceX2apId;
       ueCtxReleaseParams.newEnbUeX2apId = m_rnti;
+      ueCtxReleaseParams.sourceCellId = m_sourceCellId;
       m_rrc->m_x2SapProvider->SendUeContextRelease (ueCtxReleaseParams);
       SwitchToState (CONNECTED_NORMALLY);
+      break;
       
     default:
       NS_FATAL_ERROR ("method unexpected in state " << ToString (m_state));
@@ -1118,8 +1124,19 @@ LteEnbRrc::DoRecvHandoverRequest (EpcX2SapUser::HandoverRequestParams params)
   NS_LOG_LOGIC ("oldEnbUeX2apId = " << params.oldEnbUeX2apId);
   NS_LOG_LOGIC ("sourceCellId = " << params.sourceCellId);
   NS_LOG_LOGIC ("targetCellId = " << params.targetCellId);
+
+  NS_ASSERT (params.targetCellId == m_cellId);
   
   uint16_t rnti = AddUe (UeManager::HANDOVER_JOINING);
+  LteEnbCmacSapProvider::AllocateNcRaPreambleReturnValue anrcrv = m_cmacSapProvider->AllocateNcRaPreamble (rnti);
+  if (anrcrv.valid == false)
+    {
+      NS_LOG_INFO (this << "failed to allocate a preamble for non-contention based RA => cannot accept HO");
+      RemoveUe (rnti);
+      NS_FATAL_ERROR ("should trigger HO Preparation Failure, but it is not implemented");
+      return;
+    }    
+
   Ptr<UeManager> ueManager = GetUeManager (rnti);
   ueManager->SetSource (params.sourceCellId, params.oldEnbUeX2apId);
 
@@ -1130,7 +1147,19 @@ LteEnbRrc::DoRecvHandoverRequest (EpcX2SapUser::HandoverRequestParams params)
       ueManager->SetupDataRadioBearer (it->erabLevelQosParameters, it->gtpTeid, it->transportLayerAddress);
     }
 
-  LteRrcSap::RrcConnectionReconfiguration handoverCommand = ueManager->GetHandoverCommand ();
+  LteRrcSap::RrcConnectionReconfiguration handoverCommand = ueManager->GetRrcConnectionReconfigurationForHandover ();
+  handoverCommand.haveMobilityControlInfo = true;
+  handoverCommand.mobilityControlInfo.targetPhysCellId = m_cellId;
+  handoverCommand.mobilityControlInfo.haveCarrierFreq = true;
+  handoverCommand.mobilityControlInfo.carrierFreq.dlCarrierFreq = m_dlEarfcn;
+  handoverCommand.mobilityControlInfo.carrierFreq.ulCarrierFreq = m_ulEarfcn;
+  handoverCommand.mobilityControlInfo.haveCarrierBandwidth = true;
+  handoverCommand.mobilityControlInfo.carrierBandwidth.dlBandwidth = m_dlBandwidth;
+  handoverCommand.mobilityControlInfo.carrierBandwidth.ulBandwidth = m_ulBandwidth;
+  handoverCommand.mobilityControlInfo.newUeIdentity = rnti;
+  handoverCommand.mobilityControlInfo.haveRachConfigDedicated = true;
+  handoverCommand.mobilityControlInfo.rachConfigDedicated.raPreambleIndex = anrcrv.raPreambleId;
+  handoverCommand.mobilityControlInfo.rachConfigDedicated.raPrachMaskIndex = anrcrv.raPrachMaskIndex;
   Ptr<Packet> encodedHandoverCommand = m_rrcSapUser->EncodeHandoverCommand (handoverCommand);
 
   NS_LOG_LOGIC ("Send X2 message: HANDOVER REQUEST ACK");
@@ -1326,6 +1355,7 @@ LteEnbRrc::GetNewSrsConfigurationIndex ()
   // SRS
   if (m_srsCurrentPeriodicityId==0)
     {
+      NS_ASSERT (m_ueSrsConfigurationIndexSet.empty ());
       // no UEs -> init
       m_ueSrsConfigurationIndexSet.insert (0);
       m_lastAllocatedConfigurationIndex = 0;
@@ -1366,6 +1396,7 @@ LteEnbRrc::GetNewSrsConfigurationIndex ()
     {
       // find a CI from the available ones
       std::set<uint16_t>::reverse_iterator rit = m_ueSrsConfigurationIndexSet.rbegin ();
+      NS_ASSERT (rit != m_ueSrsConfigurationIndexSet.rend ());
       NS_LOG_DEBUG (this << " lower bound " << (*rit) << " of " << g_srsCiHigh[m_srsCurrentPeriodicityId]);
       if ((*rit) <= g_srsCiHigh[m_srsCurrentPeriodicityId])
         {
@@ -1397,41 +1428,38 @@ void
 LteEnbRrc::RemoveSrsConfigurationIndex (uint16_t srcCi)
 {
   NS_LOG_FUNCTION (this << srcCi);
-  NS_FATAL_ERROR ("I though this method was unused so far...");
   std::set<uint16_t>::iterator it = m_ueSrsConfigurationIndexSet.find (srcCi);
   NS_ASSERT_MSG (it != m_ueSrsConfigurationIndexSet.end (), "request to remove unkwown SRS CI " << srcCi);
   m_ueSrsConfigurationIndexSet.erase (it);
-  NS_ASSERT (m_srsCurrentPeriodicityId > 1);
+
+  if (m_ueSrsConfigurationIndexSet.empty ())
+    {
+      m_srsCurrentPeriodicityId = 0;
+      return;
+    }
+
+  NS_ASSERT (m_srsCurrentPeriodicityId > 1 && m_srsCurrentPeriodicityId <= SRS_ENTRIES);
   if (m_ueSrsConfigurationIndexSet.size () < g_srsPeriodicity[m_srsCurrentPeriodicityId - 1])
     {
       // reduce the periodicity
       m_ueSrsConfigurationIndexSet.clear ();
       m_srsCurrentPeriodicityId--;
-      if (m_srsCurrentPeriodicityId==0)
+      // update all the UE's CI
+      uint16_t srcCi = g_srsCiLow[m_srsCurrentPeriodicityId];
+      std::map<uint16_t, Ptr<UeManager> >::iterator it;
+      for (it = m_ueMap.begin (); it != m_ueMap.end (); it++)
         {
-          // no active users : renitialize structures
-          m_lastAllocatedConfigurationIndex = 0;
-        }
-      else
-        {
-          // update all the UE's CI
-          uint16_t srcCi = g_srsCiLow[m_srsCurrentPeriodicityId];
-          std::map<uint16_t, Ptr<UeManager> >::iterator it;
-          for (it = m_ueMap.begin (); it != m_ueMap.end (); it++)
-            {
-              (*it).second->SetSrsConfigurationIndex (srcCi);
-              m_ueSrsConfigurationIndexSet.insert (srcCi);
-              m_lastAllocatedConfigurationIndex = srcCi;
+          (*it).second->SetSrsConfigurationIndex (srcCi);
+          m_ueSrsConfigurationIndexSet.insert (srcCi);
+          m_lastAllocatedConfigurationIndex = srcCi;
 
-
-              // update UeManager and trigger/update RRC connection reconfiguration
-              (*it).second->SetSrsConfigurationIndex (srcCi);
+          // update UeManager and trigger/update RRC connection reconfiguration
+          (*it).second->SetSrsConfigurationIndex (srcCi);
           
-              // configure PHY
-              m_cphySapProvider->SetSrsConfigurationIndex ((*it).first, (*it).second->GetSrsConfigurationIndex ());
+          // configure PHY
+          m_cphySapProvider->SetSrsConfigurationIndex ((*it).first, (*it).second->GetSrsConfigurationIndex ());
 
-              srcCi++;
-            }
+          srcCi++;
         }
     }
 }
@@ -1465,6 +1493,14 @@ LteEnbRrc::SendSystemInformation ()
   si.haveSib2 = true;
   si.sib2.freqInfo.ulCarrierFreq = m_ulEarfcn;
   si.sib2.freqInfo.ulBandwidth = m_ulBandwidth;
+  
+  LteEnbCmacSapProvider::RachConfig rc = m_cmacSapProvider->GetRachConfig ();
+  LteRrcSap::RachConfigCommon rachConfigCommon;
+  rachConfigCommon.preambleInfo.numberOfRaPreambles = rc.numberOfRaPreambles;
+  rachConfigCommon.raSupervisionInfo.preambleTransMax = rc.preambleTransMax;
+  rachConfigCommon.raSupervisionInfo.raResponseWindowSize = rc.raResponseWindowSize;
+  si.sib2.radioResourceConfigCommon.rachConfigCommon = rachConfigCommon;
+
   m_rrcSapUser->SendSystemInformation (si);
   Simulator::Schedule (m_systemInformationPeriodicity, &LteEnbRrc::SendSystemInformation, this);
 }
