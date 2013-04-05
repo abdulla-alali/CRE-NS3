@@ -90,8 +90,8 @@ LenaTestTdTbfqFfMacSchedulerSuite::LenaTestTdTbfqFfMacSchedulerSuite ()
   // 3 users -> 8 PRB at Itbs 26 -> 749 -> 749000 > 232000 -> throughput = 232000 bytes/sec 
   // 6 users -> 4 PRB at Itbs 26 -> 373 -> 373000 > 232000 -> throughput = 232000 bytes/sec
   // 12 users -> 2 PRB at Itbs 26 -> 185 -> 185000 < 232000 -> throughput = 185000 bytes/sec
-  AddTestCase (new LenaTdTbfqFfMacSchedulerTestCase1 (1,0,0,232000,232000,200,1), TestCase::QUICK);
-  AddTestCase (new LenaTdTbfqFfMacSchedulerTestCase1 (3,0,0,232000,232000,200,1), TestCase::EXTENSIVE);
+  AddTestCase (new LenaTdTbfqFfMacSchedulerTestCase1 (1,0,0,232000,232000,200,1), TestCase::EXTENSIVE);
+  AddTestCase (new LenaTdTbfqFfMacSchedulerTestCase1 (3,0,0,232000,232000,200,1), TestCase::QUICK);
   AddTestCase (new LenaTdTbfqFfMacSchedulerTestCase1 (6,0,0,232000,232000,200,1), TestCase::EXTENSIVE);
   AddTestCase (new LenaTdTbfqFfMacSchedulerTestCase1 (12,0,0,183000,185000,200,1), TestCase::EXTENSIVE);
 
@@ -277,6 +277,8 @@ LenaTdTbfqFfMacSchedulerTestCase1::~LenaTdTbfqFfMacSchedulerTestCase1 ()
 void
 LenaTdTbfqFfMacSchedulerTestCase1::DoRun (void)
 {
+  NS_LOG_FUNCTION (this << GetName ());
+
   Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
   Ptr<EpcHelper>  epcHelper = CreateObject<EpcHelper> ();
   lteHelper->SetEpcHelper (epcHelper);
@@ -311,7 +313,7 @@ LenaTdTbfqFfMacSchedulerTestCase1::DoRun (void)
   Config::SetDefault ("ns3::LteSpectrumPhy::CtrlErrorModelEnabled", BooleanValue (false));
   Config::SetDefault ("ns3::LteSpectrumPhy::DataErrorModelEnabled", BooleanValue (false));  
 
-  lteHelper->SetAttribute ("EpsBearerToRlcMapping", EnumValue (LteHelper::RLC_UM_ALWAYS));
+  Config::SetDefault ("ns3::LteEnbRrc::EpsBearerToRlcMapping", EnumValue (LteHelper::RLC_UM_ALWAYS));
 
   LogComponentDisableAll (LOG_LEVEL_ALL);
   //LogComponentEnable ("LenaTestTdTbfqFfMacCheduler", LOG_LEVEL_ALL);
@@ -338,8 +340,6 @@ LenaTdTbfqFfMacSchedulerTestCase1::DoRun (void)
   enbDevs = lteHelper->InstallEnbDevice (enbNodes);
   ueDevs = lteHelper->InstallUeDevice (ueNodes);
 
-  // Attach a UE to a eNB
-  lteHelper->Attach (ueDevs, enbDevs.Get (0));
 
   Ptr<LteEnbNetDevice> lteEnbDev = enbDevs.Get (0)->GetObject<LteEnbNetDevice> ();
   Ptr<LteEnbPhy> enbPhy = lteEnbDev->GetPhy ();
@@ -361,7 +361,8 @@ LenaTdTbfqFfMacSchedulerTestCase1::DoRun (void)
   internet.Install (ueNodes);
   Ipv4InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueDevs));
-  // Assign IP address to UEs, and install applications
+
+  // Assign IP address to UEs
   for (uint32_t u = 0; u < ueNodes.GetN (); ++u)
     {
       Ptr<Node> ueNode = ueNodes.Get (u);
@@ -370,17 +371,23 @@ LenaTdTbfqFfMacSchedulerTestCase1::DoRun (void)
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
-// Activate an EPS bearer
-  enum EpsBearer::Qci q = EpsBearer::GBR_CONV_VOICE;
-  GbrQosInformation qos;
-  qos.gbrDl = (m_packetSize + 32) * (1000 / m_interval) * 8;  // bit/s, considering IP, UDP, RLC, PDCP header size
-  qos.gbrUl = 0;
-  qos.mbrDl = qos.gbrDl;
-  qos.mbrUl = 0;
-  EpsBearer bearer (q, qos);
-  lteHelper->ActivateEpsBearer (ueDevs, bearer, EpcTft::Default ());
+  // Attach a UE to a eNB
+  lteHelper->Attach (ueDevs, enbDevs.Get (0));
 
-  lteHelper->EnableRlcTraces ();
+  // Activate an EPS bearer on all UEs
+  for (uint32_t u = 0; u < ueNodes.GetN (); ++u)
+    {
+      Ptr<NetDevice> ueDevice = ueDevs.Get (u);
+      GbrQosInformation qos;
+      qos.gbrDl = (m_packetSize + 32) * (1000 / m_interval) * 8;  // bit/s, considering IP, UDP, RLC, PDCP header size
+      qos.gbrUl = 0;
+      qos.mbrDl = qos.gbrDl;
+      qos.mbrUl = 0;
+      
+      enum EpsBearer::Qci q = EpsBearer::GBR_CONV_VOICE;
+      EpsBearer bearer (q, qos);
+      lteHelper->ActivateDedicatedEpsBearer (ueDevice, bearer, EpcTft::Default ());  
+    }
 
   // Install downlind and uplink applications
   uint16_t dlPort = 1234;
@@ -407,23 +414,27 @@ LenaTdTbfqFfMacSchedulerTestCase1::DoRun (void)
 
       clientApps.Add (dlClient.Install (remoteHost));
       clientApps.Add (ulClient.Install (ueNodes.Get (u)));
-   }
+    }
 
   serverApps.Start (Seconds (0.001));
   clientApps.Start (Seconds (0.001));
 
-  double simulationTime = 2.0;
+  double statsStartTime = 0.300; // need to allow for RRC connection establishment + SRS
+  double statsDuration = 2.0;
   double tolerance = 0.1;
-  Simulator::Stop (Seconds (simulationTime));
+  Simulator::Stop (Seconds (statsStartTime + statsDuration - 0.0001));
 
+  lteHelper->EnableRlcTraces ();
   Ptr<RadioBearerStatsCalculator> rlcStats = lteHelper->GetRlcStats ();
-  rlcStats->SetAttribute ("EpochDuration", TimeValue (Seconds (simulationTime)));
+  rlcStats->SetAttribute ("StartTime", TimeValue (Seconds (statsStartTime)));
+  rlcStats->SetAttribute ("EpochDuration", TimeValue (Seconds (statsDuration)));
 
   Simulator::Run ();
 
   /**
    * Check that the downlink assignation is done in a "token bank fair queue" manner
    */
+
   NS_LOG_INFO ("DL - Test with " << m_nUser << " user(s) at distance " << m_dist);
   std::vector <uint64_t> dlDataRxed;
   for (int i = 0; i < m_nUser; i++)
@@ -431,20 +442,21 @@ LenaTdTbfqFfMacSchedulerTestCase1::DoRun (void)
       // get the imsi
       uint64_t imsi = ueDevs.Get (i)->GetObject<LteUeNetDevice> ()->GetImsi ();
       // get the lcId
-      uint8_t lcId = ueDevs.Get (i)->GetObject<LteUeNetDevice> ()->GetRrc ()->GetLcIdVector ().at (0);
+      uint8_t lcId = 4;
       uint64_t data = rlcStats->GetDlRxData (imsi, lcId);
       dlDataRxed.push_back (data);
-      NS_LOG_INFO ("\tUser " << i << " imsi " << imsi << " bytes rxed " << (double)dlDataRxed.at (i) << "  thr " << (double)dlDataRxed.at (i) / simulationTime << " ref " << m_thrRefDl);
+      NS_LOG_INFO ("\tUser " << i << " imsi " << imsi << " bytes rxed " << (double)dlDataRxed.at (i) << "  thr " << (double)dlDataRxed.at (i) / statsDuration << " ref " << m_thrRefDl);
     }
 
   for (int i = 0; i < m_nUser; i++)
     {
-      NS_TEST_ASSERT_MSG_EQ_TOL ((double)dlDataRxed.at (i) / simulationTime, m_thrRefDl, m_thrRefDl * tolerance, " Unfair Throughput!");
+      NS_TEST_ASSERT_MSG_EQ_TOL ((double)dlDataRxed.at (i) / statsDuration, m_thrRefDl, m_thrRefDl * tolerance, " Unfair Throughput!");
     }
 
   /**
   * Check that the uplink assignation is done in a "round robin" manner
   */
+
   NS_LOG_INFO ("UL - Test with " << m_nUser << " user(s) at distance " << m_dist);
   std::vector <uint64_t> ulDataRxed;
   for (int i = 0; i < m_nUser; i++)
@@ -452,14 +464,14 @@ LenaTdTbfqFfMacSchedulerTestCase1::DoRun (void)
       // get the imsi
       uint64_t imsi = ueDevs.Get (i)->GetObject<LteUeNetDevice> ()->GetImsi ();
       // get the lcId
-      uint8_t lcId = ueDevs.Get (i)->GetObject<LteUeNetDevice> ()->GetRrc ()->GetLcIdVector ().at (0);
+      uint8_t lcId = 4;
       ulDataRxed.push_back (rlcStats->GetUlRxData (imsi, lcId));
-      NS_LOG_INFO ("\tUser " << i << " imsi " << imsi << " bytes rxed " << (double)ulDataRxed.at (i) << "  thr " << (double)ulDataRxed.at (i) / simulationTime << " ref " << m_thrRefUl);
+      NS_LOG_INFO ("\tUser " << i << " imsi " << imsi << " bytes rxed " << (double)ulDataRxed.at (i) << "  thr " << (double)ulDataRxed.at (i) / statsDuration << " ref " << m_thrRefUl);
     }
 
   for (int i = 0; i < m_nUser; i++)
     {
-      NS_TEST_ASSERT_MSG_EQ_TOL ((double)ulDataRxed.at (i) / simulationTime, m_thrRefUl, m_thrRefUl * tolerance, " Unfair Throughput!");
+      NS_TEST_ASSERT_MSG_EQ_TOL ((double)ulDataRxed.at (i) / statsDuration, m_thrRefUl, m_thrRefUl * tolerance, " Unfair Throughput!");
     }
   Simulator::Destroy ();
 
@@ -535,7 +547,7 @@ LenaTdTbfqFfMacSchedulerTestCase2::DoRun (void)
   Config::SetDefault ("ns3::LteSpectrumPhy::CtrlErrorModelEnabled", BooleanValue (false));
   Config::SetDefault ("ns3::LteSpectrumPhy::DataErrorModelEnabled", BooleanValue (false));
 
-  lteHelper->SetAttribute ("EpsBearerToRlcMapping", EnumValue (LteHelper::RLC_UM_ALWAYS));
+  Config::SetDefault ("ns3::LteEnbRrc::EpsBearerToRlcMapping", EnumValue (LteHelper::RLC_UM_ALWAYS));
 
   LogComponentDisableAll (LOG_LEVEL_ALL);
   //LogComponentEnable ("LenaTestTdTbfqFfMacCheduler", LOG_LEVEL_ALL);
@@ -562,9 +574,6 @@ LenaTdTbfqFfMacSchedulerTestCase2::DoRun (void)
   enbDevs = lteHelper->InstallEnbDevice (enbNodes);
   ueDevs = lteHelper->InstallUeDevice (ueNodes);
 
-  // Attach a UE to a eNB
-  lteHelper->Attach (ueDevs, enbDevs.Get (0));
-
   Ptr<LteEnbNetDevice> lteEnbDev = enbDevs.Get (0)->GetObject<LteEnbNetDevice> ();
   Ptr<LteEnbPhy> enbPhy = lteEnbDev->GetPhy ();
   enbPhy->SetAttribute ("TxPower", DoubleValue (30.0));
@@ -585,7 +594,8 @@ LenaTdTbfqFfMacSchedulerTestCase2::DoRun (void)
   internet.Install (ueNodes);
   Ipv4InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueDevs));
-  // Assign IP address to UEs, and install applications
+
+  // Assign IP address to UEs
   for (uint32_t u = 0; u < ueNodes.GetN (); ++u)
     {
       Ptr<Node> ueNode = ueNodes.Get (u);
@@ -594,23 +604,31 @@ LenaTdTbfqFfMacSchedulerTestCase2::DoRun (void)
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 
-// Activate an EPS bearer
-  enum EpsBearer::Qci q = EpsBearer::GBR_CONV_VOICE;
-  GbrQosInformation qos;
+  // Attach a UE to a eNB
+  lteHelper->Attach (ueDevs, enbDevs.Get (0));
+
+  // Activate an EPS bearer on all UEs
+
   uint16_t mbrDl = 0;
   for (uint32_t u = 0; u < ueNodes.GetN (); ++u)
     {
       mbrDl = mbrDl + m_packetSize.at (u);
     }
-  mbrDl = mbrDl / ueNodes.GetN ();
-  qos.gbrDl = (mbrDl + 32) * (1000 / m_interval) * 8;  // bit/s, considering IP, UDP, RLC, PDCP header size
-  qos.gbrUl = 0;
-  qos.mbrDl = qos.gbrDl;
-  qos.mbrUl = 0;
-  EpsBearer bearer (q, qos);
-  lteHelper->ActivateEpsBearer (ueDevs, bearer, EpcTft::Default ());
+  mbrDl = mbrDl / ueNodes.GetN (); 
 
-  lteHelper->EnableRlcTraces ();
+  for (uint32_t u = 0; u < ueNodes.GetN (); ++u)
+    {
+      Ptr<NetDevice> ueDevice = ueDevs.Get (u);
+      GbrQosInformation qos;
+      qos.gbrDl = (mbrDl + 32) * (1000 / m_interval) * 8;  // bit/s, considering IP, UDP, RLC, PDCP header size
+      qos.gbrUl = 0;
+      qos.mbrDl = qos.gbrDl;
+      qos.mbrUl = 0;
+  
+      enum EpsBearer::Qci q = EpsBearer::GBR_CONV_VOICE;
+      EpsBearer bearer (q, qos);
+      lteHelper->ActivateDedicatedEpsBearer (ueDevice, bearer, EpcTft::Default ());  
+    }
 
   // Install downlind and uplink applications
   uint16_t dlPort = 1234;
@@ -642,12 +660,15 @@ LenaTdTbfqFfMacSchedulerTestCase2::DoRun (void)
   serverApps.Start (Seconds (0.001));
   clientApps.Start (Seconds (0.001));
 
-  double simulationTime = 1.0;
+  double statsStartTime = 0.300; // need to allow for RRC connection establishment + SRS
+  double statsDuration = 1.0;
   double tolerance = 0.1;
-  Simulator::Stop (Seconds (simulationTime));
+  Simulator::Stop (Seconds (statsStartTime + statsDuration - 0.0001));
 
+  lteHelper->EnableRlcTraces ();
   Ptr<RadioBearerStatsCalculator> rlcStats = lteHelper->GetRlcStats ();
-  rlcStats->SetAttribute ("EpochDuration", TimeValue (Seconds (simulationTime)));
+  rlcStats->SetAttribute ("StartTime", TimeValue (Seconds (statsStartTime)));
+  rlcStats->SetAttribute ("EpochDuration", TimeValue (Seconds (statsDuration)));
 
   Simulator::Run ();
  
@@ -661,14 +682,14 @@ LenaTdTbfqFfMacSchedulerTestCase2::DoRun (void)
       // get the imsi
       uint64_t imsi = ueDevs.Get (i)->GetObject<LteUeNetDevice> ()->GetImsi ();
       // get the lcId
-      uint8_t lcId = ueDevs.Get (i)->GetObject<LteUeNetDevice> ()->GetRrc ()->GetLcIdVector ().at (0);
+      uint8_t lcId = 4;
       dlDataRxed.push_back (rlcStats->GetDlRxData (imsi, lcId));
-      NS_LOG_INFO ("\tUser " << i << " dist " << m_dist.at (i) << " imsi " << imsi << " bytes rxed " << (double)dlDataRxed.at (i) << "  thr " << (double)dlDataRxed.at (i) / simulationTime << " ref " << m_nUser);
+      NS_LOG_INFO ("\tUser " << i << " dist " << m_dist.at (i) << " imsi " << imsi << " bytes rxed " << (double)dlDataRxed.at (i) << "  thr " << (double)dlDataRxed.at (i) / statsDuration << " ref " << m_nUser);
     }
 
   for (int i = 0; i < m_nUser; i++)
     {
-      NS_TEST_ASSERT_MSG_EQ_TOL ((double)dlDataRxed.at (i) / simulationTime, m_estThrTdTbfqDl.at (i), m_estThrTdTbfqDl.at (i) * tolerance, " Unfair Throughput!");
+      NS_TEST_ASSERT_MSG_EQ_TOL ((double)dlDataRxed.at (i) / statsDuration, m_estThrTdTbfqDl.at (i), m_estThrTdTbfqDl.at (i) * tolerance, " Unfair Throughput!");
     }
 
   Simulator::Destroy ();
