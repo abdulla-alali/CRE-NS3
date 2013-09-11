@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+environment/project/cdt.managedbuild.toolchain.gnu.base.441719337/PATH/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.base.441719337/PATH/operation=replace
+environment/project/cdt.managedbuild.toolchain.gnu.base.441719337/PATH/value=/home/madmack/bin\:/usr/local/sbin\:/usr/local/bin\:/usr/bin\:/opt/java/bin\:/opt/java/db/bin\:/opt/java/jre/bin\:/usr/bin/vendor_perl\:/usr/bin/core_perl\:/home/madmack/bin/\:$PATH
+environment/project/cdt.managedbuild.toolchain.gnu.base.441719337/append=true
+environment/project/cdt.managedbuild.toolchain.gnu.base.441719337/appendContributed=true
