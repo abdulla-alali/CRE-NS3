@@ -244,7 +244,7 @@ int main (int argc, char *argv[])
   // Interferer will send to a different port; we will not see a
   // "Received packet" message
   Ptr<Socket> interferer = Socket::CreateSocket (c.Get (2), tid);
-  InetSocketAddress interferingAddr = InetSocketAddress (Ipv4Address ("255.255.255.255"), 49000);
+  InetSocketAddress interferingAddr = InetSocketAddress (Ipv4Address ("255.255.255.255"), 80);
   interferer->SetAllowBroadcast (true);
   interferer->Connect (interferingAddr);
 
