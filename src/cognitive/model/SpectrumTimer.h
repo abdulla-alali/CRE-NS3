@@ -6,17 +6,17 @@
 //#include <delay.h>
 //#include <connector.h>
 //#include <packet.h>
-#include "ns3/object.h"
+//#include "ns3/object.h"
 
 namespace ns3 {
 class SpectrumManager;
 class SpectrumMobility;
 
 //TODO declare all getID functions
-class SenseTimer: public Object {
+class SenseTimer {
 
 	public:
-
+	//static TypeId GetTypeId (void);
         	SenseTimer(SpectrumManager *s); 
 
 	        //void handle(Event *e);
@@ -25,17 +25,17 @@ class SenseTimer: public Object {
 
 	private:
 		//Event           intr;
-		//SpectrumManager *handler_;
+		SpectrumManager *m_handler;
 };
 
 
 
 
 
-class TransmitTimer: public Object {
+class TransmitTimer {
 
 	public:
-
+	//static TypeId GetTypeId (void);
 		 TransmitTimer(SpectrumManager *s);
 
                  //void handle(Event *e);
@@ -44,17 +44,17 @@ class TransmitTimer: public Object {
 
 	private:
 		//Event           intr;
-		//SpectrumManager *handler_;
+		SpectrumManager *m_handler;
 
 };
 
 
 
 
-class HandoffTimer: public Object {
+class HandoffTimer {
 
 	public:
-
+	//static TypeId GetTypeId (void);
 		HandoffTimer(SpectrumMobility *s);
 
                 //void  handle(Event *e);
@@ -63,7 +63,7 @@ class HandoffTimer: public Object {
 
 	private:
 		//Event           intr;
-		//SpectrumMobility *handler_;
+		SpectrumMobility *m_handler;
 
 };
 

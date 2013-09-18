@@ -13,6 +13,10 @@ def build(bld):
         'model/PUmodel.cc',
         'model/SpectrumData.cc',
         'model/SpectrumTimer.cc',
+        'model/SpectrumManager.cc',
+        'model/SpectrumDecision.cc',
+        'model/SpectrumMobility.cc',
+        'model/SpectrumSensing.cc',
 #        'helper/cognitive-helper.cc',
         ]
 
@@ -28,6 +32,10 @@ def build(bld):
         'model/PUmodel.h',
         'model/SpectrumData.h',
         'model/SpectrumTimer.h',
+        'model/SpectrumManager.h',
+        'model/SpectrumDecision.h',
+        'model/SpectrumMobility.h',
+        'model/SpectrumSensing.h',
 #        'helper/cognitive-helper.h',
         ]
 

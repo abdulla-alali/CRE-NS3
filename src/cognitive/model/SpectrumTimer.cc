@@ -6,9 +6,23 @@
 
 namespace ns3 {
 
+/*TypeId
+SenseTimer::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::SenseTimer")
+    .SetParent<Object> ()
+    .AddConstructor<SenseTimer> ()
+    //.AddAttribute ("DeviceList", "The list of devices associated to this Node.",
+    //               ObjectVectorValue (),
+    //               MakeObjectVectorAccessor (&Node::m_devices),
+    //               MakeObjectVectorChecker<NetDevice> ())
+  ;
+  return tid;
+}*/
+
 SenseTimer::SenseTimer(SpectrumManager *s) {
 
-	//handler_=s;
+	m_handler=s;
 }
 
 
@@ -26,17 +40,29 @@ SenseTimer::SenseTimer(SpectrumManager *s) {
 void 
 SenseTimer::start(double time) {
 
-	Simulator::Schedule (Seconds (time), &SpectrumManager::senseHandler, this);
+	Simulator::Schedule (Seconds (time), &SpectrumManager::senseHandler, m_handler);
 	//s.schedule(this, &intr, time);
 }
 
 
-
-
+/*
+TypeId
+TransmitTimer::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::TransmitTimer")
+    .SetParent<Object> ()
+    .AddConstructor<TransmitTimer> ()
+    //.AddAttribute ("DeviceList", "The list of devices associated to this Node.",
+    //               ObjectVectorValue (),
+    //               MakeObjectVectorAccessor (&Node::m_devices),
+    //               MakeObjectVectorChecker<NetDevice> ())
+  ;
+  return tid;
+}*/
 
 TransmitTimer::TransmitTimer(SpectrumManager *s) {
 
-	//handler_=s;
+	m_handler=s;
 
 }
 
@@ -55,14 +81,27 @@ TransmitTimer::TransmitTimer(SpectrumManager *s) {
 void 
 TransmitTimer::start(double time) {
 
-	Simulator::Schedule (Seconds (time), &SpectrumManager::transmitHandler, this);
+	Simulator::Schedule (Seconds (time), &SpectrumManager::transmitHandler, m_handler);
 }
 
-
+/*
+TypeId
+HandoffTimer::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::HandoffTimer")
+    .SetParent<Object> ()
+    .AddConstructor<HandoffTimer> ()
+    //.AddAttribute ("DeviceList", "The list of devices associated to this Node.",
+    //               ObjectVectorValue (),
+    //               MakeObjectVectorAccessor (&Node::m_devices),
+    //               MakeObjectVectorChecker<NetDevice> ())
+  ;
+  return tid;
+}*/
 
 HandoffTimer::HandoffTimer(SpectrumMobility *s) {
 
-	//handler_=s;
+	m_handler=s;
 
 }
 
@@ -83,7 +122,7 @@ void
 HandoffTimer::start(double time) {
 
 	//Scheduler &s = Scheduler::instance();
-	Simulator::Schedule (Seconds (time), &SpectrumManager::endHandoff, this);
+	Simulator::Schedule (Seconds (time), &SpectrumMobility::endHandoff, m_handler);
 	//s.schedule(this, &intr, time);
 }
 

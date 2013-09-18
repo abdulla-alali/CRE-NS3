@@ -23,7 +23,6 @@
 
 #include "PUmodel.h"
 #include "repository.h"
-#include "ns3/delay-jitter-estimation.h"
 //#include "mac/mac-802_11.h"
 //#include "common/packet.h"
 
@@ -72,7 +71,7 @@ public:
 	// Return true if CR is NOT doing sensing and is NOT doing spectrum handoff
 	bool is_channel_available();
 	// Return true if a PU is active while receiving the packet, on the same channel
-	bool is_PU_interfering(Packet *p);
+	bool is_PU_interfering(Time txDuration);
 
 	// Timer Handlers
 	// Handler for sensing timer

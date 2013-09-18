@@ -6,7 +6,8 @@
 #define SPECTRUM_DATA_H
 
 
-#include "ns3/repository.h"
+//#include "repository.h"
+#include "commCognitiveHeader.h"
 #include <stdio.h>
 #include "ns3/object.h"
 

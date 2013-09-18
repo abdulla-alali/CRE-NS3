@@ -52,10 +52,14 @@ SpectrumManager::SpectrumManager(Mac802_11 *mac, int id, double sense_time, doub
 void
 SpectrumManager::start() {
 
+	//TODO start
 	// Retrive the current channel on which the CR is tuned on the RECEIVER interface
-	int current_channel=repository_->get_recv_channel(nodeId_);
-	// Load spectrum characteristics (bandwidth, PER, ...)			
-	mac_->load_spectrum(dataMod_->get_spectrum_data(current_channel));
+
+	//int current_channel=repository_->get_recv_channel(nodeId_);
+	// Load spectrum characteristics (bandwidth, PER, ...)
+
+	//mac_->load_spectrum(dataMod_->get_spectrum_data(current_channel));
+	//end TODO
 	// Start sensing on the current channel for a sense_time_ interval
 	stimer_.start(sense_time_);
 
@@ -76,17 +80,10 @@ SpectrumManager::is_channel_available() {
 
 // is_PU_interfering: return true if there is a PU which is transmitting on the same channel and within the tx range of the CR receiving a packet
 bool 
-SpectrumManager::is_PU_interfering(Packet *p) {
-	DelayJitterEstimationTimestampTag tag;
-	   bool found;
-	   found = packet->FindFirstMatchingByteTag (tag);
-	    if (!found)
-	       {
-	         return;
-	       }
-	    tag.GetTxTime ();
+SpectrumManager::is_PU_interfering(Time txDuration) {
+
 	// Get the tx time of a packet
-	double time_tx=HDR_CMN(p)->txtime();
+	double time_tx=txDuration.GetSeconds();
 	// Check if a PU is active in the interval [now: now+time_tx]
 	int  current_channel=repository_->get_recv_channel(nodeId_);
 	bool interference=sensingMod_->sense(nodeId_,time_tx,transmit_time_, current_channel);
@@ -150,7 +147,7 @@ SpectrumManager::senseHandler() {
 	int  current_channel=repository_->get_recv_channel(nodeId_);
 
 #ifdef SENSING_VERBOSE_MODE //abdulla
-	printf("[SENSING-DBG] Node %d is on channel %d and PU activity is %s at time: %f\n", nodeId_, current_channel, (pu_on_)?"true":"false", Scheduler::instance().clock());
+	printf("[SENSING-DBG] Node %d is on channel %d and PU activity is %s at time: %f\n", nodeId_, current_channel, (pu_on_)?"true":"false", Simulator::Now().GetSeconds());
 #endif
 
 	// Check if PU was detected 
@@ -173,17 +170,19 @@ SpectrumManager::senseHandler() {
 
 			repository_->set_recv_channel(nodeId_,next_channel);
 			// Load the spectrum data for the new channel
-			mac_->load_spectrum(dataMod_->get_spectrum_data(next_channel));
+			//TODO; make sure you tie up the mac layer
+			//mac_->load_spectrum(dataMod_->get_spectrum_data(next_channel));
 
 #endif
 
 #ifdef ENABLE_SPECTRUM_HANDOFF_NOTIFICATION
 			// Notify the spectrum handoff to the upper layers
-			mac_->notifyUpperLayer(current_channel);
+			//TODO; make sure you tie up the mac layer
+			//mac_->notifyUpperLayer(current_channel);
 #endif
 
 #ifdef SENSING_VERBOSE_MODE
-			printf("[SENSING-DBG] Node %d starts handoff on channel %d to channel %d at time %f \n",nodeId_,current_channel,next_channel,Scheduler::instance().clock());
+			printf("[SENSING-DBG] Node %d starts handoff on channel %d to channel %d at time %f \n",nodeId_,current_channel,next_channel,Simulator::Now().GetSeconds());
 #endif
 
 			// Sensing Time is off, since the node is performing a spectrum handoff
@@ -207,7 +206,8 @@ SpectrumManager::senseHandler() {
 
 
 		// Start/Stop the backoff timer
-		mac_->checkBackoffTimer();
+		//TODO; make sure you tie up the mac layer
+		//mac_->checkBackoffTimer();
 
 		// The CR can transmit if PU is not detected
 		if ( !pu_on_ )  {
@@ -219,7 +219,7 @@ SpectrumManager::senseHandler() {
 			ttimer_.start(transmit_time_);
 
 #ifdef SENSING_VERBOSE_MODE
-			printf("[SENSING-DBG] Node %d starts transmitting on channel %d at time %f \n",nodeId_,current_channel,Scheduler::instance().clock()); 
+			printf("[SENSING-DBG] Node %d starts transmitting on channel %d at time %f \n",nodeId_,current_channel,Simulator::Now().GetSeconds());
 #endif
 		}
 
@@ -247,13 +247,14 @@ SpectrumManager::transmitHandler() {
 	sensing_=true;
 
 #ifdef SENSING_VERBOSE_MODE
-	printf("[SENSING-DBG] Node %d starts sensing on channel %d at time %f \n",nodeId_,current_channel,Scheduler::instance().clock());
+	printf("[SENSING-DBG] Node %d starts sensing on channel %d at time %f \n",nodeId_,current_channel,Simulator::Now().GetSeconds());
 	//if (pu_on_) printf("[SENSING-DBG] Node %d sensed pu activity on channel %d \n", nodeId_, current_channel);
 #endif
 
 	// Stop any current backoff attempt
 	//printf("starting sensing, calling backoff \n");
-	mac_->checkBackoffTimer();
+	//TODO; make sure you tie up the mac layer
+	//mac_->checkBackoffTimer();
 
 }
 
@@ -274,9 +275,9 @@ SpectrumManager::endHandoff() {
 
 #ifdef SENSING_VERBOSE_MODE
 
-	printf("[SENSING-DBG] Node %d ends handoff on channel %d at time %f \n",nodeId_,current_channel,Scheduler::instance().clock());
+	printf("[SENSING-DBG] Node %d ends handoff on channel %d at time %f \n",nodeId_,current_channel,Simulator::Now().GetSeconds());
 
-	printf("[SENSING-DBG] Node %d starts sensing on channel %d at time %f \n",nodeId_,current_channel,Scheduler::instance().clock());
+	printf("[SENSING-DBG] Node %d starts sensing on channel %d at time %f \n",nodeId_,current_channel,Simulator::Now().GetSeconds());
 
 #endif
 

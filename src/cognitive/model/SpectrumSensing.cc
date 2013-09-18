@@ -4,6 +4,7 @@
 
 
 #include "SpectrumSensing.h"
+#include "ns3/mobility-model.h"
 
 namespace ns3 {
 // SpectrumSensing initialization: PU model off
@@ -31,17 +32,20 @@ SpectrumSensing::SpectrumSensing(SpectrumManager *sm, double prob_misdetect, PUm
 bool
 SpectrumSensing::sense(int id, double sense_time, double transmit_time, int channel) {
 	
-	MobileNode *pnode = (MobileNode*)Node::get_node_by_address(id);
-        double x=pnode->X();
-        double y=pnode->Y();
+	NodeContainer const & n = NodeContainer::GetGlobal ();
+	Ptr<Node> node = n.Get(id);
+	Ptr<MobilityModel> mm = node->GetObject<MobilityModel>();
+	double x = mm->GetPosition().x;
+	double y = mm->GetPosition().y;
 	bool cr_on=false;
 
 	if (pumodel_) {
 
-		double randomValue=Random::uniform();
+		Ptr<UniformRandomVariable> uv = CreateObject<UniformRandomVariable>();
+		double randomValue = uv->GetValue(); //by default, min 0 and max 1
 
 		// Ask the PUmodel if a PU is active  in the time interval [current_time:current_time + sense_time]
-		cr_on=pumodel_->is_PU_active(Scheduler::instance().clock(),sense_time,x,y, channel);
+		cr_on=pumodel_->is_PU_active(Simulator::Now().GetSeconds(),sense_time,x,y, channel);
 		// Apply the probability of false negative detection
 		if ((randomValue < prob_misdetect_) and cr_on)
 			cr_on=false;

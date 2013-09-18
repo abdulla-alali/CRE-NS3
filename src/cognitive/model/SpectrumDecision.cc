@@ -3,8 +3,10 @@
 
 
 #include "SpectrumDecision.h"
+#include "ns3/random-variable-stream.h"
 
 namespace ns3 {
+
 // Spectrum Decision initializer
 SpectrumDecision::SpectrumDecision(SpectrumManager *sm) {
 
@@ -27,12 +29,12 @@ SpectrumDecision::decideSwitch() {
 	double randomValue;
 	bool switch_decision;
 
+	Ptr<UniformRandomVariable> uv = CreateObject<UniformRandomVariable>();
 	switch(decision_policy_) {
 
 	// Switch with probability equal to THRESHOLD_SWITCH, stay otherwise
 	case DECISION_POLICY_PROBABILISTIC_SWITCH:
 
-		Ptr<UniformRandomVariable> uv = CreateObject<UniformRandomVariable>();
 		randomValue = uv->GetValue();
 
 		if (randomValue < THRESHOLD_SWITCH)
@@ -72,14 +74,15 @@ SpectrumDecision::decideSpectrum(int current_channel) {
 
 	int next_channel;
 
+	Ptr<UniformRandomVariable> uv1 = CreateObject<UniformRandomVariable>();
+
 	switch(spectrum_policy_) {
 
 	// Policy RANDOM_SWITCH: next_channel -> random(1..MAX_CHANNELS)
 	case RANDOM_SWITCH:
-		Ptr<UniformRandomVariable> uv = CreateObject<UniformRandomVariable>();
-		uv->SetAttribute ("Min", DoubleValue (1));
-		uv->SetAttribute ("Max", DoubleValue (MAX_CHANNELS));
-		next_channel=uv->GetInteger();
+		uv1->SetAttribute ("Min", DoubleValue (1));
+		uv1->SetAttribute ("Max", DoubleValue (MAX_CHANNELS));
+		next_channel=uv1->GetInteger();
 
 		if (next_channel >= MAX_CHANNELS)
 			next_channel = MAX_CHANNELS-1;

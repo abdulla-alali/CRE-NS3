@@ -1,15 +1,11 @@
 // CRAHNs Model START
 // @author:  Marco Di Felice
 
-#ifndef SPECTRUM_DECISION_H
-#define SPECTRUM_DECISION_H
-
-
 // Decision policy, when a PU is detected on the current channel
 // Policy 0: Switch to a new channel asa a PU is detected
-#define DECISION_POLICY_ALWAYS_SWITCH 		0
+#define DECISION_POLICY_ALWAYS_SWITCH 0
 // Policy 1: Switch to a new channel, with probability THRESHOLD_SWITCH
-#define DECISION_POLICY_PROBABILISTIC_SWITCH 	1
+#define DECISION_POLICY_PROBABILISTIC_SWITCH 1
 // Policy 2: Never switch!
 #define DECISION_POLICY_NEVER_SWITCH 2
 
@@ -22,7 +18,8 @@
 // Policy 2: next_channel -> random(1..MAX_CHANNELS)
 #define RANDOM_SWITCH		1
 
-
+#ifndef SPECTRUM_DECISION_H
+#define SPECTRUM_DECISION_H
 
 #include "SpectrumManager.h"
 
@@ -30,7 +27,7 @@ namespace ns3 {
 class SpectrumManager;
 
 // Spectrum Decision module: decide the next channel when a PU is detected on the current one
-class SpectrumDecision {
+class SpectrumDecision : public Object {
 
 	public:
 

@@ -8,6 +8,7 @@
 
 #include "PUmodel.h"
 #include "SpectrumManager.h"
+#include "ns3/node-container.h"
 
 namespace ns3 {
 class SpectrumManager;
