@@ -56,6 +56,7 @@
 #include "ns3/mobility-module.h"
 #include "ns3/config-store-module.h"
 #include "ns3/wifi-module.h"
+#include "ns3/aodv-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/packet-sink.h"
@@ -154,6 +155,8 @@ int main (int argc, char *argv[])
 
 
 	InternetStackHelper internet;
+	AodvHelper aodv;
+	internet.SetRoutingHelper(aodv);
 	internet.Install (c);
 
 	Ipv4AddressHelper ipv4;
@@ -170,7 +173,7 @@ int main (int argc, char *argv[])
 	BulkSendHelper source ("ns3::TcpSocketFactory",
 			InetSocketAddress (i.GetAddress (1), port));
 	// Set the amount of data to send in bytes.  Zero is unlimited.
-	source.SetAttribute ("MaxBytes", UintegerValue (24000000));
+	source.SetAttribute ("MaxBytes", UintegerValue (5000));
 	ApplicationContainer sourceApps = source.Install (c.Get (0));
 	sourceApps.Start (Seconds (0.0));
 	sourceApps.Stop (Seconds (10.0));
