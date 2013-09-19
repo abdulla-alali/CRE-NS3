@@ -211,6 +211,7 @@ public:
 private:
   friend bool operator == (const Address &a, const Address &b);
   friend bool operator < (const Address &a, const Address &b);
+  friend Address& operator + (Address &a, const int b);
   friend std::ostream& operator<< (std::ostream& os, const Address & address);
   friend std::istream& operator>> (std::istream& is, Address & address);
 
@@ -229,6 +230,7 @@ ATTRIBUTE_HELPER_HEADER (Address);
 bool operator == (const Address &a, const Address &b);
 bool operator != (const Address &a, const Address &b);
 bool operator < (const Address &a, const Address &b);
+Address& operator + (Address &a, const int b);
 std::ostream& operator<< (std::ostream& os, const Address & address);
 std::istream& operator>> (std::istream& is, Address & address);
 
