@@ -29,6 +29,7 @@
 #include "ns3/net-device-container.h"
 #include "ns3/wifi-phy-standard.h"
 #include "ns3/trace-helper.h"
+#include "ns3/commCognitiveHeader.h"
 
 namespace ns3 {
 
@@ -158,6 +159,18 @@ public:
    */
   NetDeviceContainer Install (const WifiPhyHelper &phy,
                               const WifiMacHelper &mac, std::string nodeName) const;
+
+  /**
+   * \param phy the PHY helper to create PHY objects
+   * \param mac the MAC helper to create MAC objects
+   * \param c the name(s) container on which a wifi device must be created
+   * \returns a device container which contains all the devices created by this method.
+   *
+   * This function installs three devices per node instead of one:
+   * a CCC, RX and TX device
+   */
+  NetDeviceContainer InstallCR (const WifiPhyHelper &phy,
+                              const WifiMacHelper &mac, NodeContainer c) const;
 
   /**
    * \param standard the phy standard to configure during installation
