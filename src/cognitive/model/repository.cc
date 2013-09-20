@@ -140,4 +140,64 @@ Repository::get_number_hops(int dst) {
 
 // Switchable Interface Implementation END
 
+
+
+PacketTypeByteTag::PacketTypeByteTag (PacketType t) :
+  m_type (t)
+{
+}
+
+TypeId
+PacketTypeByteTag::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::PacketTypeByteTag")
+    .SetParent<Tag> ()
+    .AddConstructor<PacketTypeByteTag> ()
+  ;
+  return tid;
+}
+TypeId
+PacketTypeByteTag::GetInstanceTypeId (void) const
+{
+  return GetTypeId ();
+}
+
+uint32_t
+PacketTypeByteTag::GetSerializedSize (void) const
+{
+  return 1;
+}
+void
+PacketTypeByteTag::Serialize (TagBuffer i) const
+{
+  i.WriteU8 (m_type);
+}
+void
+PacketTypeByteTag::Deserialize (TagBuffer i)
+{
+  m_type = (PacketType) i.ReadU8 ();
+}
+
+void
+PacketTypeByteTag::Print (std::ostream &os) const
+{
+  switch (m_type)
+    {
+    case CTRL_PACKET:
+      {
+        os << "ctrl_packet";
+        break;
+      }
+    case DATA_PACKET:
+      {
+        os << "data_packet";
+        break;
+      }
+    default:
+      os << "UNKNOWN_TYPE";
+      break;
+    }
+}
+
+
 }

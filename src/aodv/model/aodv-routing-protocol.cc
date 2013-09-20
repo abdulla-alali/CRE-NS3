@@ -889,6 +889,8 @@ RoutingProtocol::SendRequest (Ipv4Address dst)
       m_rreqIdCache.IsDuplicate (iface.GetLocal (), m_requestId);
 
       Ptr<Packet> packet = Create<Packet> ();
+      PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+      packet->AddPacketTag(bt);
       packet->AddHeader (rreqHeader);
       TypeHeader tHeader (AODVTYPE_RREQ);
       packet->AddHeader (tHeader);
@@ -1157,6 +1159,8 @@ RoutingProtocol::RecvRequest (Ptr<Packet> p, Ipv4Address receiver, Ipv4Address s
       Ptr<Socket> socket = j->first;
       Ipv4InterfaceAddress iface = j->second;
       Ptr<Packet> packet = Create<Packet> ();
+      PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+      packet->AddPacketTag(bt);
       packet->AddHeader (rreqHeader);
       TypeHeader tHeader (AODVTYPE_RREQ);
       packet->AddHeader (tHeader);
@@ -1196,6 +1200,8 @@ RoutingProtocol::SendReply (RreqHeader const & rreqHeader, RoutingTableEntry con
   RrepHeader rrepHeader ( /*prefixSize=*/ 0, /*hops=*/ 0, /*dst=*/ rreqHeader.GetDst (),
                                           /*dstSeqNo=*/ m_seqNo, /*origin=*/ toOrigin.GetDestination (), /*lifeTime=*/ MyRouteTimeout);
   Ptr<Packet> packet = Create<Packet> ();
+  PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+  packet->AddPacketTag(bt);
   packet->AddHeader (rrepHeader);
   TypeHeader tHeader (AODVTYPE_RREP);
   packet->AddHeader (tHeader);
@@ -1228,6 +1234,8 @@ RoutingProtocol::SendReplyByIntermediateNode (RoutingTableEntry & toDst, Routing
   m_routingTable.Update (toOrigin);
 
   Ptr<Packet> packet = Create<Packet> ();
+  PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+  packet->AddPacketTag(bt);
   packet->AddHeader (rrepHeader);
   TypeHeader tHeader (AODVTYPE_RREP);
   packet->AddHeader (tHeader);
@@ -1242,6 +1250,8 @@ RoutingProtocol::SendReplyByIntermediateNode (RoutingTableEntry & toDst, Routing
                                                  /*dst seqno=*/ toOrigin.GetSeqNo (), /*origin=*/ toDst.GetDestination (),
                                                  /*lifetime=*/ toOrigin.GetLifeTime ());
       Ptr<Packet> packetToDst = Create<Packet> ();
+      PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+      packet->AddPacketTag(bt);
       packetToDst->AddHeader (gratRepHeader);
       TypeHeader type (AODVTYPE_RREP);
       packetToDst->AddHeader (type);
@@ -1259,6 +1269,8 @@ RoutingProtocol::SendReplyAck (Ipv4Address neighbor)
   RrepAckHeader h;
   TypeHeader typeHeader (AODVTYPE_RREP_ACK);
   Ptr<Packet> packet = Create<Packet> ();
+  PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+  packet->AddPacketTag(bt);
   packet->AddHeader (h);
   packet->AddHeader (typeHeader);
   RoutingTableEntry toNeighbor;
@@ -1386,6 +1398,8 @@ RoutingProtocol::RecvReply (Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sen
     }
 
   Ptr<Packet> packet = Create<Packet> ();
+  PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+  packet->AddPacketTag(bt);
   packet->AddHeader (rrepHeader);
   TypeHeader tHeader (AODVTYPE_RREP);
   packet->AddHeader (tHeader);
@@ -1471,6 +1485,8 @@ RoutingProtocol::RecvError (Ptr<Packet> p, Ipv4Address src )
         {
           TypeHeader typeHeader (AODVTYPE_RERR);
           Ptr<Packet> packet = Create<Packet> ();
+          PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+          packet->AddPacketTag(bt);
           packet->AddHeader (rerrHeader);
           packet->AddHeader (typeHeader);
           SendRerrMessage (packet, precursors);
@@ -1488,6 +1504,8 @@ RoutingProtocol::RecvError (Ptr<Packet> p, Ipv4Address src )
     {
       TypeHeader typeHeader (AODVTYPE_RERR);
       Ptr<Packet> packet = Create<Packet> ();
+      PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+      packet->AddPacketTag(bt);
       packet->AddHeader (rerrHeader);
       packet->AddHeader (typeHeader);
       SendRerrMessage (packet, precursors);
@@ -1588,6 +1606,8 @@ RoutingProtocol::SendHello ()
       packet->AddHeader (helloHeader);
       TypeHeader tHeader (AODVTYPE_RREP);
       packet->AddHeader (tHeader);
+      PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+      packet->AddPacketTag(bt);
       // Send to all-hosts broadcast if on /32 addr, subnet-directed otherwise
       Ipv4Address destination;
       if (iface.GetMask () == Ipv4Mask::GetOnes ())
@@ -1648,6 +1668,8 @@ RoutingProtocol::SendRerrWhenBreaksLinkToNextHop (Ipv4Address nextHop)
           NS_LOG_LOGIC ("Send RERR message with maximum size.");
           TypeHeader typeHeader (AODVTYPE_RERR);
           Ptr<Packet> packet = Create<Packet> ();
+          PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+          packet->AddPacketTag(bt);
           packet->AddHeader (rerrHeader);
           packet->AddHeader (typeHeader);
           SendRerrMessage (packet, precursors);
@@ -1665,6 +1687,8 @@ RoutingProtocol::SendRerrWhenBreaksLinkToNextHop (Ipv4Address nextHop)
     {
       TypeHeader typeHeader (AODVTYPE_RERR);
       Ptr<Packet> packet = Create<Packet> ();
+      PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+      packet->AddPacketTag(bt);
       packet->AddHeader (rerrHeader);
       packet->AddHeader (typeHeader);
       SendRerrMessage (packet, precursors);
@@ -1693,6 +1717,8 @@ RoutingProtocol::SendRerrWhenNoRouteToForward (Ipv4Address dst,
   rerrHeader.AddUnDestination (dst, dstSeqNo);
   RoutingTableEntry toOrigin;
   Ptr<Packet> packet = Create<Packet> ();
+  PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+  packet->AddPacketTag(bt);
   packet->AddHeader (rerrHeader);
   packet->AddHeader (TypeHeader (AODVTYPE_RERR));
   if (m_routingTable.LookupValidRoute (origin, toOrigin))

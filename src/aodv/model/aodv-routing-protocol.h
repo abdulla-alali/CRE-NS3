@@ -39,6 +39,7 @@
 #include "ns3/ipv4-routing-protocol.h"
 #include "ns3/ipv4-interface.h"
 #include "ns3/ipv4-l3-protocol.h"
+#include "ns3/repository.h"
 #include <map>
 
 namespace ns3
