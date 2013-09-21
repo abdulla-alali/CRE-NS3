@@ -31,6 +31,7 @@
 #include "ns3/global-value.h"
 #include "ns3/boolean.h"
 #include "ns3/simulator.h"
+#include "ns3/arp-l3-protocol.h"
 
 NS_LOG_COMPONENT_DEFINE ("Node");
 
@@ -308,6 +309,9 @@ Node::ReceiveFromDevice (Ptr<NetDevice> device, Ptr<const Packet> packet, uint16
           if (i->protocol == 0 || 
               i->protocol == protocol)
             {
+              /* Discard broadcast arp packets on interface TX & RX */
+              if (device != GetDevice(CONTROL_RADIO) && protocol == ArpL3Protocol::PROT_NUMBER)
+                return false;
               if (promiscuous == i->promiscuous)
                 {
                   if (device->GetInstanceTypeId().GetName() == "ns3::LoopbackNetDevice") {
