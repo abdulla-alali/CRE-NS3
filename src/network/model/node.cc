@@ -303,15 +303,20 @@ Node::ReceiveFromDevice (Ptr<NetDevice> device, Ptr<const Packet> packet, uint16
        i != m_handlers.end (); i++)
     {
       if (i->device == 0 ||
-          (i->device != 0 && i->device == device))
+          (i->device != 0))// && i->device == device))
         {
           if (i->protocol == 0 || 
               i->protocol == protocol)
             {
               if (promiscuous == i->promiscuous)
                 {
-                  i->handler (device, packet, protocol, from, to, packetType);
+                  if (device->GetInstanceTypeId().GetName() == "ns3::LoopbackNetDevice") {
+                    i->handler(device, packet, protocol, from, to, packetType);
+                  }
+                  else
+                    i->handler(GetDevice(CONTROL_RADIO), packet, protocol, from, to, packetType);
                   found = true;
+                  break;
                 }
             }
         }
