@@ -49,7 +49,7 @@ class ArpL3Protocol : public Object
 {
 public:
   static TypeId GetTypeId (void);
-  static const uint16_t PROT_NUMBER;
+  static const uint16_t PROT_NUMBER = 0x0806;
 
   ArpL3Protocol ();
   virtual ~ArpL3Protocol ();
