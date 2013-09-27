@@ -194,6 +194,8 @@ public:
    * \returns true if checksums are enabled, false otherwise.
    */
   static bool ChecksumEnabled (void);
+  void SetCognitiveRadio(bool isCR);
+  bool IsCognitiveRadio(void);
 
 
 protected:
@@ -229,6 +231,7 @@ private:
   std::vector<Ptr<Application> > m_applications;
   ProtocolHandlerList m_handlers;
   DeviceAdditionListenerList m_deviceAdditionListeners;
+  bool m_isCognitiveRadio;
 };
 
 } // namespace ns3

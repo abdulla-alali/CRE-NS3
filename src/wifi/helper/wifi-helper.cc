@@ -140,9 +140,10 @@ WifiHelper::InstallCR (const WifiPhyHelper &phyHelper,
 	  NetDeviceContainer devices;
 	  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
 	    {
+	      Ptr<Node> node = *i;
+	      node->SetCognitiveRadio(true);
 		    for (int x=0; x<MAX_RADIO; x++)
 		      {
-		      Ptr<Node> node = *i;
 		      Ptr<WifiNetDevice> device = CreateObject<WifiNetDevice> ();
 		      Ptr<WifiRemoteStationManager> manager = m_stationManager.Create<WifiRemoteStationManager> ();
 		      Ptr<WifiMac> mac = macHelper.Create ();

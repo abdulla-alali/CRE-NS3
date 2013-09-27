@@ -74,7 +74,8 @@ Node::GetTypeId (void)
 
 Node::Node()
   : m_id (0),
-    m_sid (0)
+    m_sid (0),
+    m_isCognitiveRadio (false)
 {
   NS_LOG_FUNCTION (this);
   Construct ();
@@ -364,6 +365,17 @@ Node::NotifyDeviceAdded (Ptr<NetDevice> device)
       (*i) (device);
     }  
 }
- 
+
+void
+Node::SetCognitiveRadio(bool isCR)
+{
+  m_isCognitiveRadio = isCR;
+}
+
+bool
+Node::IsCognitiveRadio(void)
+{
+  return m_isCognitiveRadio;
+}
 
 } // namespace ns3
