@@ -275,7 +275,8 @@ Ipv4Interface::Send (Ptr<Packet> p, Ipv4Address dest)
           PacketTypeByteTag bt;
           int bytes = p->PeekPacketTag(bt);
           Ptr<NetDevice> device = m_device;
-          if (!bytes) { //if not control packet, send on TX device
+          //if not control packet, send on TX device
+          if (!bytes && m_node->IsCognitiveRadio()) {
             device = m_node->GetDevice(TRANSMITTER_RADIO);
           }
           device->Send (p, hardwareDestination,
