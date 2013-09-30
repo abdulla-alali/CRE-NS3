@@ -7,7 +7,7 @@
 
 namespace ns3 {
 //SpectrumManager Initializer
-SpectrumManager::SpectrumManager(Mac802_11 *mac, int id): stimer_(this), ttimer_(this) {
+SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id): stimer_(this), ttimer_(this) {
 
 	mac_=mac;
 	nodeId_=id;
@@ -28,7 +28,7 @@ SpectrumManager::SpectrumManager(Mac802_11 *mac, int id): stimer_(this), ttimer_
 
 
 //SpectrumManager Initializer
-SpectrumManager::SpectrumManager(Mac802_11 *mac, int id, double sense_time, double transmit_time): stimer_(this), ttimer_(this)  {
+SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id, double sense_time, double transmit_time): stimer_(this), ttimer_(this)  {
 
 	mac_=mac;
 	nodeId_=id;

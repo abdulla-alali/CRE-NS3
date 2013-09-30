@@ -23,6 +23,7 @@
 
 #include "PUmodel.h"
 #include "repository.h"
+#include "ns3/wifi-mac.h"
 //#include "mac/mac-802_11.h"
 //#include "common/packet.h"
 
@@ -60,10 +61,10 @@ class SpectrumManager  {
 public:
 
 	// Initialize a new Spectrum Manager
-	SpectrumManager(Mac802_11 *mac, int id);
+	SpectrumManager(Ptr<WifiMac> mac, int id);
 
 	// Initialize a new Spectrum Manager
-	SpectrumManager(Mac802_11 *mac, int id, double sense_time, double transmit_time);
+	SpectrumManager(Ptr<WifiMac> mac, int id, double sense_time, double transmit_time);
 
 	// Start method: CR agent starts sensing activity on the current channel
 	void start();
@@ -110,7 +111,7 @@ private:
 
 
 	// MAC References and address
-	Mac802_11 *mac_;
+	Ptr<WifiMac> mac_;
 	int nodeId_;
 
 
