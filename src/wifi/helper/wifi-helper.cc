@@ -150,6 +150,8 @@ WifiHelper::InstallCR (const WifiPhyHelper &phyHelper,
 		      Ptr<WifiPhy> phy = phyHelper.Create (node, device);
 		      mac->SetAddress (Mac48Address::Allocate ());
 		      mac->ConfigureStandard (m_standard);
+		      if (x == TRANSMITTER_RADIO)
+		        mac->SetTxRadio (true);
 		      phy->ConfigureStandard (m_standard);
 		      device->SetMac (mac);
 		      device->SetPhy (phy);

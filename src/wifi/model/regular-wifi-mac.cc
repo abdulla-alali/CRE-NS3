@@ -706,4 +706,16 @@ RegularWifiMac::TxFailed (const WifiMacHeader &hdr)
   m_txErrCallback (hdr);
 }
 
+bool
+RegularWifiMac::IsTxRadio()
+{
+  return m_low->IsTxRadio();
+}
+
+void
+RegularWifiMac::SetTxRadio(bool isTx)
+{
+  m_low->SetTxRadio(isTx);
+}
+
 } // namespace ns3

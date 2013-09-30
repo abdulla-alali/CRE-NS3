@@ -321,6 +321,9 @@ protected:
   void SetQosSupported (bool enable);
   /** Get accessor for the \c m_qosSupported member */
   bool GetQosSupported () const;
+
+  bool IsTxRadio (void);
+  void SetTxRadio (bool isTx);
 private:
   RegularWifiMac (const RegularWifiMac &);
   RegularWifiMac & operator= (const RegularWifiMac &);

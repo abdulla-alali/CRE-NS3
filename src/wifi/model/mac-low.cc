@@ -301,6 +301,7 @@ MacLow::MacLow ()
   m_lastNavDuration = Seconds (0);
   m_lastNavStart = Seconds (0);
   m_promisc = false;
+  m_tx = false;
 }
 
 MacLow::~MacLow ()
@@ -1793,6 +1794,18 @@ void
 MacLow::RegisterBlockAckListenerForAc (enum AcIndex ac, MacLowBlockAckEventListener *listener)
 {
   m_edcaListeners.insert (std::make_pair (ac, listener));
+}
+
+void
+MacLow::SetTxRadio(bool isTx)
+{
+  m_tx = isTx;
+}
+
+bool
+MacLow::IsTxRadio()
+{
+  return m_tx;
 }
 
 } // namespace ns3

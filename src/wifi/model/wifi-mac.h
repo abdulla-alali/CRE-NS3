@@ -191,6 +191,8 @@ public:
   virtual Time GetBasicBlockAckTimeout (void) const;
   virtual void SetCompressedBlockAckTimeout (Time blockAckTimeout);
   virtual Time GetCompressedBlockAckTimeout (void) const;
+  virtual bool IsTxRadio (void) = 0;
+  virtual void SetTxRadio (bool isTx) = 0;
 
   /**
    * Public method used to fire a MacTx trace.  Implemented for encapsulation

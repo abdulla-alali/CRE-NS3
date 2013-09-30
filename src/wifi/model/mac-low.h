@@ -507,6 +507,8 @@ public:
    * associated to this AC.
    */
   void RegisterBlockAckListenerForAc (enum AcIndex ac, MacLowBlockAckEventListener *listener);
+  void SetTxRadio (bool isTx);
+  bool IsTxRadio (void);
 private:
   void CancelAllEvents (void);
   uint32_t GetAckSize (void) const;
@@ -644,6 +646,7 @@ private:
   Time m_lastNavDuration;
 
   bool m_promisc;
+  bool m_tx;
 
   // Listerner needed to monitor when a channel switching occurs.
   class PhyMacLowListener * m_phyMacLowListener;
