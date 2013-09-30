@@ -324,6 +324,8 @@ protected:
 
   bool IsTxRadio (void);
   void SetTxRadio (bool isTx);
+  bool IsRxRadio (void);
+  void SetRxRadio (bool isRx);
 private:
   RegularWifiMac (const RegularWifiMac &);
   RegularWifiMac & operator= (const RegularWifiMac &);

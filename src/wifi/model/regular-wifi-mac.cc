@@ -718,4 +718,16 @@ RegularWifiMac::SetTxRadio(bool isTx)
   m_low->SetTxRadio(isTx);
 }
 
+bool
+RegularWifiMac::IsRxRadio()
+{
+  return m_low->IsRxRadio();
+}
+
+void
+RegularWifiMac::SetRxRadio(bool isRx)
+{
+  m_low->SetRxRadio(isRx);
+}
+
 } // namespace ns3

@@ -152,6 +152,8 @@ WifiHelper::InstallCR (const WifiPhyHelper &phyHelper,
 		      mac->ConfigureStandard (m_standard);
 		      if (x == TRANSMITTER_RADIO)
 		        mac->SetTxRadio (true);
+		      if (x == RECEIVER_RADIO)
+		        mac->SetRxRadio(true);
 		      phy->ConfigureStandard (m_standard);
 		      device->SetMac (mac);
 		      device->SetPhy (phy);

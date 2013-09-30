@@ -303,6 +303,7 @@ MacLow::MacLow ()
   m_lastNavStart = Seconds (0);
   m_promisc = false;
   m_tx = false;
+  m_rx = false;
 }
 
 MacLow::~MacLow ()
@@ -1822,6 +1823,18 @@ bool
 MacLow::IsTxRadio()
 {
   return m_tx;
+}
+
+void
+MacLow::SetRxRadio(bool isRx)
+{
+  m_rx = isRx;
+}
+
+bool
+MacLow::IsRxRadio()
+{
+  return m_rx;
 }
 
 void
