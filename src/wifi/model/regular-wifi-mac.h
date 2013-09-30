@@ -326,6 +326,7 @@ protected:
   void SetTxRadio (bool isTx);
   bool IsRxRadio (void);
   void SetRxRadio (bool isRx);
+  void SetNode (Ptr<Node> node);
 private:
   RegularWifiMac (const RegularWifiMac &);
   RegularWifiMac & operator= (const RegularWifiMac &);
@@ -349,6 +350,8 @@ private:
   Ptr<EdcaTxopN> GetBEQueue (void) const;
   /** Accessor for the AC_BK channel access function */
   Ptr<EdcaTxopN> GetBKQueue (void) const;
+
+  Ptr<Node> m_node;
 
   TracedCallback<const WifiMacHeader &> m_txOkCallback;
   TracedCallback<const WifiMacHeader &> m_txErrCallback;
