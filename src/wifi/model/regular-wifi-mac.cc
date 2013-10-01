@@ -109,6 +109,12 @@ RegularWifiMac::DoDispose ()
   m_dca->Dispose ();
   m_dca = NULL;
 
+  if (m_spectrumManager != NULL)
+  {
+    delete m_spectrumManager;
+    m_spectrumManager = NULL;
+  }
+
   for (EdcaQueues::iterator i = m_edca.begin (); i != m_edca.end (); ++i)
     {
       i->second = NULL;
@@ -630,6 +636,21 @@ RegularWifiMac::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&RegularWifiMac::GetBKQueue),
                    MakePointerChecker<EdcaTxopN> ())
+    .AddAttribute ("SensingTime",
+                    "The sensing time of the node",
+                    TimeValue(MilliSeconds(100)),
+                    MakeTimeAccessor(&RegularWifiMac::m_snsInterval),
+                    MakeTimeChecker())
+    .AddAttribute ("TransmissionTime",
+                    "The transmission time of the node",
+                    TimeValue(Seconds(1.0)),
+                    MakeTimeAccessor(&RegularWifiMac::m_txInterval),
+                    MakeTimeChecker())
+    .AddAttribute ("ProbabilityMisDetect",
+                    "The probability that a node mis-detects a Primary User",
+                    DoubleValue(0.1),
+                    MakeDoubleAccessor(&RegularWifiMac::m_probMisdetect),
+                    MakeDoubleChecker<double>())
     .AddTraceSource ( "TxOkHeader",
                       "The header of successfully transmitted packet",
                       MakeTraceSourceAccessor (&RegularWifiMac::m_txOkCallback))
@@ -728,6 +749,13 @@ void
 RegularWifiMac::SetRxRadio(bool isRx, Ptr<Node> node, Ptr<Repository> repo, Ptr<PUModel> puModel)
 {
   m_node = node;
+  if (m_spectrumManager == NULL)
+    {
+      m_spectrumManager = new SpectrumManager(this, m_node->GetId(), m_snsInterval, m_txInterval);
+      m_spectrumManager->setPUmodel(m_probMisdetect, puModel);
+      m_spectrumManager->setRepository(repo);
+      m_spectrumManager->start();
+    }
   m_low->SetRxRadio(isRx);
 }
 

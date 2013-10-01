@@ -21,6 +21,7 @@
 #define REGULAR_WIFI_MAC_H
 
 #include "ns3/wifi-mac.h"
+#include "ns3/SpectrumManager.h"
 
 #include "dca-txop.h"
 #include "edca-txop-n.h"
@@ -351,7 +352,11 @@ private:
   /** Accessor for the AC_BK channel access function */
   Ptr<EdcaTxopN> GetBKQueue (void) const;
 
+  SpectrumManager *m_spectrumManager;
   Ptr<Node> m_node;
+  Time m_snsInterval;
+  Time m_txInterval;
+  double m_probMisdetect;
 
   TracedCallback<const WifiMacHeader &> m_txOkCallback;
   TracedCallback<const WifiMacHeader &> m_txErrCallback;
