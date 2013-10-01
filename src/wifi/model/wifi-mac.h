@@ -23,6 +23,8 @@
 #include "ns3/packet.h"
 #include "ns3/mac48-address.h"
 #include "ns3/node.h"
+#include "ns3/repository.h"
+#include "ns3/PUmodel.h"
 
 #include "wifi-phy.h"
 #include "wifi-remote-station-manager.h"
@@ -195,8 +197,7 @@ public:
   virtual bool IsTxRadio (void) = 0;
   virtual void SetTxRadio (bool isTx) = 0;
   virtual bool IsRxRadio (void) = 0;
-  virtual void SetRxRadio (bool isRx) = 0;
-  virtual void SetNode (Ptr<Node> node) = 0;
+  virtual void SetRxRadio (bool isRx, Ptr<Node> node, Ptr<Repository> repo, Ptr<PUModel> puModel) = 0;
 
   /**
    * Public method used to fire a MacTx trace.  Implemented for encapsulation

@@ -725,15 +725,10 @@ RegularWifiMac::IsRxRadio()
 }
 
 void
-RegularWifiMac::SetRxRadio(bool isRx)
-{
-  m_low->SetRxRadio(isRx);
-}
-
-void
-RegularWifiMac::SetNode(Ptr<Node> node)
+RegularWifiMac::SetRxRadio(bool isRx, Ptr<Node> node, Ptr<Repository> repo, Ptr<PUModel> puModel)
 {
   m_node = node;
+  m_low->SetRxRadio(isRx);
 }
 
 } // namespace ns3

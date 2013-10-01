@@ -325,8 +325,8 @@ protected:
   bool IsTxRadio (void);
   void SetTxRadio (bool isTx);
   bool IsRxRadio (void);
-  void SetRxRadio (bool isRx);
-  void SetNode (Ptr<Node> node);
+  void SetRxRadio (bool isRx, Ptr<Node> node, Ptr<Repository> repo, Ptr<PUModel> puModel);
+
 private:
   RegularWifiMac (const RegularWifiMac &);
   RegularWifiMac & operator= (const RegularWifiMac &);
