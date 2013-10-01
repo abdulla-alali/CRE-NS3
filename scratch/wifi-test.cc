@@ -134,8 +134,11 @@ int main (int argc, char *argv[])
   // Set it to adhoc mode
   wifiMac.SetType ("ns3::AdhocWifiMac");
 
-
-  NetDeviceContainer devices = wifi.InstallCR (wifiPhy, wifiMac, c);
+  //Read PU file
+  Ptr<PUModel> puModel = CreateObject<PUModel>();
+  std::string map_file = "map_PUs_multiple.txt";
+  puModel->SetPuMapFile((char*)map_file.c_str());
+  NetDeviceContainer devices = wifi.InstallCR (puModel, wifiPhy, wifiMac, c);
 
   NetDeviceContainer devices_control;
   for (uint32_t i=0; i<devices.GetN(); i=i+3) {
