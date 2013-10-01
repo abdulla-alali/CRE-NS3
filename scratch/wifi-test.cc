@@ -66,7 +66,7 @@
 #include <vector>
 #include <string>
 
-NS_LOG_COMPONENT_DEFINE ("WifiSimpleAdhoc");
+NS_LOG_COMPONENT_DEFINE ("WifiTest");
 
 using namespace ns3;
 
@@ -76,7 +76,7 @@ static void RxRcv(std::string context, Ptr<const Packet> p, const Address &addre
   if (p) {
     bytes = p->GetSize();
   }
-  NS_LOG_UNCOND ( Simulator::Now().GetSeconds() << context << " Received a packet and size: " << bytes);
+  NS_LOG_DEBUG ( Simulator::Now().GetSeconds() << context << " Received a packet and size: " << bytes);
 }
 
 int main (int argc, char *argv[])
