@@ -10,6 +10,8 @@
 #include <string.h>
 #include <math.h>
 #include "ns3/object.h"
+#include "ns3/nstime.h"
+#include "ns3/log.h"
 
 
 // Constant value for the PU Mapping file
@@ -48,24 +50,24 @@ struct pu_activity {
 	double interference;
 };
 
-class PUmodel : public Object {
+class PUModel : public Object {
 
 public:
 	static TypeId GetTypeId (void);
 	// PUmodel creator
-	PUmodel();
+	PUModel();
 	// Method for receiving command from OTCL
 	int command(int argc, const char*const* argv);
 	// Receiving packet method (NOT used)
 	//void recv(Packet*, Handler*);
 	// Return true if a PU is transmitting in the same spectrum of the CR
-	bool is_PU_active(double timeNow, double ts, double x, double y, int channel);
+	bool is_PU_active(Time timeNow, Time ts, double x, double y, int channel);
 	// Write the statistics about interference on PU receivers
 	void write_stat(int param);
 	// Check if the tranmission of a CR may cause interference to a PU receiver
-	void update_stat_pu_receiver(int id, double timeNow, double txtime, double x, double y, int channel);
+	void update_stat_pu_receiver(int id, Time timeNow, Time txtime, double x, double y, int channel);
 	//Check if PU is active at that time
-	bool check_active(double timeNow, double ts);
+	bool check_active(Time timeNow, Time ts);
 	//Get next PU off time
 	double get_next_off_time(double timeNow);
 
@@ -82,7 +84,7 @@ private:
 	// Method to get the distance from the PU receiver
 	double distance_receiver(double x, double y, int channel);
 	// Method tc check if a PU is transmitting on a given spectrum at a given time
-	bool check_active(double timeNow, double ts, int channel);
+	bool check_active(Time timeNow, Time ts, int channel);
 
 	// PU-Receiver interference statistics
 	int interference_events_;

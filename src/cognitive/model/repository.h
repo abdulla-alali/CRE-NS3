@@ -12,6 +12,7 @@
 #include "ns3/object.h"
 #include "ns3/core-module.h"
 #include "ns3/tag.h"
+#include "ns3/log.h"
 
 
 namespace ns3 {

@@ -20,10 +20,10 @@ SenseTimer::GetTypeId (void)
   return tid;
 }*/
 
-SenseTimer::SenseTimer(SpectrumManager *s) {
+//SenseTimer::SenseTimer(SpectrumManager *s) {
 
-	m_handler=s;
-}
+//	m_handler=s;
+//}
 
 
 
@@ -37,12 +37,12 @@ SenseTimer::SenseTimer(SpectrumManager *s) {
 
 
 
-void 
-SenseTimer::start(double time) {
+//void
+//SenseTimer::start(Time time) {
 
-	Simulator::Schedule (Seconds (time), &SpectrumManager::senseHandler, m_handler);
+	//Simulator::Schedule (time, &SpectrumManager::senseHandler, m_handler);
 	//s.schedule(this, &intr, time);
-}
+//}
 
 
 /*
@@ -79,9 +79,9 @@ TransmitTimer::TransmitTimer(SpectrumManager *s) {
 
 
 void 
-TransmitTimer::start(double time) {
+TransmitTimer::start(Time time) {
 
-	Simulator::Schedule (Seconds (time), &SpectrumManager::transmitHandler, m_handler);
+	Simulator::Schedule (time, &SpectrumManager::transmitHandler, m_handler);
 }
 
 /*

@@ -7,6 +7,7 @@
 //#include <connector.h>
 //#include <packet.h>
 //#include "ns3/object.h"
+#include "ns3/nstime.h"
 
 namespace ns3 {
 class SpectrumManager;
@@ -17,15 +18,15 @@ class SenseTimer {
 
 	public:
 	//static TypeId GetTypeId (void);
-        	SenseTimer(SpectrumManager *s); 
+        	//SenseTimer(SpectrumManager *s);
 
 	        //void handle(Event *e);
 
-		void start(double time);
+		//void start(Time time);
 
 	private:
 		//Event           intr;
-		SpectrumManager *m_handler;
+		//SpectrumManager *m_handler;
 };
 
 
@@ -40,7 +41,7 @@ class TransmitTimer {
 
                  //void handle(Event *e);
 
-		 void start(double time);
+		 void start(Time time);
 
 	private:
 		//Event           intr;

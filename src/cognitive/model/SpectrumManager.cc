@@ -5,9 +5,11 @@
 
 #include "SpectrumManager.h"
 
+NS_LOG_COMPONENT_DEFINE ("CogSpectrumManager");
+
 namespace ns3 {
 //SpectrumManager Initializer
-SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id): stimer_(this), ttimer_(this) {
+SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id): ttimer_(this) {
 
 	mac_=mac;
 	nodeId_=id;
@@ -28,7 +30,7 @@ SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id): stimer_(this), ttime
 
 
 //SpectrumManager Initializer
-SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id, double sense_time, double transmit_time): stimer_(this), ttimer_(this)  {
+SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id, Time sense_time, Time transmit_time): ttimer_(this)  {
 
 	mac_=mac;
 	nodeId_=id;
@@ -52,16 +54,16 @@ SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id, double sense_time, do
 void
 SpectrumManager::start() {
 
-	//TODO start
 	// Retrive the current channel on which the CR is tuned on the RECEIVER interface
 
-	//int current_channel=repository_->get_recv_channel(nodeId_);
+	//int current_channel=m_repository->get_recv_channel(nodeId_);
 	// Load spectrum characteristics (bandwidth, PER, ...)
 
+	//TODO load spectrum in mac layer
 	//mac_->load_spectrum(dataMod_->get_spectrum_data(current_channel));
-	//end TODO
+
 	// Start sensing on the current channel for a sense_time_ interval
-	stimer_.start(sense_time_);
+  Simulator::Schedule (sense_time_, &SpectrumManager::senseHandler, this);
 
 }
 
@@ -83,13 +85,18 @@ bool
 SpectrumManager::is_PU_interfering(Time txDuration) {
 
 	// Get the tx time of a packet
-	double time_tx=txDuration.GetSeconds();
+	Time time_tx=txDuration;
 	// Check if a PU is active in the interval [now: now+time_tx]
-	int  current_channel=repository_->get_recv_channel(nodeId_);
+	int  current_channel=m_repository->get_recv_channel(nodeId_);
 	bool interference=sensingMod_->sense(nodeId_,time_tx,transmit_time_, current_channel);
 
 #ifdef SENSING_VERBOSE_MODE
-	if (interference)	printf("[SENSING-DBG] Node %d sensed some PU activity on channel %d while receiving data\n", nodeId_,current_channel);
+	if (interference)
+	  {
+	    char buffer [50];
+	    sprintf(buffer, "[SENSING-DBG] Node %d sensed some PU activity on channel %d while receiving data\n", nodeId_,current_channel);
+	    NS_LOG_DEBUG (buffer);
+	  }
 #endif
 	return interference;
 }
@@ -102,7 +109,7 @@ SpectrumManager::is_PU_interfering(Time txDuration) {
 
 //setPUmodel: set the current PU model
 void
-SpectrumManager::setPUmodel(double prob, PUmodel *p) {
+SpectrumManager::setPUmodel(double prob, Ptr<PUModel> p) {
 
 	sensingMod_=new SpectrumSensing(this,prob,p);
 
@@ -112,9 +119,9 @@ SpectrumManager::setPUmodel(double prob, PUmodel *p) {
 
 //setRepository: set the current cross-layer repository
 void
-SpectrumManager::setRepository(Repository* rep) {
+SpectrumManager::setRepository(Ptr<Repository> rep) {
 
-	repository_=rep;
+  m_repository=rep;
 }
 
 
@@ -144,10 +151,12 @@ SpectrumManager::senseHandler() {
 
 	bool need_to_switch=false;
 
-	int  current_channel=repository_->get_recv_channel(nodeId_);
+	int  current_channel=m_repository->get_recv_channel(nodeId_);
 
 #ifdef SENSING_VERBOSE_MODE //abdulla
-	printf("[SENSING-DBG] Node %d is on channel %d and PU activity is %s at time: %f\n", nodeId_, current_channel, (pu_on_)?"true":"false", Simulator::Now().GetSeconds());
+	char buffer [100];
+	sprintf(buffer, "[SENSING-DBG] Node %d is on channel %d and PU activity is %s", nodeId_, current_channel, (pu_on_)?"true":"false");
+	NS_LOG_DEBUG(buffer);
 #endif
 
 	// Check if PU was detected 
@@ -168,7 +177,7 @@ SpectrumManager::senseHandler() {
 			// Choose next channel and store the information in the shared repository
 			int next_channel=decisionMod_->decideSpectrum(current_channel);
 
-			repository_->set_recv_channel(nodeId_,next_channel);
+			m_repository->set_recv_channel(nodeId_,next_channel);
 			// Load the spectrum data for the new channel
 			//TODO; make sure you tie up the mac layer
 			//mac_->load_spectrum(dataMod_->get_spectrum_data(next_channel));
@@ -182,7 +191,9 @@ SpectrumManager::senseHandler() {
 #endif
 
 #ifdef SENSING_VERBOSE_MODE
-			printf("[SENSING-DBG] Node %d starts handoff on channel %d to channel %d at time %f \n",nodeId_,current_channel,next_channel,Simulator::Now().GetSeconds());
+			char buffer [100];
+			sprintf(buffer, "[SENSING-DBG] Node %d starts handoff on channel %d to channel %d",nodeId_,current_channel,next_channel);
+			NS_LOG_DEBUG (buffer);
 #endif
 
 			// Sensing Time is off, since the node is performing a spectrum handoff
@@ -196,8 +207,8 @@ SpectrumManager::senseHandler() {
 
 
 			//printf("node: %i restarting sensor at time %f\n", nodeId_, Scheduler::instance().clock());
-			stimer_.start(sense_time_);
-			sensing_=true;
+		  Simulator::Schedule (sense_time_, &SpectrumManager::senseHandler, this);
+		  sensing_=true;
 
 		}
 
@@ -219,7 +230,9 @@ SpectrumManager::senseHandler() {
 			ttimer_.start(transmit_time_);
 
 #ifdef SENSING_VERBOSE_MODE
-			printf("[SENSING-DBG] Node %d starts transmitting on channel %d at time %f \n",nodeId_,current_channel,Simulator::Now().GetSeconds());
+			char buffer [50];
+			sprintf(buffer, "[SENSING-DBG] Node %d starts transmitting on channel %d",nodeId_,current_channel);
+			NS_LOG_DEBUG (buffer);
 #endif
 		}
 
@@ -234,21 +247,21 @@ SpectrumManager::senseHandler() {
 void 
 SpectrumManager::transmitHandler() {
 
-
-	int current_channel=repository_->get_recv_channel(nodeId_);
+	int current_channel=m_repository->get_recv_channel(nodeId_);
 
 	// Perform sensing on the current channel
 	pu_on_= sensingMod_->sense(nodeId_,sense_time_,transmit_time_, current_channel);
 
 	// Start the sensing interval
-	stimer_.start(sense_time_);
+	Simulator::Schedule (sense_time_, &SpectrumManager::senseHandler, this);
 
 	// Set the sensing ON
 	sensing_=true;
 
 #ifdef SENSING_VERBOSE_MODE
-	printf("[SENSING-DBG] Node %d starts sensing on channel %d at time %f \n",nodeId_,current_channel,Simulator::Now().GetSeconds());
-	//if (pu_on_) printf("[SENSING-DBG] Node %d sensed pu activity on channel %d \n", nodeId_, current_channel);
+	char buffer [50];
+	sprintf(buffer, "[SENSING-DBG] Node %d starts sensing on channel %d",nodeId_,current_channel);
+	NS_LOG_DEBUG (buffer);
 #endif
 
 	// Stop any current backoff attempt
@@ -265,19 +278,21 @@ SpectrumManager::transmitHandler() {
 void 
 SpectrumManager::endHandoff() {
 
-	int current_channel=repository_->get_recv_channel(nodeId_);
+	int current_channel=m_repository->get_recv_channel(nodeId_);
 
 	// Perform sensing on the new channel
 	pu_on_ = sensingMod_->sense(nodeId_,sense_time_,transmit_time_, current_channel);
 
 	// Start the sensing interval
-	stimer_.start(sense_time_);
+  Simulator::Schedule (sense_time_, &SpectrumManager::senseHandler, this);
 
 #ifdef SENSING_VERBOSE_MODE
 
-	printf("[SENSING-DBG] Node %d ends handoff on channel %d at time %f \n",nodeId_,current_channel,Simulator::Now().GetSeconds());
-
-	printf("[SENSING-DBG] Node %d starts sensing on channel %d at time %f \n",nodeId_,current_channel,Simulator::Now().GetSeconds());
+	char buffer [50];
+	sprintf(buffer,"[SENSING-DBG] Node %d ends handoff on channel %d",nodeId_,current_channel);
+	NS_LOG_DEBUG (buffer);
+	sprintf(buffer, "[SENSING-DBG] Node %d starts sensing on channel %d",nodeId_,current_channel);
+	NS_LOG_DEBUG (buffer);
 
 #endif
 

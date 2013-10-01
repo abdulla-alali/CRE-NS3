@@ -6,6 +6,8 @@
 
 #include "repository.h"
 
+NS_LOG_COMPONENT_DEFINE ("CogRepository");
+
 namespace ns3 {
 
 TypeId
@@ -25,15 +27,17 @@ Repository::GetTypeId (void)
 
 // Initializer
 Repository::Repository() {
-	
+
+  NS_LOG_FUNCTION (this);
 	// Set randomly the receiver channel for each node	
 	for (int i=0; i<MAX_NODES; i++) {
 		int channel=get_random_channel();
 		repository_table[i].recv_channel= channel;
 	}
-
+	char mystring [50];
 	for (int i=0; i<5; i++) {
-		printf("node %i got channel %i\n", i, repository_table[i].recv_channel);
+	  sprintf(mystring, "node %i got channel %i",i, repository_table[i].recv_channel);
+	  NS_LOG_DEBUG(mystring);
 	}
 
 	// Initialize each sending channel as NOT active for each node

@@ -9,6 +9,7 @@
 #include "PUmodel.h"
 #include "SpectrumManager.h"
 #include "ns3/node-container.h"
+#include "ns3/log.h"
 
 namespace ns3 {
 class SpectrumManager;
@@ -22,16 +23,16 @@ class SpectrumSensing {
 		SpectrumSensing(SpectrumManager *sm);
 
 		// Initialization method: PUmodel on
-		SpectrumSensing(SpectrumManager *sm, double prob, PUmodel *p);
+		SpectrumSensing(SpectrumManager *sm, double prob, Ptr<PUModel> p);
 	
 		// Perform sensing and return true if PU activity is detected on the current channel
-		bool sense(int id, double sense_time, double transmit_time, int channel);
+		bool sense(int id, Time sense_time, Time transmit_time, int channel);
 
 	
 	private:
 		
 		// Primary User Map and Model
-		PUmodel *pumodel_;
+		Ptr<PUModel> pumodel_;
 		
 		// Spectrum Manager reference
 		SpectrumManager *smanager_;

@@ -1,29 +1,25 @@
 
 #include "PUmodel.h"
 
-
+NS_LOG_COMPONENT_DEFINE ("CogPUModel");
 // PU model class
 // Implementation of the model of PU activity for CRAHNs
 
 namespace ns3 {
 
 TypeId
-PUmodel::GetTypeId (void)
+PUModel::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::PUMap")
+  static TypeId tid = TypeId ("ns3::PUModel")
     .SetParent<Object> ()
-    .AddConstructor<PUmodel> ()
-    //.AddAttribute ("DeviceList", "The list of devices associated to this Node.",
-    //               ObjectVectorValue (),
-    //               MakeObjectVectorAccessor (&Node::m_devices),
-    //               MakeObjectVectorChecker<NetDevice> ())
+    .AddConstructor<PUModel> ()
   ;
   return tid;
 }
 
 
 // PUmodel Initializer
-PUmodel::PUmodel() {
+PUModel::PUModel() {
 	
 	number_pu_=0;
 	
@@ -38,19 +34,17 @@ PUmodel::PUmodel() {
 
 // read_data: Read the content of the current file and saves the information on the PU data structure
 void
-PUmodel::read_data(char* dir) {
+PUModel::read_data(char* dir) {
 
 	FILE* fd;	
 	
 	fd=fopen(dir,"rt");	
 
-	if (IO_DEBUG) 
-		printf("Reading PU Data from File: %s \n", dir);
+	NS_LOG_DEBUG ("Reading PU Data from File: " << dir);
 	
 
 	if (fd==NULL) {
-		printf(" ERROR. Can't open file %s \n",dir);
-		exit(0);
+		NS_FATAL_ERROR("Can't open file " << dir);
 	}
 	
 	// The first line contains the following entry:
@@ -58,20 +52,16 @@ PUmodel::read_data(char* dir) {
 	fscanf(fd,"%d",&number_pu_);
 
 	if (ferror(fd)) {
-		printf(" ERROR. Can't read PU number Information from file %s \n", dir);		
-		exit(0);
+		NS_FATAL_ERROR ("Can't read PU number Information from file " << dir);
 	}
 
 
 	if (IO_DEBUG)
-		printf("[READING MAP FILE] #PU users: %d \n",number_pu_); 
+		NS_LOG_DEBUG ("[READING MAP FILE] #PU users: " << number_pu_);
 
 	
-	if (number_pu_>	 MAX_PU_USERS) {
-		printf(" ERROR. Too many PU in the file. Max allowed is %d \n", MAX_PU_USERS);
-                exit(0);
-
-	}
+	if (number_pu_>	 MAX_PU_USERS)
+	  NS_LOG_ERROR ("Too many PU in the file. Max allowed is " << MAX_PU_USERS);
 	
 	// The second section contains the following entry:
 	// <PU_id, x_loc, y_loc, x_loc_receiver, y_loc_receiver, alpha, beta, tx_range>
@@ -84,14 +74,13 @@ PUmodel::read_data(char* dir) {
 	
 		fscanf(fd,"%d %f %f %f %f %e %e %f",&channel,&x,&y,&x2,&y2,&alpha,&beta,&range);
 		
-		if (ferror(fd)) {
-			printf(" ERROR. Can't read PU number Information from file %s \n", dir);		
-			exit(0);
-		}
+		if (ferror(fd))
+			NS_LOG_ERROR ("Can't read PU number Information from file " << dir);
 
 
-		if (IO_DEBUG)
-			printf("[READING MAP FILE] #PU Location: channel: %d x=%f y=%f #PU Receiver: x=%f y=%f ALPHA: %e BETA: %e TX RANGE: %f\n",channel,x,y,x2,y2,alpha,beta,range);
+		NS_LOG_DEBUG ("[READING MAP FILE] #PU Location: channel: " << channel << " x="
+		    << x << " y=" << y << " #PU Receiver: x=" << x2 << " y=" << y2 << " ALPHA: "
+		    << alpha << " BETA: " << beta << " TX RANGE: " << range );
 
 
 		pu_data[i].main_channel=channel;
@@ -118,19 +107,13 @@ PUmodel::read_data(char* dir) {
 		
 		fscanf(fd,"%d",&number);
 
-		if (ferror(fd)) {
-			printf(" ERROR. Can't read PU number DATA Information from file %s \n", dir);		
-			exit(0);
-		}
+		if (ferror(fd))
+			NS_LOG_ERROR ("Can't read PU number DATA Information from file " << dir);
 
-		if (IO_DEBUG)
-			printf("[READING MAP FILE] #PU ON times: %d \n",number); 
+		NS_LOG_DEBUG ("[READING MAP FILE] #PU ON times: " << number);
 	
-		if (number>MAX_PU_DATA_ENTRY) {
-			printf(" ERROR. Too many PU DATA ON times in the file. Max allowed is %d %d\n", MAX_PU_DATA_ENTRY,number);
-                	exit(0);
-
-		}
+		if (number>MAX_PU_DATA_ENTRY)
+			NS_FATAL_ERROR("Too many PU DATA ON times in the file. Max allowed is " << MAX_PU_DATA_ENTRY << " " << number);
 		
 		pu_data[j].number_data=number;
 
@@ -141,15 +124,12 @@ PUmodel::read_data(char* dir) {
 				// Reading the arrival time			
 				pu_data[j].arrival_time[arrivals]=time;
 				arrivals++;
-				if (IO_DEBUG)
-					printf("[READING MAP FILE] #PU arrival: %d %f \n",j,time); 
-
+				NS_LOG_DEBUG ("[READING MAP FILE] #PU arrival: " << j << " " << time);
 			} else {
 				// Reading the departure time
 				pu_data[j].departure_time[departures]=time;
 				departures++;
-				if (IO_DEBUG)
-					printf("[READING MAP FILE] #PU departure: %d %f \n",j,time); 
+				NS_LOG_DEBUG ("[READING MAP FILE] #PU departure: " << j << time);
 
 
 			}			
@@ -166,19 +146,20 @@ PUmodel::read_data(char* dir) {
 
 // is_PU_active: Check if a PU is active in the time interval [timeNow, timeNow + ts]
 bool
-PUmodel::is_PU_active(double timeNow, double ts, double x, double y, int channel) {
+PUModel::is_PU_active(Time timeNow, Time ts, double x, double y, int channel) {
 
 	bool active=false;
-	
+
 	for (int i=0; i< number_pu_; i++) {
 		if ((pu_data[i].main_channel==channel) && (distance(x,y,i) <=pu_data[i].radius))
 			active=check_active(timeNow,ts,i);
-		
-		if (active)
+
+		if (active) {
 			return true;
+		}
 		
 	}
-	
+
 	return false;
 
 }
@@ -189,10 +170,9 @@ PUmodel::is_PU_active(double timeNow, double ts, double x, double y, int channel
 
 // check:active: Check if a PU is transmitting in the interval [timeNow, timeNow + ts]
 bool
-PUmodel::check_active(double timeNow, double ts, int channel) {
+PUModel::check_active(Time timeNow, Time ts, int channel) {
 
-
-	double endTime=timeNow+ts;
+	Time endTime=timeNow+ts;
 	int number=pu_data[channel].number_data;
 	double active=false;
 
@@ -223,10 +203,10 @@ PUmodel::check_active(double timeNow, double ts, int channel) {
  * where we assume that the database returns only PUs that are affecting the chain
  */
 bool
-PUmodel::check_active(double timeNow, double ts) {
+PUModel::check_active(Time timeNow, Time ts) {
 
 
-	double endTime=timeNow+ts;
+	Time endTime=timeNow+ts;
 	double active=false;
 
 	for (int j=0; j<number_pu_; j++) {
@@ -262,7 +242,7 @@ PUmodel::check_active(double timeNow, double ts) {
  * returns -1 if there is no PU currently
  */
 double
-PUmodel::get_next_off_time(double timeNow) {
+PUModel::get_next_off_time(double timeNow) {
 
 
 	double endTime=timeNow+0.001;
@@ -284,7 +264,7 @@ PUmodel::get_next_off_time(double timeNow) {
 			// If there is on overlapping, then jump out from the cycle
 			if (active) {
 				timeOff = pu_data[j].departure_time[i];
-				printf("timeoff: %f i=%i and j=%i\n", pu_data[j].departure_time[i], i, j);
+				NS_LOG_DEBUG ("time off: " << pu_data[j].departure_time[i] <<" i="<< i <<" and j="<< j );
 				i=pu_data[j].number_data;
 				j=number_pu_;
 			}
@@ -305,11 +285,10 @@ PUmodel::get_next_off_time(double timeNow) {
 
 //distance: Return the current distance from the PU transmitter on a given channel
 double 
-PUmodel::distance(double x, double y, int channel) {
-
+PUModel::distance(double x, double y, int channel) {
 	double dx=(x-pu_data[channel].x_loc)*(x-pu_data[channel].x_loc);
 	double dy=(y-pu_data[channel].y_loc)*(y-pu_data[channel].y_loc);
-	double dist=sqrt(dx+dy);
+	double dist=std::sqrt((float)(dx+dy));
 
 	return dist;
 }
@@ -319,11 +298,11 @@ PUmodel::distance(double x, double y, int channel) {
 
 ///distance_receiver: Return the current distance from the PU receiver on a given channel 
 double 
-PUmodel::distance_receiver(double x, double y, int channel) {
+PUModel::distance_receiver(double x, double y, int channel) {
 
 	double dx=(x-pu_data[channel].x_loc_receiver)*(x-pu_data[channel].x_loc_receiver);
 	double dy=(y-pu_data[channel].y_loc_receiver)*(y-pu_data[channel].y_loc_receiver);
-	double dist=sqrt(dx+dy);
+	double dist=std::sqrt((float)(dx+dy));
 
 	return dist;
 }
@@ -343,7 +322,7 @@ PUmodel::distance_receiver(double x, double y, int channel) {
 
 // update_stat_pu_receiver: Check if the tranmission of a CR may cause interference to a PU receiver
 void
-PUmodel::update_stat_pu_receiver(int id, double timeNow, double txtime, double x, double y, int channel) {
+PUModel::update_stat_pu_receiver(int id, Time timeNow, Time txtime, double x, double y, int channel) {
 
 	double active=false;
 	// Power injected by CR nodes 
@@ -362,7 +341,7 @@ PUmodel::update_stat_pu_receiver(int id, double timeNow, double txtime, double x
 			if (active) {
 				
 				// Compute the Interference Power * Interference Time received by the destination
-		 		interference_power_+=((TX_POWER * pow(1.5,4))/(pow(distance_receiver(x,y,i),4))) * txtime;
+		 		interference_power_=interference_power_+((TX_POWER * std::pow(1.5,4))/(std::pow(distance_receiver(x,y,i),4))) * txtime.GetSeconds();
 				interference_events_++;
 			}
 		}
@@ -376,7 +355,7 @@ PUmodel::update_stat_pu_receiver(int id, double timeNow, double txtime, double x
 
 // write_stat: Write the statistics about avg interference on PU receivers on a file
 void 
-PUmodel::write_stat(int param) {
+PUModel::write_stat(int param) {
 
 	double power=0;	
 	FILE *fd;

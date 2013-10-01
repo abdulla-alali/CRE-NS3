@@ -24,6 +24,7 @@
 #include "PUmodel.h"
 #include "repository.h"
 #include "ns3/wifi-mac.h"
+#include "ns3/nstime.h"
 //#include "mac/mac-802_11.h"
 //#include "common/packet.h"
 
@@ -64,7 +65,7 @@ public:
 	SpectrumManager(Ptr<WifiMac> mac, int id);
 
 	// Initialize a new Spectrum Manager
-	SpectrumManager(Ptr<WifiMac> mac, int id, double sense_time, double transmit_time);
+	SpectrumManager(Ptr<WifiMac> mac, int id, Time sense_time, Time transmit_time);
 
 	// Start method: CR agent starts sensing activity on the current channel
 	void start();
@@ -85,8 +86,8 @@ public:
 
 
 	// Setup Functions
-	void setPUmodel(double prob, PUmodel *p);
-	void setRepository(Repository* rep);
+	void setPUmodel(double prob, Ptr<PUModel> p);
+	void setRepository(Ptr<Repository> rep);
 	void setSpectrumData(SpectrumData *sd);
 
 
@@ -94,13 +95,13 @@ private:
 
 	// Spectrum Cycle Timers and Variables
 	// Sensing Timer
-	SenseTimer stimer_;
+	//SenseTimer stimer_;
 	// Transmitting Timer
 	TransmitTimer ttimer_;
 	// Sensing interval
-	double sense_time_;
+	Time sense_time_;
 	// Transmitting interval
-	double transmit_time_;
+	Time transmit_time_;
 
 
 	// State Variables
@@ -117,7 +118,7 @@ private:
 
 	// Modules
 	// Cross-layer repository for information sharing about the current channel
-	Repository *repository_;
+	Ptr<Repository> m_repository;
 
 	// Spectrum Sensing Module
 	SpectrumSensing  *sensingMod_;
