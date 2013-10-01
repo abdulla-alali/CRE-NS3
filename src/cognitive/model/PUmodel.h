@@ -70,6 +70,8 @@ public:
 	bool check_active(Time timeNow, Time ts);
 	//Get next PU off time
 	double get_next_off_time(double timeNow);
+	//Set PU map file
+	void SetPuMapFile(char * file);
 
 private:
 

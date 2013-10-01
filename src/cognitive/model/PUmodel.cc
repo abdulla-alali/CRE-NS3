@@ -397,7 +397,11 @@ PUModel::write_stat(int param) {
 
 }
 
-
+void
+PUModel::SetPuMapFile(char * fileName)
+{
+  read_data(fileName);
+}
 
 
 // Command method
