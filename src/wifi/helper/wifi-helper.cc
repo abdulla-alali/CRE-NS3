@@ -138,6 +138,7 @@ WifiHelper::InstallCR (Ptr<PUModel> puModel, const WifiPhyHelper &phyHelper,
                      const WifiMacHelper &macHelper, NodeContainer c) const
 {
 	  NetDeviceContainer devices;
+	  Ptr<Repository> repo = CreateObject<Repository>();
 	  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
 	    {
 	      Ptr<Node> node = *i;
@@ -154,8 +155,7 @@ WifiHelper::InstallCR (Ptr<PUModel> puModel, const WifiPhyHelper &phyHelper,
 		        mac->SetTxRadio (true);
 		      if (x == RECEIVER_RADIO)
 		        {
-		          mac->SetNode(node);
-		          mac->SetRxRadio(true);
+		          mac->SetRxRadio(true, node, repo, puModel);
 		        }
 		      phy->ConfigureStandard (m_standard);
 		      device->SetMac (mac);
