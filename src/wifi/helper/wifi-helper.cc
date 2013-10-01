@@ -134,7 +134,7 @@ WifiHelper::Install (const WifiPhyHelper &phy,
 }
 
 NetDeviceContainer
-WifiHelper::InstallCR (const WifiPhyHelper &phyHelper,
+WifiHelper::InstallCR (Ptr<PUModel> puModel, const WifiPhyHelper &phyHelper,
                      const WifiMacHelper &macHelper, NodeContainer c) const
 {
 	  NetDeviceContainer devices;

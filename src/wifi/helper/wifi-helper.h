@@ -30,6 +30,7 @@
 #include "ns3/wifi-phy-standard.h"
 #include "ns3/trace-helper.h"
 #include "ns3/commCognitiveHeader.h"
+#include "ns3/PUmodel.h"
 
 namespace ns3 {
 
@@ -169,7 +170,7 @@ public:
    * This function installs three devices per node instead of one:
    * a CCC, RX and TX device
    */
-  NetDeviceContainer InstallCR (const WifiPhyHelper &phy,
+  NetDeviceContainer InstallCR (Ptr<PUModel> puModel, const WifiPhyHelper &phy,
                               const WifiMacHelper &mac, NodeContainer c) const;
 
   /**
