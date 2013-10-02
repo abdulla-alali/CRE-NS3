@@ -170,7 +170,7 @@ int main (int argc, char *argv[])
   InternetStackHelper internet;
   AodvHelper aodv;
   internet.SetRoutingHelper(aodv);
-  internet.Install (c);
+  internet.InstallCR (repo, c);
 
   Ipv4AddressHelper ipv4;
   NS_LOG_INFO ("Assign IP Addresses.");
