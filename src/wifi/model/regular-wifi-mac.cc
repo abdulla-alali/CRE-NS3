@@ -746,7 +746,8 @@ RegularWifiMac::IsRxRadio()
 }
 
 void
-RegularWifiMac::SetRxRadio(bool isRx, Ptr<Node> node, Ptr<Repository> repo, Ptr<PUModel> puModel)
+RegularWifiMac::SetRxRadio(bool isRx, Ptr<Node> node, Ptr<Repository> repo,
+    Ptr<PUModel> puModel, Ptr<WifiPhy> wifiPhy)
 {
   m_node = node;
   if (m_spectrumManager == NULL)

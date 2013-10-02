@@ -155,7 +155,7 @@ WifiHelper::InstallCR (Ptr<PUModel> puModel, const WifiPhyHelper &phyHelper,
 		        mac->SetTxRadio (true);
 		      if (x == RECEIVER_RADIO)
 		        {
-		          mac->SetRxRadio(true, node, repo, puModel);
+		          mac->SetRxRadio(true, node, repo, puModel, phy);
 		        }
 		      phy->ConfigureStandard (m_standard);
 		      device->SetMac (mac);
