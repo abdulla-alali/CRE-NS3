@@ -134,11 +134,11 @@ WifiHelper::Install (const WifiPhyHelper &phy,
 }
 
 NetDeviceContainer
-WifiHelper::InstallCR (Ptr<PUModel> puModel, const WifiPhyHelper &phyHelper,
-                     const WifiMacHelper &macHelper, NodeContainer c) const
+WifiHelper::InstallCR (Ptr<Repository> repo, Ptr<PUModel> puModel,
+                      const WifiPhyHelper &phyHelper, const WifiMacHelper &macHelper,
+                      NodeContainer c) const
 {
 	  NetDeviceContainer devices;
-	  Ptr<Repository> repo = CreateObject<Repository>();
 	  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
 	    {
 	      Ptr<Node> node = *i;
