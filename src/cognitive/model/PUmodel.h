@@ -35,8 +35,8 @@ struct pu_activity {
 	double x_loc;
 	double y_loc;
 	// arrival/departure time
-	double arrival_time[MAX_PU_DATA_ENTRY];
-	double departure_time[MAX_PU_DATA_ENTRY];
+	Time arrival_time[MAX_PU_DATA_ENTRY];
+	Time departure_time[MAX_PU_DATA_ENTRY];
 	bool detected[MAX_PU_DATA_ENTRY];
 	// PU receiver location
 	double x_loc_receiver;	
@@ -69,7 +69,7 @@ public:
 	//Check if PU is active at that time
 	bool check_active(Time timeNow, Time ts);
 	//Get next PU off time
-	double get_next_off_time(double timeNow);
+	Time get_next_off_time(Time timeNow);
 	//Set PU map file
 	void SetPuMapFile(char * file);
 

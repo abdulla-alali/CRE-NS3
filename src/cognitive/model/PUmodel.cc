@@ -38,7 +38,7 @@ PUModel::read_data(char* dir) {
 
 	FILE* fd;	
 	
-	fd=fopen(dir,"rt");	
+	fd=fopen(dir,"rt");
 
 	NS_LOG_DEBUG ("Reading PU Data from File: " << dir);
 	
@@ -122,12 +122,12 @@ PUModel::read_data(char* dir) {
 			fscanf(fd," %f ",&time);
 			if (i%2==0) {		
 				// Reading the arrival time			
-				pu_data[j].arrival_time[arrivals]=time;
+				pu_data[j].arrival_time[arrivals]=Seconds(time);
 				arrivals++;
 				NS_LOG_DEBUG ("[READING MAP FILE] #PU arrival: " << j << " " << time);
 			} else {
 				// Reading the departure time
-				pu_data[j].departure_time[departures]=time;
+				pu_data[j].departure_time[departures]=Seconds(time);
 				departures++;
 				NS_LOG_DEBUG ("[READING MAP FILE] #PU departure: " << j << time);
 
@@ -241,13 +241,13 @@ PUModel::check_active(Time timeNow, Time ts) {
  * This is needed for our TFRC protocol so that it can start sending immediately at this time
  * returns -1 if there is no PU currently
  */
-double
-PUModel::get_next_off_time(double timeNow) {
+Time
+PUModel::get_next_off_time(Time timeNow) {
 
 
-	double endTime=timeNow+0.001;
-	double active=false;
-	double timeOff = 0;
+	Time endTime=timeNow+Seconds(0.001);
+	bool active=false;
+	Time timeOff = Seconds(0);
 
 	for (int j=0; j<number_pu_; j++) {
 		for (int i=0; i<pu_data[j].number_data; i++) {
