@@ -74,6 +74,7 @@ public:
   virtual void NotifyRemoveAddress (uint32_t interface, Ipv4InterfaceAddress address);
   virtual void SetIpv4 (Ptr<Ipv4> ipv4);
   virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const;
+  void SetRepository(Ptr<Repository> repo);
   //\}
 
   ///\name Handle protocol parameters
@@ -151,6 +152,8 @@ private:
   /// Loopback device used to defer RREQ until packet will be fully formed
   Ptr<NetDevice> m_lo; 
 
+  /// Pointer to cognitive radio repository
+  Ptr<Repository> m_crRepository;
   /// Routing table
   RoutingTable m_routingTable;
   /// A "drop-front" queue used by the routing layer to buffer packets to which it does not have a route.

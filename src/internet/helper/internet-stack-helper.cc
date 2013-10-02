@@ -369,6 +369,15 @@ InternetStackHelper::Install (NodeContainer c) const
 }
 
 void 
+InternetStackHelper::InstallCR (Ptr<Repository> repo, NodeContainer c) const
+{
+  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
+    {
+      InstallCR (repo, *i);
+    }
+}
+
+void
 InternetStackHelper::InstallAll (void) const
 {
   Install (NodeContainer::GetGlobal ());
@@ -433,6 +442,13 @@ InternetStackHelper::Install (Ptr<Node> node) const
       Ptr<PacketSocketFactory> factory = CreateObject<PacketSocketFactory> ();
       node->AggregateObject (factory);
     }
+}
+
+void
+InternetStackHelper::InstallCR (Ptr<Repository> repo, Ptr<Node> node) const
+{
+  Install (node);
+  node->GetObject <Ipv4>()->GetRoutingProtocol()->SetRepository(repo);
 }
 
 void

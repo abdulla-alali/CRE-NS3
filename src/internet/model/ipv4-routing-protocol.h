@@ -26,6 +26,7 @@
 #include "ns3/ipv4-interface-address.h"
 #include "ipv4.h"
 #include "ns3/output-stream-wrapper.h"
+#include "ns3/repository.h"
 
 namespace ns3 {
 
@@ -152,6 +153,13 @@ public:
    * \param stream the ostream the Routing table is printed to
    */
   virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const = 0;
+
+  /**
+   * \brief Set cognitive radio repository
+   *
+   * \param repo The cognitive radio repository
+   */
+  virtual void SetRepository (Ptr<Repository> repo) { return; }
 };
 
 } // namespace ns3

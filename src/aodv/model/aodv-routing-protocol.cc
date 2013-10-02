@@ -1837,5 +1837,11 @@ RoutingProtocol::FindSocketWithInterfaceAddress (Ipv4InterfaceAddress addr ) con
   return socket;
 }
 
+void
+RoutingProtocol::SetRepository (Ptr<Repository> repo)
+{
+  m_crRepository = repo;
+}
+
 }
 }
