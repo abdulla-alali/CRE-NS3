@@ -30,10 +30,12 @@ SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id): ttimer_(this) {
 
 
 //SpectrumManager Initializer
-SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id, Time sense_time, Time transmit_time): ttimer_(this)  {
+SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, Ptr<WifiPhy> phy,
+    int id, Time sense_time, Time transmit_time): ttimer_(this)  {
 
 	mac_=mac;
 	nodeId_=id;
+	m_wifiPhy = phy;
 	pu_on_=false;
 	sensing_=false;	
 

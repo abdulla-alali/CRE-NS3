@@ -752,7 +752,7 @@ RegularWifiMac::SetRxRadio(bool isRx, Ptr<Node> node, Ptr<Repository> repo,
   m_node = node;
   if (m_spectrumManager == NULL)
     {
-      m_spectrumManager = new SpectrumManager(this, m_node->GetId(), m_snsInterval, m_txInterval);
+      m_spectrumManager = new SpectrumManager(this, wifiPhy, m_node->GetId(), m_snsInterval, m_txInterval);
       m_spectrumManager->setPUmodel(m_probMisdetect, puModel);
       m_spectrumManager->setRepository(repo);
       m_spectrumManager->start();

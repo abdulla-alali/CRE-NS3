@@ -65,7 +65,8 @@ public:
 	SpectrumManager(Ptr<WifiMac> mac, int id);
 
 	// Initialize a new Spectrum Manager
-	SpectrumManager(Ptr<WifiMac> mac, int id, Time sense_time, Time transmit_time);
+	SpectrumManager(Ptr<WifiMac> mac, Ptr<WifiPhy> phy,
+	    int id, Time sense_time, Time transmit_time);
 
 	// Start method: CR agent starts sensing activity on the current channel
 	void start();
@@ -114,7 +115,8 @@ private:
 	// MAC References and address
 	Ptr<WifiMac> mac_;
 	int nodeId_;
-
+  // WifiPhy reference
+  Ptr<WifiPhy> m_wifiPhy;
 
 	// Modules
 	// Cross-layer repository for information sharing about the current channel
