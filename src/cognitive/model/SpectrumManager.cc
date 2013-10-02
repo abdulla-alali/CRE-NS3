@@ -96,7 +96,7 @@ SpectrumManager::is_PU_interfering(Time txDuration) {
 	if (interference)
 	  {
 	    char buffer [50];
-	    sprintf(buffer, "[SENSING-DBG] Node %d sensed some PU activity on channel %d while receiving data\n", nodeId_,current_channel);
+	    std::sprintf(buffer, "[SENSING-DBG] Node %d sensed some PU activity on channel %d while receiving data\n", nodeId_,current_channel);
 	    NS_LOG_DEBUG (buffer);
 	  }
 #endif
@@ -157,7 +157,7 @@ SpectrumManager::senseHandler() {
 
 #ifdef SENSING_VERBOSE_MODE //abdulla
 	char buffer [100];
-	sprintf(buffer, "[SENSING-DBG] Node %d is on channel %d and PU activity is %s", nodeId_, current_channel, (pu_on_)?"true":"false");
+	std::sprintf(buffer, "[SENSING-DBG] Node %d is on channel %d and PU activity is %s", nodeId_, current_channel, (pu_on_)?"true":"false");
 	NS_LOG_DEBUG(buffer);
 #endif
 
@@ -194,7 +194,7 @@ SpectrumManager::senseHandler() {
 
 #ifdef SENSING_VERBOSE_MODE
 			char buffer [100];
-			sprintf(buffer, "[SENSING-DBG] Node %d starts handoff on channel %d to channel %d",nodeId_,current_channel,next_channel);
+			std::sprintf(buffer, "[SENSING-DBG] Node %d starts handoff on channel %d to channel %d",nodeId_,current_channel,next_channel);
 			NS_LOG_DEBUG (buffer);
 #endif
 
@@ -235,7 +235,7 @@ SpectrumManager::senseHandler() {
 
 #ifdef SENSING_VERBOSE_MODE
 			char buffer [50];
-			sprintf(buffer, "[SENSING-DBG] Node %d starts transmitting on channel %d",nodeId_,current_channel);
+			std::sprintf(buffer, "[SENSING-DBG] Node %d starts transmitting on channel %d",nodeId_,current_channel);
 			NS_LOG_DEBUG (buffer);
 #endif
 		}
@@ -264,7 +264,7 @@ SpectrumManager::transmitHandler() {
 
 #ifdef SENSING_VERBOSE_MODE
 	char buffer [50];
-	sprintf(buffer, "[SENSING-DBG] Node %d starts sensing on channel %d",nodeId_,current_channel);
+	std::sprintf(buffer, "[SENSING-DBG] Node %d starts sensing on channel %d",nodeId_,current_channel);
 	NS_LOG_DEBUG (buffer);
 #endif
 
@@ -294,9 +294,9 @@ SpectrumManager::endHandoff() {
 #ifdef SENSING_VERBOSE_MODE
 
 	char buffer [50];
-	sprintf(buffer,"[SENSING-DBG] Node %d ends handoff on channel %d",nodeId_,current_channel);
+	std::sprintf(buffer,"[SENSING-DBG] Node %d ends handoff on channel %d",nodeId_,current_channel);
 	NS_LOG_DEBUG (buffer);
-	sprintf(buffer, "[SENSING-DBG] Node %d starts sensing on channel %d",nodeId_,current_channel);
+	std::sprintf(buffer, "[SENSING-DBG] Node %d starts sensing on channel %d",nodeId_,current_channel);
 	NS_LOG_DEBUG (buffer);
 
 #endif
