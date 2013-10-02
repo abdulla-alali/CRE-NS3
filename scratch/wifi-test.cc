@@ -82,6 +82,7 @@ static void RxRcv(std::string context, Ptr<const Packet> p, const Address &addre
 int main (int argc, char *argv[])
 {
 
+  SeedManager::SetSeed(2);
   Packet::EnablePrinting();
   std::string phyMode ("ErpOfdmRate54Mbps");
   bool verbose = false;
@@ -157,8 +158,8 @@ int main (int argc, char *argv[])
 
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-  positionAlloc->Add (Vector (0.0, 0.0, 0.0));
-  positionAlloc->Add (Vector (5.0, 0.0, 0.0)); //5 meters away
+  positionAlloc->Add (Vector (110.0, 0.0, 0.0));
+  positionAlloc->Add (Vector (115.0, 0.0, 0.0)); //5 meters away
   mobility.SetPositionAllocator (positionAlloc);
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (c);
@@ -184,7 +185,7 @@ int main (int argc, char *argv[])
   BulkSendHelper source ("ns3::TcpSocketFactory",
       InetSocketAddress (i.GetAddress (1), port));
   // Set the amount of data to send in bytes.  Zero is unlimited.
-  source.SetAttribute ("MaxBytes", UintegerValue (5000));
+  source.SetAttribute ("MaxBytes", UintegerValue (5000000));
   ApplicationContainer sourceApps = source.Install (c.Get (0));
   sourceApps.Start (Seconds (0.0));
   sourceApps.Stop (Seconds (10.0));
