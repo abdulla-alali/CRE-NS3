@@ -334,7 +334,7 @@ YansWifiPhy::SetChannelNumber (uint16_t nch)
       return;
     }
 
-  NS_ASSERT (!IsStateSwitching ());
+  NS_ASSERT (!IsStateSwitching () && !IsStateSensing ());
   switch (m_state->GetState ())
     {
     case YansWifiPhy::RX:
@@ -370,6 +370,48 @@ switchChannel:
    * out the state of the medium after the switching.
    */
   m_channelNumber = nch;
+}
+
+void
+YansWifiPhy::StartSensing (Time duration)
+{
+
+  NS_ASSERT (!IsStateSwitching () && !IsStateSensing ());
+  switch (m_state->GetState ())
+    {
+    case YansWifiPhy::RX:
+      NS_LOG_DEBUG ("channel sensing postponed until end of current reception");
+      Simulator::Schedule (GetDelayUntilIdle (), &YansWifiPhy::StartSensing, this, duration);
+      break;
+    case YansWifiPhy::TX:
+      NS_LOG_DEBUG ("channel sensing postponed until end of current transmission");
+      Simulator::Schedule (GetDelayUntilIdle (), &YansWifiPhy::StartSensing, this, duration);
+      break;
+    case YansWifiPhy::CCA_BUSY:
+    case YansWifiPhy::IDLE:
+      goto startSensing;
+      break;
+    default:
+      NS_ASSERT (false);
+      break;
+    }
+
+  return;
+
+startSensing:
+
+  NS_LOG_DEBUG ("sensing started for duration " << duration);
+  m_state->SwitchToChannelSensing (duration);
+  m_interference.EraseEvents ();
+  //TODO: must see what happens to packets received during sensing
+  /*
+   * Needed here to be able to correctly sensed the medium for the first
+   * time after the switching. The actual switching is not performed until
+   * after m_channelSwitchDelay. Packets received during the switching
+   * state are added to the event list and are employed later to figure
+   * out the state of the medium after the switching.
+   */
+  //m_channelNumber = nch;
 }
 
 uint16_t
@@ -430,6 +472,14 @@ YansWifiPhy::StartReceivePacket (Ptr<Packet> packet,
         {
           // that packet will be noise _after_ the completion of the
           // channel switching.
+          goto maybeCcaBusy;
+        }
+      break;
+    case YansWifiPhy::SENSING:
+      NS_LOG_DEBUG ("drop packet because of channel sensing");
+      NotifyRxDrop(packet);
+      if (endRx > Simulator::Now() + m_state->GetDelayUntilIdle ())
+        {
           goto maybeCcaBusy;
         }
       break;
@@ -504,7 +554,8 @@ YansWifiPhy::SendPacket (Ptr<const Packet> packet, WifiMode txMode, WifiPreamble
    *    prevent it.
    *  - we are idle
    */
-  NS_ASSERT (!m_state->IsStateTx () && !m_state->IsStateSwitching ());
+  NS_ASSERT (!m_state->IsStateTx () && !m_state->IsStateSwitching () &&
+      !m_state->IsStateSensing());
 
   Time txDuration = CalculateTxDuration (packet->GetSize (), txMode, preamble);
   if (m_state->IsStateRx ())
@@ -697,6 +748,11 @@ bool
 YansWifiPhy::IsStateSwitching (void)
 {
   return m_state->IsStateSwitching ();
+}
+bool
+YansWifiPhy::IsStateSensing (void)
+{
+  return m_state->IsStateSensing ();
 }
 
 Time

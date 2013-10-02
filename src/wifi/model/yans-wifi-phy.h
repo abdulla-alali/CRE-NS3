@@ -84,6 +84,15 @@ public:
    * switching causes the drop of the synchronized packet.
    */
   void SetChannelNumber (uint16_t id);
+
+  /**
+   * \brief Start sensing on current channel
+   *
+   * \param duration Time to sense
+   *
+   */
+  void StartSensing (Time duration);
+
   /// Return current channel number, see SetChannelNumber()
   uint16_t GetChannelNumber () const;
   /// Return current center channel frequency in MHz, see SetChannelNumber()
@@ -130,6 +139,7 @@ public:
   virtual bool IsStateRx (void);
   virtual bool IsStateTx (void);
   virtual bool IsStateSwitching (void);
+  virtual bool IsStateSensing (void);
   virtual Time GetStateDuration (void);
   virtual Time GetDelayUntilIdle (void);
   virtual Time GetLastRxStartTime (void) const;

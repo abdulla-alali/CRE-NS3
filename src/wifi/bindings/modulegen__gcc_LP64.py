@@ -337,7 +337,7 @@ def register_types(module):
     ## wifi-phy.h (module 'wifi'): ns3::WifiPhy [class]
     module.add_class('WifiPhy', parent=root_module['ns3::Object'])
     ## wifi-phy.h (module 'wifi'): ns3::WifiPhy::State [enumeration]
-    module.add_enum('State', ['IDLE', 'CCA_BUSY', 'TX', 'RX', 'SWITCHING'], outer_class=root_module['ns3::WifiPhy'])
+    module.add_enum('State', ['IDLE', 'CCA_BUSY', 'TX', 'RX', 'SWITCHING', 'SENSING'], outer_class=root_module['ns3::WifiPhy'])
     ## wifi-remote-station-manager.h (module 'wifi'): ns3::WifiRemoteStationManager [class]
     module.add_class('WifiRemoteStationManager', parent=root_module['ns3::Object'])
     ## yans-wifi-phy.h (module 'wifi'): ns3::YansWifiPhy [class]
@@ -1782,6 +1782,10 @@ def register_Ns3DcfManager_methods(root_module, cls):
     cls.add_method('NotifySwitchingStartNow', 
                    'void', 
                    [param('ns3::Time', 'duration')])
+    ## dcf-manager.h (module 'wifi'): void ns3::DcfManager::NotifySensingStartNow(ns3::Time duration) [member function]
+    cls.add_method('NotifySensingStartNow', 
+                   'void', 
+                   [param('ns3::Time', 'duration')])
     ## dcf-manager.h (module 'wifi'): void ns3::DcfManager::NotifyTxStartNow(ns3::Time duration) [member function]
     cls.add_method('NotifyTxStartNow', 
                    'void', 
@@ -1873,6 +1877,11 @@ def register_Ns3DcfState_methods(root_module, cls):
                    is_pure_virtual=True, visibility='private', is_virtual=True)
     ## dcf-manager.h (module 'wifi'): void ns3::DcfState::DoNotifyChannelSwitching() [member function]
     cls.add_method('DoNotifyChannelSwitching', 
+                   'void', 
+                   [], 
+                   is_pure_virtual=True, visibility='private', is_virtual=True)
+    ## dcf-manager.h (module 'wifi'): void ns3::DcfState::DoNotifyChannelSensing() [member function]
+    cls.add_method('DoNotifyChannelSensing', 
                    'void', 
                    [], 
                    is_pure_virtual=True, visibility='private', is_virtual=True)
@@ -3960,6 +3969,11 @@ def register_Ns3WifiPhyListener_methods(root_module, cls):
                    is_pure_virtual=True, is_virtual=True)
     ## wifi-phy.h (module 'wifi'): void ns3::WifiPhyListener::NotifySwitchingStart(ns3::Time duration) [member function]
     cls.add_method('NotifySwitchingStart', 
+                   'void', 
+                   [param('ns3::Time', 'duration')], 
+                   is_pure_virtual=True, is_virtual=True)
+    ## wifi-phy.h (module 'wifi'): void ns3::WifiPhyListener::NotifySensingStart(ns3::Time duration) [member function]
+    cls.add_method('NotifySensingStart', 
                    'void', 
                    [param('ns3::Time', 'duration')], 
                    is_pure_virtual=True, is_virtual=True)
@@ -7546,6 +7560,11 @@ def register_Ns3YansWifiPhy_methods(root_module, cls):
                    'bool', 
                    [], 
                    is_virtual=True)
+    ## yans-wifi-phy.h (module 'wifi'): bool ns3::YansWifiPhy::IsStateSensing() [member function]
+    cls.add_method('IsStateSensing', 
+                   'bool', 
+                   [], 
+                   is_virtual=True)
     ## yans-wifi-phy.h (module 'wifi'): ns3::Time ns3::YansWifiPhy::GetStateDuration() [member function]
     cls.add_method('GetStateDuration', 
                    'ns3::Time', 
@@ -8934,6 +8953,10 @@ def register_Ns3EdcaTxopN_methods(root_module, cls):
     cls.add_method('NotifyChannelSwitching', 
                    'void', 
                    [])
+    ## edca-txop-n.h (module 'wifi'): void ns3::EdcaTxopN::NotifyChannelSensing() [member function]
+    cls.add_method('NotifyChannelSensing', 
+                   'void', 
+                   [])
     ## edca-txop-n.h (module 'wifi'): void ns3::EdcaTxopN::GotCts(double snr, ns3::WifiMode txMode) [member function]
     cls.add_method('GotCts', 
                    'void', 
@@ -9950,6 +9973,10 @@ def register_Ns3MacLow_methods(root_module, cls):
                    is_const=True)
     ## mac-low.h (module 'wifi'): void ns3::MacLow::NotifySwitchingStartNow(ns3::Time duration) [member function]
     cls.add_method('NotifySwitchingStartNow', 
+                   'void', 
+                   [param('ns3::Time', 'duration')])
+    ## mac-low.h (module 'wifi'): void ns3::MacLow::NotifySensingStartNow(ns3::Time duration) [member function]
+    cls.add_method('NotifySensingStartNow', 
                    'void', 
                    [param('ns3::Time', 'duration')])
     ## mac-low.h (module 'wifi'): void ns3::MacLow::ReceiveError(ns3::Ptr<ns3::Packet const> packet, double rxSnr) [member function]

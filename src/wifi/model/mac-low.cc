@@ -277,6 +277,10 @@ public:
   {
     m_macLow->NotifySwitchingStartNow (duration);
   }
+  virtual void NotifySensingStart (Time duration)
+  {
+    m_macLow->NotifySensingStartNow (duration);
+  }
 private:
   ns3::MacLow *m_macLow;
 };
@@ -609,6 +613,22 @@ MacLow::NotifySwitchingStartNow (Time duration)
   NS_LOG_DEBUG ("switching channel. Cancelling MAC pending events");
   m_stationManager->Reset ();
   CancelAllEvents ();
+  if (m_navCounterResetCtsMissed.IsRunning ())
+    {
+      m_navCounterResetCtsMissed.Cancel ();
+    }
+  m_lastNavStart = Simulator::Now ();
+  m_lastNavDuration = Seconds (0);
+  m_currentPacket = 0;
+  m_listener = 0;
+}
+
+void
+MacLow::NotifySensingStartNow (Time duration)
+{
+  NS_LOG_DEBUG("Sensing channel at mac low");
+  m_stationManager->Reset ();
+  CancelAllEvents();
   if (m_navCounterResetCtsMissed.IsRunning ())
     {
       m_navCounterResetCtsMissed.Cancel ();

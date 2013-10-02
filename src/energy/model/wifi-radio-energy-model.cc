@@ -321,6 +321,9 @@ WifiRadioEnergyModel::SetWifiRadioState (const WifiPhy::State state)
     case WifiPhy::SWITCHING:
       stateName = "SWITCHING";
       break;
+    case WifiPhy::SENSING:
+      stateName = "SENSING";
+      break;
     }
   NS_LOG_DEBUG ("WifiRadioEnergyModel:Switching to state: " << stateName <<
                 " at time = " << Simulator::Now ());
@@ -418,6 +421,20 @@ WifiRadioEnergyModelPhyListener::NotifySwitchingStart (Time duration)
       NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
     }
   m_changeStateCallback (WifiPhy::SWITCHING);
+  // schedule changing state back to IDLE after CCA_BUSY duration
+  m_switchToIdleEvent.Cancel ();
+  m_switchToIdleEvent = Simulator::Schedule (duration, &WifiRadioEnergyModelPhyListener::SwitchToIdle, this);
+}
+
+void
+WifiRadioEnergyModelPhyListener::NotifySensingStart (Time duration)
+{
+  NS_LOG_FUNCTION (this << duration);
+  if (m_changeStateCallback.IsNull ())
+    {
+      NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
+    }
+  m_changeStateCallback (WifiPhy::SENSING);
   // schedule changing state back to IDLE after CCA_BUSY duration
   m_switchToIdleEvent.Cancel ();
   m_switchToIdleEvent = Simulator::Schedule (duration, &WifiRadioEnergyModelPhyListener::SwitchToIdle, this);

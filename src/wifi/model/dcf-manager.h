@@ -104,6 +104,7 @@ private:
   void NotifyCollision (void);
   void NotifyInternalCollision (void);
   void NotifyChannelSwitching (void);
+  void NotifyChannelSensing (void);
 
 
   /**
@@ -142,6 +143,7 @@ private:
   * packets.
   */
   virtual void DoNotifyChannelSwitching () = 0;
+  virtual void DoNotifyChannelSensing () = 0;
 
   uint32_t m_aifsn;
   uint32_t m_backoffSlots;
@@ -268,6 +270,7 @@ public:
    * but they won't access to the medium until the end of the channel switching.
    */
   void NotifySwitchingStartNow (Time duration);
+  void NotifySensingStartNow (Time duration);
   /**
    * \param duration the value of the received NAV.
    *
@@ -290,7 +293,7 @@ private:
   Time MostRecent (Time a, Time b, Time c) const;
   Time MostRecent (Time a, Time b, Time c, Time d) const;
   Time MostRecent (Time a, Time b, Time c, Time d, Time e, Time f) const;
-  Time MostRecent (Time a, Time b, Time c, Time d, Time e, Time f, Time g) const;
+  Time MostRecent (Time a, Time b, Time c, Time d, Time e, Time f, Time g, Time h) const;
   /**
    * Access will never be granted to the medium _before_
    * the time returned by this method.
@@ -322,7 +325,9 @@ private:
   Time m_lastBusyStart;
   Time m_lastBusyDuration;
   Time m_lastSwitchingStart;
+  Time m_lastSensingStart;
   Time m_lastSwitchingDuration;
+  Time m_lastSensingDuration;
   bool m_rxing;
   bool m_sleeping;
   Time m_eifsNoDifs;

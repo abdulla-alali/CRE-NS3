@@ -49,6 +49,7 @@ public:
   bool IsStateRx (void);
   bool IsStateTx (void);
   bool IsStateSwitching (void);
+  bool IsStateSensing (void);
   Time GetStateDuration (void);
   Time GetDelayUntilIdle (void);
   Time GetLastRxStartTime (void) const;
@@ -56,6 +57,7 @@ public:
   void SwitchToTx (Time txDuration, Ptr<const Packet> packet, WifiMode txMode, WifiPreamble preamble, uint8_t txPower);
   void SwitchToRx (Time rxDuration);
   void SwitchToChannelSwitching (Time switchingDuration);
+  void SwitchToChannelSensing (Time sensingDuration);
   void SwitchFromRxEndOk (Ptr<Packet> packet, double snr, WifiMode mode, enum WifiPreamble preamble);
   void SwitchFromRxEndError (Ptr<const Packet> packet, double snr);
   void SwitchMaybeToCcaBusy (Time duration);
@@ -73,6 +75,7 @@ private:
   void NotifyRxEndError (void);
   void NotifyMaybeCcaBusyStart (Time duration);
   void NotifySwitchingStart (Time duration);
+  void NotifySensingStart (Time duration);
   void DoSwitchFromRx (void);
 
   bool m_rxing;
@@ -80,10 +83,12 @@ private:
   Time m_endRx;
   Time m_endCcaBusy;
   Time m_endSwitching;
+  Time m_endSensing;
   Time m_startTx;
   Time m_startRx;
   Time m_startCcaBusy;
   Time m_startSwitching;
+  Time m_startSensing;
   Time m_previousStateChangeTime;
 
   Listeners m_listeners;

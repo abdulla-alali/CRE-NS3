@@ -106,6 +106,10 @@ public:
    * channel implicitely reverts to the idle or busy states.
    */
   virtual void NotifySwitchingStart (Time duration) = 0;
+  /**
+   * \param duration the expected channel sensing duration.
+   */
+  virtual void NotifySensingStart (Time duration) = 0;
 };
 
 
@@ -141,7 +145,11 @@ public:
     /**
      * The PHY layer is switching to other channel.
      */
-    SWITCHING
+    SWITCHING,
+    /**
+     * The PHY layer is sensing the channel.
+     */
+    SENSING
   };
 
   /**
@@ -332,6 +340,14 @@ public:
   virtual void SetChannelNumber (uint16_t id) = 0;
   /// Return current channel number, see SetChannelNumber()
   virtual uint16_t GetChannelNumber () const = 0;
+
+  /**
+   * \brief Start sensing on current channel
+   *
+   * \param duration Time to sense
+   *
+   */
+  virtual void StartSensing (Time duration) = 0;
 
   virtual void ConfigureStandard (enum WifiPhyStandard standard) = 0;
 

@@ -66,6 +66,10 @@ private:
   {
     m_txop->NotifyChannelSwitching ();
   }
+  virtual void DoNotifyChannelSensing (void)
+  {
+    m_txop->NotifyChannelSensing ();
+  }
   DcaTxop *m_txop;
 };
 
@@ -499,6 +503,15 @@ DcaTxop::NotifyChannelSwitching (void)
 {
   NS_LOG_FUNCTION (this);
   m_queue->Flush ();
+  m_currentPacket = 0;
+}
+
+void
+DcaTxop::NotifyChannelSensing (void)
+{
+  NS_LOG_FUNCTION (this);
+  /* TODO: do we really need to flush here? */
+  m_queue->Flush();
   m_currentPacket = 0;
 }
 

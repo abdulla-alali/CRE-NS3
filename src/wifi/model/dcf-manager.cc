@@ -161,6 +161,11 @@ DcfState::NotifyChannelSwitching (void)
 {
   DoNotifyChannelSwitching ();
 }
+void
+DcfState::NotifyChannelSensing (void)
+{
+  DoNotifyChannelSensing ();
+}
 
 
 /***************************************************************
@@ -243,6 +248,10 @@ public:
   {
     m_dcf->NotifySwitchingStartNow (duration);
   }
+  virtual void NotifySensingStart (Time duration)
+  {
+    m_dcf->NotifySensingStartNow (duration);
+  }
 private:
   ns3::DcfManager *m_dcf;
 };
@@ -265,7 +274,9 @@ DcfManager::DcfManager ()
     m_lastBusyStart (MicroSeconds (0)),
     m_lastBusyDuration (MicroSeconds (0)),
     m_lastSwitchingStart (MicroSeconds (0)),
+    m_lastSensingStart (MicroSeconds (0)),
     m_lastSwitchingDuration (MicroSeconds (0)),
+    m_lastSensingDuration (MicroSeconds (0)),
     m_rxing (false),
     m_slotTimeUs (0),
     m_sifs (Seconds (0.0)),
@@ -367,15 +378,16 @@ DcfManager::MostRecent (Time a, Time b, Time c, Time d, Time e, Time f) const
 }
 
 Time
-DcfManager::MostRecent (Time a, Time b, Time c, Time d, Time e, Time f, Time g) const
+DcfManager::MostRecent (Time a, Time b, Time c, Time d, Time e, Time f, Time g, Time h) const
 {
   NS_LOG_FUNCTION (this << a << b << c << d << e << f << g);
-  Time h = Max (a, b);
-  Time i = Max (c, d);
-  Time j = Max (e, f);
-  Time k = Max (h, i);
-  Time l = Max (j, g);
-  Time retval = Max (k, l);
+  Time i = Max (a, b);
+  Time j = Max (c, d);
+  Time k = Max (e, f);
+  Time l = Max (g, h);
+  Time m = Max (i, j);
+  Time n = Max (k, l);
+  Time retval = Max (m, n);
   return retval;
 }
 
@@ -514,13 +526,15 @@ DcfManager::GetAccessGrantStart (void) const
   Time ackTimeoutAccessStart = m_lastAckTimeoutEnd + m_sifs;
   Time ctsTimeoutAccessStart = m_lastCtsTimeoutEnd + m_sifs;
   Time switchingAccessStart = m_lastSwitchingStart + m_lastSwitchingDuration + m_sifs;
+  Time sensingAccessStart = m_lastSensingStart + m_lastSensingDuration + m_sifs;
   Time accessGrantedStart = MostRecent (rxAccessStart,
                                         busyAccessStart,
                                         txAccessStart,
                                         navAccessStart,
                                         ackTimeoutAccessStart,
                                         ctsTimeoutAccessStart,
-                                        switchingAccessStart
+                                        switchingAccessStart,
+                                        sensingAccessStart
                                         );
   NS_LOG_INFO ("access grant start=" << accessGrantedStart <<
                ", rx access start=" << rxAccessStart <<
@@ -724,6 +738,66 @@ DcfManager::NotifySwitchingStartNow (Time duration)
   MY_DEBUG ("switching start for " << duration);
   m_lastSwitchingStart = Simulator::Now ();
   m_lastSwitchingDuration = duration;
+
+}
+
+void
+DcfManager::NotifySensingStartNow (Time duration)
+{
+  NS_LOG_FUNCTION (this << duration);
+  Time now = Simulator::Now ();
+  NS_ASSERT (m_lastTxStart + m_lastTxDuration <= now);
+  NS_ASSERT (m_lastSensingStart + m_lastSensingDuration <= now);
+
+  if (m_rxing)
+    {
+      // channel switching during packet reception
+      m_lastRxEnd = Simulator::Now ();
+      m_lastRxDuration = m_lastRxEnd - m_lastRxStart;
+      m_lastRxReceivedOk = true;
+      m_rxing = false;
+    }
+  if (m_lastNavStart + m_lastNavDuration > now)
+    {
+      m_lastNavDuration = now - m_lastNavStart;
+    }
+  if (m_lastBusyStart + m_lastBusyDuration > now)
+    {
+      m_lastBusyDuration = now - m_lastBusyStart;
+    }
+  if (m_lastAckTimeoutEnd > now)
+    {
+      m_lastAckTimeoutEnd = now;
+    }
+  if (m_lastCtsTimeoutEnd > now)
+    {
+      m_lastCtsTimeoutEnd = now;
+    }
+
+  // Cancel timeout
+  if (m_accessTimeout.IsRunning ())
+    {
+      m_accessTimeout.Cancel ();
+    }
+
+  // Reset backoffs
+  for (States::iterator i = m_states.begin (); i != m_states.end (); i++)
+    {
+      DcfState *state = *i;
+      uint32_t remainingSlots = state->GetBackoffSlots ();
+      if (remainingSlots > 0)
+        {
+          state->UpdateBackoffSlotsNow (remainingSlots, now);
+          NS_ASSERT (state->GetBackoffSlots () == 0);
+        }
+      state->ResetCw ();
+      state->m_accessRequested = false;
+      state->NotifyChannelSensing ();
+    }
+
+  MY_DEBUG ("sensing start for " << duration);
+  m_lastSensingStart = Simulator::Now ();
+  m_lastSensingDuration = duration;
 
 }
 

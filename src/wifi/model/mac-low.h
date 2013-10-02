@@ -474,6 +474,12 @@ public:
    */
   void NotifySwitchingStartNow (Time duration);
   /**
+   * \param duration sensing delay duration
+   *
+   * When channel sensing occurs, pending mac transmissions are canceled
+   */
+  void NotifySensingStartNow (Time duration);
+  /**
    * \param respHdr Add block ack response from originator (action
    * frame).
    * \param originator Address of peer station involved in block ack

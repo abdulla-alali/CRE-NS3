@@ -114,6 +114,7 @@ public:
   * When a channel switching occurs, enqueued packets are removed.
   */
   void NotifyChannelSwitching (void);
+  void NotifyChannelSensing (void);
 
   /*event handlers*/
   void GotCts (double snr, WifiMode txMode);

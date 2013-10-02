@@ -100,6 +100,7 @@ public:
    * Defined in ns3::WifiPhyListener
    */
   virtual void NotifySwitchingStart (Time duration);
+  virtual void NotifySensingStart (Time duration);
 
 private:
   /**

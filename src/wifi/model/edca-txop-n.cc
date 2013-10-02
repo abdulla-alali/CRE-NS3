@@ -66,6 +66,10 @@ private:
   {
     m_txop->NotifyChannelSwitching ();
   }
+  virtual void DoNotifyChannelSensing (void)
+  {
+    m_txop->NotifyChannelSensing ();
+  }
   EdcaTxopN *m_txop;
 };
 
@@ -549,6 +553,14 @@ EdcaTxopN::MissedCts (void)
 
 void
 EdcaTxopN::NotifyChannelSwitching (void)
+{
+  NS_LOG_FUNCTION (this);
+  m_queue->Flush ();
+  m_currentPacket = 0;
+}
+
+void
+EdcaTxopN::NotifyChannelSensing (void)
 {
   NS_LOG_FUNCTION (this);
   m_queue->Flush ();
