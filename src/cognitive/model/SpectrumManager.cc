@@ -209,6 +209,8 @@ SpectrumManager::senseHandler() {
 
 
 			//printf("node: %i restarting sensor at time %f\n", nodeId_, Scheduler::instance().clock());
+			NS_LOG_DEBUG ("restarting sensor");
+			m_wifiPhy->StartSensing(sense_time_);
 		  Simulator::Schedule (sense_time_, &SpectrumManager::senseHandler, this);
 		  sensing_=true;
 
@@ -270,6 +272,7 @@ SpectrumManager::transmitHandler() {
 	//printf("starting sensing, calling backoff \n");
 	//TODO; make sure you tie up the mac layer
 	//mac_->checkBackoffTimer();
+	m_wifiPhy->StartSensing(sense_time_);
 
 }
 
