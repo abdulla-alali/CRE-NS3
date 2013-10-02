@@ -40,6 +40,7 @@ SpectrumSensing::sense(int id, Time sense_time, Time transmit_time, int channel)
   double x = mm->GetPosition().x;
 	double y = mm->GetPosition().y;
 	bool cr_on=false;
+	NS_LOG_DEBUG ("POSITIONS: x:" << x << " and y:" << y);
 
 	if (pumodel_) {
 
