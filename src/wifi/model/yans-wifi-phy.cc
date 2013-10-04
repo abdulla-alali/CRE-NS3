@@ -403,7 +403,9 @@ startSensing:
   NS_LOG_DEBUG ("sensing started for duration " << duration);
   m_state->SwitchToChannelSensing (duration);
   m_interference.EraseEvents ();
-  //TODO: must see what happens to packets received during sensing
+  //TODO 1: Must call back spectrumManager via a listener when sensing is done
+  // we are currently having an assert fire up in this function
+  //TODO 2: must see what happens to packets received during sensing
   /*
    * Needed here to be able to correctly sensed the medium for the first
    * time after the switching. The actual switching is not performed until
