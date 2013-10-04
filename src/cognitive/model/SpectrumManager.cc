@@ -124,6 +124,7 @@ void
 SpectrumManager::setRepository(Ptr<Repository> rep) {
 
   m_repository=rep;
+  m_wifiPhy->SetChannelNumber(m_repository->get_recv_channel(nodeId_));
 }
 
 
