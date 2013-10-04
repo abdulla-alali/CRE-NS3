@@ -201,7 +201,7 @@ SpectrumManager::senseHandler() {
 			// Sensing Time is off, since the node is performing a spectrum handoff
 			sensing_=false;
 
-		} else  {
+		} else  { //no need to switch
 
 			// CR does not vacate the spectrum, but it must not interfere with PU activity
 			// In this case, CR keeps sensing and waits for the channel to be free 	
@@ -210,8 +210,15 @@ SpectrumManager::senseHandler() {
 
 			//printf("node: %i restarting sensor at time %f\n", nodeId_, Scheduler::instance().clock());
 			NS_LOG_DEBUG ("restarting sensor");
-			m_wifiPhy->StartSensing(sense_time_);
-		  Simulator::Schedule (sense_time_, &SpectrumManager::senseHandler, this);
+			Time startTime = sense_time_;
+			if (m_wifiPhy->IsStateSensing()) {
+			  startTime = sense_time_ + m_wifiPhy->GetDelayUntilIdle();
+			  Simulator::Schedule(m_wifiPhy->GetDelayUntilIdle(), &WifiPhy::StartSensing, m_wifiPhy, sense_time_);
+			}
+			else
+			  m_wifiPhy->StartSensing(sense_time_);
+
+		  Simulator::Schedule (startTime, &SpectrumManager::senseHandler, this);
 		  sensing_=true;
 
 		}
