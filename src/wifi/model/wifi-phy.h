@@ -230,6 +230,10 @@ public:
    */
   virtual bool IsStateSwitching (void) = 0;
   /**
+   * \returns true if the current of the PHY layer is WifiPhy::SENSING, false otherwise.
+   */
+  virtual bool IsStateSensing (void) = 0;
+  /**
    * \returns the amount of time since the current state has started.
    */
   virtual Time GetStateDuration (void) = 0;
