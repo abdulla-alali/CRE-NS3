@@ -283,7 +283,7 @@ ArpL3Protocol::Lookup (Ptr<Packet> packet, Ipv4Address destination,
               NS_LOG_LOGIC ("node="<<m_node->GetId ()<<
                             ", alive entry for " << destination << " valid -- send");
               Address destAddress = entry->GetMacAddress();
-              PacketTypeByteTag bt;
+              PacketTypePacketTag bt;
               int bytes = packet->PeekPacketTag(bt);
               if (!bytes) {
                 destAddress = destAddress + (RECEIVER_RADIO-CONTROL_RADIO); // go to RX MAC on receiver

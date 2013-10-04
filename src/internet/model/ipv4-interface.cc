@@ -272,7 +272,7 @@ Ipv4Interface::Send (Ptr<Packet> p, Ipv4Address dest)
       if (found)
         {
           NS_LOG_LOGIC ("Address Resolved.  Send.");
-          PacketTypeByteTag bt;
+          PacketTypePacketTag bt;
           int bytes = p->PeekPacketTag(bt);
           Ptr<NetDevice> device = m_device;
           //if not control packet, send on TX device

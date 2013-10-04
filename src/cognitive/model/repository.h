@@ -17,25 +17,6 @@
 
 namespace ns3 {
 
-class PacketTypeByteTag : public Tag
-{
-public:
-
-  PacketTypeByteTag (PacketType t = CTRL_PACKET);
-  static TypeId GetTypeId (void);
-  virtual TypeId GetInstanceTypeId (void) const;
-  virtual uint32_t GetSerializedSize (void) const;
-  virtual void Serialize (TagBuffer i) const;
-  virtual void Deserialize (TagBuffer i);
-
-  void Print (std::ostream &os) const;
-  void Set (PacketType m_type);
-  PacketType Get () const { return m_type; }
-
-private:
-  PacketType m_type;
-};
-
 // Channel Entry for receiver nodes
 struct repository_entry_recv {
 	// receiving channel

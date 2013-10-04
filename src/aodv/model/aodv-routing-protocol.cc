@@ -896,7 +896,7 @@ RoutingProtocol::SendRequest (Ipv4Address dst)
       m_rreqIdCache.IsDuplicate (iface.GetLocal (), m_requestId);
 
       Ptr<Packet> packet = Create<Packet> ();
-      PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+      PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
       packet->AddPacketTag(bt);
       packet->AddHeader (rreqHeader);
       TypeHeader tHeader (AODVTYPE_RREQ);
@@ -1171,7 +1171,7 @@ RoutingProtocol::RecvRequest (Ptr<Packet> p, Ipv4Address receiver, Ipv4Address s
       Ptr<Socket> socket = j->first;
       Ipv4InterfaceAddress iface = j->second;
       Ptr<Packet> packet = Create<Packet> ();
-      PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+      PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
       packet->AddPacketTag(bt);
       packet->AddHeader (rreqHeader);
       TypeHeader tHeader (AODVTYPE_RREQ);
@@ -1213,7 +1213,7 @@ RoutingProtocol::SendReply (RreqHeader const & rreqHeader, RoutingTableEntry con
                                           /*dstSeqNo=*/ m_seqNo, /*origin=*/ toOrigin.GetDestination (), /*lifeTime=*/ MyRouteTimeout,
                                           m_crRepository->get_recv_channel(m_ipv4->GetObject<Node> ()->GetId()));
   Ptr<Packet> packet = Create<Packet> ();
-  PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+  PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
   packet->AddPacketTag(bt);
   packet->AddHeader (rrepHeader);
   TypeHeader tHeader (AODVTYPE_RREP);
@@ -1247,7 +1247,7 @@ RoutingProtocol::SendReplyByIntermediateNode (RoutingTableEntry & toDst, Routing
   m_routingTable.Update (toOrigin);
 
   Ptr<Packet> packet = Create<Packet> ();
-  PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+  PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
   packet->AddPacketTag(bt);
   packet->AddHeader (rrepHeader);
   TypeHeader tHeader (AODVTYPE_RREP);
@@ -1264,7 +1264,7 @@ RoutingProtocol::SendReplyByIntermediateNode (RoutingTableEntry & toDst, Routing
                                                  /*lifetime=*/ toOrigin.GetLifeTime (),
                                                  m_crRepository->get_recv_channel(m_ipv4->GetObject<Node>()->GetId()));
       Ptr<Packet> packetToDst = Create<Packet> ();
-      PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+      PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
       packet->AddPacketTag(bt);
       packetToDst->AddHeader (gratRepHeader);
       TypeHeader type (AODVTYPE_RREP);
@@ -1283,7 +1283,7 @@ RoutingProtocol::SendReplyAck (Ipv4Address neighbor)
   RrepAckHeader h;
   TypeHeader typeHeader (AODVTYPE_RREP_ACK);
   Ptr<Packet> packet = Create<Packet> ();
-  PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+  PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
   packet->AddPacketTag(bt);
   packet->AddHeader (h);
   packet->AddHeader (typeHeader);
@@ -1413,7 +1413,7 @@ RoutingProtocol::RecvReply (Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sen
     }
 
   Ptr<Packet> packet = Create<Packet> ();
-  PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+  PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
   packet->AddPacketTag(bt);
   packet->AddHeader (rrepHeader);
   TypeHeader tHeader (AODVTYPE_RREP);
@@ -1502,7 +1502,7 @@ RoutingProtocol::RecvError (Ptr<Packet> p, Ipv4Address src )
         {
           TypeHeader typeHeader (AODVTYPE_RERR);
           Ptr<Packet> packet = Create<Packet> ();
-          PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+          PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
           packet->AddPacketTag(bt);
           packet->AddHeader (rerrHeader);
           packet->AddHeader (typeHeader);
@@ -1521,7 +1521,7 @@ RoutingProtocol::RecvError (Ptr<Packet> p, Ipv4Address src )
     {
       TypeHeader typeHeader (AODVTYPE_RERR);
       Ptr<Packet> packet = Create<Packet> ();
-      PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+      PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
       packet->AddPacketTag(bt);
       packet->AddHeader (rerrHeader);
       packet->AddHeader (typeHeader);
@@ -1624,7 +1624,7 @@ RoutingProtocol::SendHello ()
       packet->AddHeader (helloHeader);
       TypeHeader tHeader (AODVTYPE_RREP);
       packet->AddHeader (tHeader);
-      PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+      PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
       packet->AddPacketTag(bt);
       // Send to all-hosts broadcast if on /32 addr, subnet-directed otherwise
       Ipv4Address destination;
@@ -1686,7 +1686,7 @@ RoutingProtocol::SendRerrWhenBreaksLinkToNextHop (Ipv4Address nextHop)
           NS_LOG_LOGIC ("Send RERR message with maximum size.");
           TypeHeader typeHeader (AODVTYPE_RERR);
           Ptr<Packet> packet = Create<Packet> ();
-          PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+          PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
           packet->AddPacketTag(bt);
           packet->AddHeader (rerrHeader);
           packet->AddHeader (typeHeader);
@@ -1705,7 +1705,7 @@ RoutingProtocol::SendRerrWhenBreaksLinkToNextHop (Ipv4Address nextHop)
     {
       TypeHeader typeHeader (AODVTYPE_RERR);
       Ptr<Packet> packet = Create<Packet> ();
-      PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+      PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
       packet->AddPacketTag(bt);
       packet->AddHeader (rerrHeader);
       packet->AddHeader (typeHeader);
@@ -1735,7 +1735,7 @@ RoutingProtocol::SendRerrWhenNoRouteToForward (Ipv4Address dst,
   rerrHeader.AddUnDestination (dst, dstSeqNo);
   RoutingTableEntry toOrigin;
   Ptr<Packet> packet = Create<Packet> ();
-  PacketTypeByteTag bt = ns3::PacketTypeByteTag(CTRL_PACKET);
+  PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
   packet->AddPacketTag(bt);
   packet->AddHeader (rerrHeader);
   packet->AddHeader (TypeHeader (AODVTYPE_RERR));

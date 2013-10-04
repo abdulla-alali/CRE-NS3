@@ -33,10 +33,4 @@
 
 #define SENSING_VERBOSE_MODE
 
-enum PacketType
-{
-  CTRL_PACKET  = 1,   //for packets destined to ctrl interface
-  DATA_PACKET  = 2   //for packets destined to tx interface
-};
-
 #endif

@@ -17,6 +17,7 @@ def build(bld):
         'model/SpectrumDecision.cc',
         'model/SpectrumMobility.cc',
         'model/SpectrumSensing.cc',
+        'model/cognitive-packet-tags.cc',
 #        'helper/cognitive-helper.cc',
         ]
 
@@ -37,6 +38,7 @@ def build(bld):
         'model/SpectrumMobility.h',
         'model/SpectrumSensing.h',
         'model/commCognitiveHeader.h',
+        'model/cognitive-packet-tags.h',
 #        'helper/cognitive-helper.h',
         ]
 
