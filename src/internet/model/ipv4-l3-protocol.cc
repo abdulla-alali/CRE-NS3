@@ -648,6 +648,9 @@ Ipv4L3Protocol::Send (Ptr<Packet> packet,
       ipHeader = BuildHeader (source, destination, protocol, packet->GetSize (), ttl, tos, mayFragment);
       int32_t interface = GetInterfaceForDevice (route->GetOutputDevice ());
       m_sendOutgoingTrace (ipHeader, packet, interface);
+      PacketChannelPacketTag cbt;
+      if (packet->PeekPacketTag(cbt))
+        NS_LOG_LOGIC ("Node[" << m_node->GetId() << "] is sending to channel: " << cbt.GetChannel() << " on RX");
       SendRealOut (route, packet->Copy (), ipHeader);
       return; 
     } 
