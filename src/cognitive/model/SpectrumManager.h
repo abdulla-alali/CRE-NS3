@@ -68,6 +68,7 @@ public:
 	SpectrumManager(Ptr<WifiMac> mac, Ptr<WifiPhy> phy,
 	    int id, Time sense_time, Time transmit_time);
 
+	virtual ~SpectrumManager ();
 	// Start method: CR agent starts sensing activity on the current channel
 	void start();
 

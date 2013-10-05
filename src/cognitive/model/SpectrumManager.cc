@@ -50,7 +50,9 @@ SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, Ptr<WifiPhy> phy,
 
 }
 
+SpectrumManager::~SpectrumManager() {
 
+}
 
 //start: CR starts sensing on the current channel
 void
