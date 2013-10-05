@@ -224,7 +224,7 @@ private:
   ///\name Send
   //\{
   /// Forward packet from route request queue
-  void SendPacketFromQueue (Ipv4Address dst, Ptr<Ipv4Route> route);
+  void SendPacketFromQueue (Ipv4Address dst, Ptr<Ipv4Route> route, uint16_t channel);
   /// Send hello
   void SendHello ();
   /// Send RREQ

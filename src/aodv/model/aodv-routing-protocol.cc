@@ -1382,7 +1382,7 @@ RoutingProtocol::RecvReply (Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sen
           m_addressReqTimer.erase (dst);
         }
       m_routingTable.LookupRoute (dst, toDst);
-      SendPacketFromQueue (dst, toDst.GetRoute ());
+      SendPacketFromQueue (dst, toDst.GetRoute (), toDst.GetChannel());
       return;
     }
 
@@ -1539,7 +1539,7 @@ RoutingProtocol::RouteRequestTimerExpire (Ipv4Address dst)
   RoutingTableEntry toDst;
   if (m_routingTable.LookupValidRoute (dst, toDst))
     {
-      SendPacketFromQueue (dst, toDst.GetRoute ());
+      SendPacketFromQueue (dst, toDst.GetRoute (), toDst.GetChannel());
       NS_LOG_LOGIC ("route to " << dst << " found");
       return;
     }
@@ -1643,7 +1643,7 @@ RoutingProtocol::SendHello ()
 }
 
 void
-RoutingProtocol::SendPacketFromQueue (Ipv4Address dst, Ptr<Ipv4Route> route)
+RoutingProtocol::SendPacketFromQueue (Ipv4Address dst, Ptr<Ipv4Route> route, uint16_t channel)
 {
   NS_LOG_FUNCTION (this);
   QueueEntry queueEntry;
@@ -1651,6 +1651,8 @@ RoutingProtocol::SendPacketFromQueue (Ipv4Address dst, Ptr<Ipv4Route> route)
     {
       DeferredRouteOutputTag tag;
       Ptr<Packet> p = ConstCast<Packet> (queueEntry.GetPacket ());
+      PacketChannelPacketTag cpt = ns3::PacketChannelPacketTag(channel);
+      p->AddPacketTag(cpt);
       if (p->RemovePacketTag (tag) && 
           tag.GetInterface() != -1 &&
           tag.GetInterface() != m_ipv4->GetInterfaceForDevice (route->GetOutputDevice ()))
