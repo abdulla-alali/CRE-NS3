@@ -515,7 +515,6 @@ DcaTxop::NotifyChannelSwitching (Time duration, uint16_t toChannel)
 {
   NS_LOG_FUNCTION (this);
   m_currentChannel = toChannel;
-  m_queue->Flush ();
   m_currentPacket = 0;
 }
 
@@ -523,8 +522,6 @@ void
 DcaTxop::NotifyChannelSensing (void)
 {
   NS_LOG_FUNCTION (this);
-  /* TODO: do we really need to flush here? */
-  m_queue->Flush();
   m_currentPacket = 0;
 }
 
