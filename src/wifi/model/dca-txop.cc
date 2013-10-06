@@ -252,6 +252,16 @@ DcaTxop::Queue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
   uint32_t fullPacketSize = hdr.GetSerializedSize () + packet->GetSize () + fcs.GetSerializedSize ();
   m_stationManager->PrepareForQueue (hdr.GetAddr1 (), &hdr,
                                      packet, fullPacketSize);
+  PacketChannelPacketTag pcpt;
+  bool found = packet->PeekPacketTag(pcpt);
+  if (m_low && found)
+    {
+      if (m_low->IsTxRadio() && m_low->GetPhy()->GetChannelNumber() == 1) //first packet
+        {
+          NS_LOG_LOGIC ("Switch PHY to channel: " << pcpt.GetChannel());
+          m_low->GetPhy()->SetChannelNumber(pcpt.GetChannel());
+        }
+    }
   m_queue->Enqueue (packet, hdr);
   StartAccessIfNeeded ();
 }
