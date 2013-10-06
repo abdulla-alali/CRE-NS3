@@ -20,8 +20,6 @@
 
 #include "ipv4-interface.h"
 #include "loopback-net-device.h"
-#include "ns3/wifi-phy.h"
-#include "ns3/wifi-net-device.h"
 #include "ns3/ipv4-address.h"
 #include "ipv4-l3-protocol.h"
 #include "arp-l3-protocol.h"
@@ -280,17 +278,6 @@ Ipv4Interface::Send (Ptr<Packet> p, Ipv4Address dest)
           //if not control packet, send on TX device
           if (!bytes && m_node->IsCognitiveRadio()) {
             device = m_node->GetDevice(TRANSMITTER_RADIO);
-            Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (device);
-            PacketChannelPacketTag cpt;
-            int chan = 0;
-            if (p->PeekPacketTag(cpt))
-              chan = cpt.GetChannel();
-            if (wifiNetDevice->GetPhy()->GetChannelNumber() != chan)
-            {
-              NS_LOG_LOGIC ("Node[" << m_node->GetId() << "] Set PHY channel number to " << chan);
-              wifiNetDevice->GetPhy()->SetChannelNumber(chan);
-            }
-
           }
           device->Send (p, hardwareDestination,
                           Ipv4L3Protocol::PROT_NUMBER);
