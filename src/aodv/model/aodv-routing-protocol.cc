@@ -598,7 +598,7 @@ RoutingProtocol::SetIpv4 (Ptr<Ipv4> ipv4)
                                     /*iface=*/ Ipv4InterfaceAddress (Ipv4Address::GetLoopback (), Ipv4Mask ("255.0.0.0")),
                                     /*hops=*/ 1, /*next hop=*/ Ipv4Address::GetLoopback (),
                                     /*lifetime=*/ Simulator::GetMaximumSimulationTime (),
-                                    /*channel=*/0);
+                                    /*channel=*/1);
   m_routingTable.AddRoute (rt);
 
   Simulator::ScheduleNow (&RoutingProtocol::Start, this);
@@ -632,7 +632,7 @@ RoutingProtocol::NotifyInterfaceUp (uint32_t i)
   Ptr<NetDevice> dev = m_ipv4->GetNetDevice (m_ipv4->GetInterfaceForAddress (iface.GetLocal ()));
   RoutingTableEntry rt (/*device=*/ dev, /*dst=*/ iface.GetBroadcast (), /*know seqno=*/ true, /*seqno=*/ 0, /*iface=*/ iface,
                                     /*hops=*/ 1, /*next hop=*/ iface.GetBroadcast (), /*lifetime=*/ Simulator::GetMaximumSimulationTime (),
-                                    /*channel=*/0);
+                                    /*channel=*/1);
   m_routingTable.AddRoute (rt);
 
   // Allow neighbor manager use this interface for layer 2 feedback if possible
@@ -715,7 +715,7 @@ RoutingProtocol::NotifyAddAddress (uint32_t i, Ipv4InterfaceAddress address)
           RoutingTableEntry rt (/*device=*/ dev, /*dst=*/ iface.GetBroadcast (), /*know seqno=*/ true,
                                             /*seqno=*/ 0, /*iface=*/ iface, /*hops=*/ 1,
                                             /*next hop=*/ iface.GetBroadcast (), /*lifetime=*/ Simulator::GetMaximumSimulationTime (),
-                                            /*channel=*/0);
+                                            /*channel=*/1);
           m_routingTable.AddRoute (rt);
         }
     }
@@ -752,7 +752,7 @@ RoutingProtocol::NotifyRemoveAddress (uint32_t i, Ipv4InterfaceAddress address)
           Ptr<NetDevice> dev = m_ipv4->GetNetDevice (m_ipv4->GetInterfaceForAddress (iface.GetLocal ()));
           RoutingTableEntry rt (/*device=*/ dev, /*dst=*/ iface.GetBroadcast (), /*know seqno=*/ true, /*seqno=*/ 0, /*iface=*/ iface,
                                             /*hops=*/ 1, /*next hop=*/ iface.GetBroadcast (), /*lifetime=*/ Simulator::GetMaximumSimulationTime (),
-                                            /*channel=*/0);
+                                            /*channel=*/1);
           m_routingTable.AddRoute (rt);
         }
       if (m_socketAddresses.empty ())
@@ -869,7 +869,7 @@ RoutingProtocol::SendRequest (Ipv4Address dst)
       RoutingTableEntry newEntry (/*device=*/ dev, /*dst=*/ dst, /*validSeqNo=*/ false, /*seqno=*/ 0,
                                               /*iface=*/ Ipv4InterfaceAddress (),/*hop=*/ 0,
                                               /*nextHop=*/ Ipv4Address (), /*lifeTime=*/ Seconds (0),
-                                              /*channel=*/0);
+                                              /*channel=*/1);
       newEntry.SetFlag (IN_SEARCH);
       m_routingTable.AddRoute (newEntry);
     }
@@ -1021,7 +1021,7 @@ RoutingProtocol::UpdateRouteToNeighbor (Ipv4Address sender, Ipv4Address receiver
       RoutingTableEntry newEntry (/*device=*/ dev, /*dst=*/ sender, /*know seqno=*/ false, /*seqno=*/ 0,
                                               /*iface=*/ m_ipv4->GetAddress (m_ipv4->GetInterfaceForAddress (receiver), 0),
                                               /*hops=*/ 1, /*next hop=*/ sender, /*lifetime=*/ ActiveRouteTimeout,
-                                              /*channel=*/ 0);
+                                              /*channel=*/ 1);
       m_routingTable.AddRoute (newEntry);
     }
   else

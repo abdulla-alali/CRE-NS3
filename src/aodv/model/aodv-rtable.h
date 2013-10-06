@@ -63,7 +63,7 @@ public:
   RoutingTableEntry (Ptr<NetDevice> dev = 0,Ipv4Address dst = Ipv4Address (), bool vSeqNo = false, uint32_t m_seqNo = 0,
                      Ipv4InterfaceAddress iface = Ipv4InterfaceAddress (), uint16_t  hops = 0,
                      Ipv4Address nextHop = Ipv4Address (), Time lifetime = Simulator::Now (),
-                     uint16_t channelNo = 0);
+                     uint16_t channelNo = 1);
 
   ~RoutingTableEntry ();
 

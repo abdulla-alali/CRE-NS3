@@ -106,7 +106,7 @@ public:
   RreqHeader (uint8_t flags = 0, uint8_t reserved = 0, uint8_t hopCount = 0,
               uint32_t requestID = 0, Ipv4Address dst = Ipv4Address (),
               uint32_t dstSeqNo = 0, Ipv4Address origin = Ipv4Address (),
-              uint32_t originSeqNo = 0, uint16_t channel = 0);
+              uint32_t originSeqNo = 0, uint16_t channel = 1);
 
   ///\name Header serialization/deserialization
   //\{
@@ -187,7 +187,7 @@ public:
   RrepHeader (uint8_t prefixSize = 0, uint8_t hopCount = 0, Ipv4Address dst =
                 Ipv4Address (), uint32_t dstSeqNo = 0, Ipv4Address origin =
                 Ipv4Address (), Time lifetime = MilliSeconds (0),
-                uint16_t channel = 0);
+                uint16_t channel = 1);
   ///\name Header serialization/deserialization
   //\{
   static TypeId GetTypeId ();
