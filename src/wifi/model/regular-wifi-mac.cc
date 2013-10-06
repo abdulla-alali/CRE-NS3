@@ -60,6 +60,7 @@ RegularWifiMac::RegularWifiMac ()
   m_dca->SetTxOkCallback (MakeCallback (&RegularWifiMac::TxOk, this));
   m_dca->SetTxFailedCallback (MakeCallback (&RegularWifiMac::TxFailed, this));
 
+  m_spectrumManager = NULL;
   // Construct the EDCAFs. The ordering is important - highest
   // priority (see Table 9-1 in IEEE 802.11-2007) must be created
   // first.
