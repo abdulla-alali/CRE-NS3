@@ -27,6 +27,7 @@
 #include "ns3/packet.h"
 #include "ns3/nstime.h"
 #include "ns3/object.h"
+#include "ns3/cognitive-packet-tags.h"
 #include "wifi-mac-header.h"
 
 namespace ns3 {
@@ -64,6 +65,7 @@ public:
   void Enqueue (Ptr<const Packet> packet, const WifiMacHeader &hdr);
   void PushFront (Ptr<const Packet> packet, const WifiMacHeader &hdr);
   Ptr<const Packet> Dequeue (WifiMacHeader *hdr);
+  Ptr<const Packet> DequeueForChannel (WifiMacHeader *hdr, uint16_t channel);
   Ptr<const Packet> Peek (WifiMacHeader *hdr);
   /**
    * Searchs and returns, if is present in this queue, first packet having
@@ -119,6 +121,7 @@ public:
   void Flush (void);
 
   bool IsEmpty (void);
+  bool IsEmpty (uint16_t channel);
   uint32_t GetSize (void);
 private:
   struct Item;
@@ -135,9 +138,13 @@ private:
     Item (Ptr<const Packet> packet,
           const WifiMacHeader &hdr,
           Time tstamp);
+    Item (Ptr<const Packet> packet,
+              const WifiMacHeader &hdr,
+              Time tstamp, uint16_t channel);
     Ptr<const Packet> packet;
     WifiMacHeader hdr;
     Time tstamp;
+    uint16_t channel;
   };
 
   PacketQueue m_queue;

@@ -23,6 +23,7 @@
 #include "ns3/simulator.h"
 #include "ns3/packet.h"
 #include "ns3/uinteger.h"
+#include "ns3/log.h"
 
 #include "wifi-mac-queue.h"
 #include "qos-blocked-destinations.h"
@@ -37,6 +38,16 @@ WifiMacQueue::Item::Item (Ptr<const Packet> packet,
   : packet (packet),
     hdr (hdr),
     tstamp (tstamp)
+{
+}
+
+WifiMacQueue::Item::Item (Ptr<const Packet> packet,
+                          const WifiMacHeader &hdr,
+                          Time tstamp, uint16_t channel)
+  : packet (packet),
+    hdr (hdr),
+    tstamp (tstamp),
+    channel (channel)
 {
 }
 
@@ -101,7 +112,9 @@ WifiMacQueue::Enqueue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
       return;
     }
   Time now = Simulator::Now ();
-  m_queue.push_back (Item (packet, hdr, now));
+  PacketChannelPacketTag cpt;
+  packet->PeekPacketTag(cpt);
+  m_queue.push_back (Item (packet, hdr, now, cpt.GetChannel()));
   m_size++;
 }
 
@@ -143,6 +156,32 @@ WifiMacQueue::Dequeue (WifiMacHeader *hdr)
       return i.packet;
     }
   return 0;
+}
+
+Ptr<const Packet>
+WifiMacQueue::DequeueForChannel (WifiMacHeader *hdr, uint16_t toChannel)
+{
+  Cleanup ();
+  Ptr<const Packet> packet = 0;
+  int i=0;
+  if (!m_queue.empty ())
+    {
+      PacketQueueI it;
+      for (it = m_queue.begin (); it != m_queue.end (); ++it)
+        {
+          i++;
+          packet = it->packet;
+          if (it->channel == toChannel ||
+              (it->channel == 0 && toChannel == 1))
+            {
+              *hdr = it->hdr;
+              m_queue.erase(it);
+              m_size--;
+              break;
+            }
+        }
+    }
+  return packet;
 }
 
 Ptr<const Packet>
@@ -217,6 +256,37 @@ WifiMacQueue::IsEmpty (void)
 {
   Cleanup ();
   return m_queue.empty ();
+}
+bool
+WifiMacQueue::IsEmpty (uint16_t toChannel)
+{
+  bool empty = true;
+  if (!m_queue.empty())
+    {
+      //Check if any packet exists with destination chan (toChannel)
+      PacketQueueI it;
+      for (it = m_queue.begin (); it != m_queue.end (); ++it)
+        {
+          if (it->channel == toChannel)
+            {
+              empty = false;
+              break;
+            }
+          /**
+           * If packet wasn't tagged with a destination channel and we're requesting
+           * a packet on channel 1 (base channel), then return non empty.
+           */
+          if (it->channel == 0 && toChannel == 1)
+            {
+              empty = false;
+              break;
+            }
+
+        }
+    }
+  else return true;
+
+  return empty;
 }
 
 uint32_t
