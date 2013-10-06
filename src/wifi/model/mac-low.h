@@ -518,6 +518,7 @@ public:
   bool IsTxRadio (void);
   void SetRxRadio (bool isRx);
   bool IsRxRadio (void);
+  Ptr<WifiPhy> GetPhy (void);
 private:
   void CancelAllEvents (void);
   uint32_t GetAckSize (void) const;

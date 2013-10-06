@@ -425,6 +425,11 @@ MacLow::SetPhy (Ptr<WifiPhy> phy)
   m_phy->SetReceiveErrorCallback (MakeCallback (&MacLow::ReceiveError, this));
   SetupPhyMacLowListener (phy);
 }
+Ptr<WifiPhy>
+MacLow::GetPhy (void)
+{
+  return m_phy;
+}
 void
 MacLow::SetWifiRemoteStationManager (Ptr<WifiRemoteStationManager> manager)
 {
