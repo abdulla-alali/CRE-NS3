@@ -360,7 +360,13 @@ RoutingProtocol::RouteOutput (Ptr<Packet> p, const Ipv4Header &header,
         }
       UpdateRouteLifeTime (dst, ActiveRouteTimeout);
       UpdateRouteLifeTime (route->GetGateway (), ActiveRouteTimeout);
-      PacketChannelPacketTag cbt = ns3::PacketChannelPacketTag(rt.GetChannel());
+      uint16_t channel = 1;
+      PacketTypePacketTag ptpt;
+      bool found = p->PeekPacketTag(ptpt);
+      if (!found)
+        channel = rt.GetChannel();
+      PacketChannelPacketTag cbt = ns3::PacketChannelPacketTag(channel);
+
       p->AddPacketTag(cbt);
       return route;
     }
