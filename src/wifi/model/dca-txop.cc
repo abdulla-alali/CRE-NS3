@@ -134,7 +134,8 @@ DcaTxop::GetTypeId (void)
 
 DcaTxop::DcaTxop ()
   : m_manager (0),
-    m_currentPacket (0)
+    m_currentPacket (0),
+    m_currentChannel (1)
 {
   NS_LOG_FUNCTION (this);
   m_transmissionListener = new DcaTxop::TransmissionListener (this);
@@ -309,6 +310,7 @@ DcaTxop::DoInitialize ()
   NS_LOG_FUNCTION (this);
   m_dcf->ResetCw ();
   m_dcf->StartBackoffNow (m_rng->GetNext (0, m_dcf->GetCw ()));
+  m_currentChannel = m_low->GetPhy()->GetChannelNumber();
   ns3::Dcf::DoInitialize ();
 }
 bool
@@ -502,6 +504,7 @@ void
 DcaTxop::NotifyChannelSwitching (Time duration, uint16_t toChannel)
 {
   NS_LOG_FUNCTION (this);
+  m_currentChannel = toChannel;
   m_queue->Flush ();
   m_currentPacket = 0;
 }

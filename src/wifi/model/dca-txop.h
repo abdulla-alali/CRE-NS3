@@ -26,6 +26,7 @@
 #include "ns3/packet.h"
 #include "ns3/nstime.h"
 #include "ns3/object.h"
+#include "ns3/wifi-phy.h"
 #include "ns3/wifi-mac-header.h"
 #include "ns3/wifi-mode.h"
 #include "ns3/wifi-remote-station-manager.h"
@@ -179,6 +180,7 @@ private:
   Ptr<const Packet> m_currentPacket;
   WifiMacHeader m_currentHdr;
   uint8_t m_fragmentNumber;
+  uint16_t m_currentChannel;
 };
 
 } // namespace ns3
