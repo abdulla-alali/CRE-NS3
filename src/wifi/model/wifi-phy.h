@@ -105,7 +105,7 @@ public:
    * channel switching. Listeners should assume that the
    * channel implicitely reverts to the idle or busy states.
    */
-  virtual void NotifySwitchingStart (Time duration) = 0;
+  virtual void NotifySwitchingStart (Time duration, uint16_t toChannel) = 0;
   /**
    * \param duration the expected channel sensing duration.
    */

@@ -139,7 +139,7 @@ private:
   /**
   * When a channel switching occurs, enqueued packets are removed.
   */
-  void NotifyChannelSwitching (void);
+  void NotifyChannelSwitching (Time duration, uint16_t toChannel);
   void NotifyChannelSensing (void);
   /* event handlers */
   void GotCts (double snr, WifiMode txMode);

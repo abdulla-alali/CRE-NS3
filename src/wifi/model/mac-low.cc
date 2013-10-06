@@ -273,7 +273,7 @@ public:
   virtual void NotifyMaybeCcaBusyStart (Time duration)
   {
   }
-  virtual void NotifySwitchingStart (Time duration)
+  virtual void NotifySwitchingStart (Time duration, uint16_t toChannel)
   {
     m_macLow->NotifySwitchingStartNow (duration);
   }

@@ -99,7 +99,7 @@ public:
    *
    * Defined in ns3::WifiPhyListener
    */
-  virtual void NotifySwitchingStart (Time duration);
+  virtual void NotifySwitchingStart (Time duration, uint16_t toChannel);
   virtual void NotifySensingStart (Time duration);
 
 private:

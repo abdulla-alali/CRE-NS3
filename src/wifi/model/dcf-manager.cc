@@ -157,9 +157,9 @@ DcfState::NotifyInternalCollision (void)
   DoNotifyInternalCollision ();
 }
 void
-DcfState::NotifyChannelSwitching (void)
+DcfState::NotifyChannelSwitching (Time duration, uint16_t toChannel)
 {
-  DoNotifyChannelSwitching ();
+  DoNotifyChannelSwitching (duration, toChannel);
 }
 void
 DcfState::NotifyChannelSensing (void)
@@ -244,9 +244,9 @@ public:
   {
     m_dcf->NotifyMaybeCcaBusyStartNow (duration);
   }
-  virtual void NotifySwitchingStart (Time duration)
+  virtual void NotifySwitchingStart (Time duration, uint16_t toChannel)
   {
-    m_dcf->NotifySwitchingStartNow (duration);
+    m_dcf->NotifySwitchingStartNow (duration, toChannel);
   }
   virtual void NotifySensingStart (Time duration)
   {
@@ -682,7 +682,7 @@ DcfManager::NotifyMaybeCcaBusyStartNow (Time duration)
 
 
 void
-DcfManager::NotifySwitchingStartNow (Time duration)
+DcfManager::NotifySwitchingStartNow (Time duration, uint16_t toChannel)
 {
   NS_LOG_FUNCTION (this << duration);
   Time now = Simulator::Now ();
@@ -732,7 +732,7 @@ DcfManager::NotifySwitchingStartNow (Time duration)
         }
       state->ResetCw ();
       state->m_accessRequested = false;
-      state->NotifyChannelSwitching ();
+      state->NotifyChannelSwitching (duration, toChannel);
     }
 
   MY_DEBUG ("switching start for " << duration);

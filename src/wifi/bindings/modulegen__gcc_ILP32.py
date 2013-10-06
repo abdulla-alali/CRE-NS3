@@ -1781,7 +1781,7 @@ def register_Ns3DcfManager_methods(root_module, cls):
     ## dcf-manager.h (module 'wifi'): void ns3::DcfManager::NotifySwitchingStartNow(ns3::Time duration) [member function]
     cls.add_method('NotifySwitchingStartNow', 
                    'void', 
-                   [param('ns3::Time', 'duration')])
+                   [param('ns3::Time', 'duration'), param('uint16_t', 'toChannel')])
     ## dcf-manager.h (module 'wifi'): void ns3::DcfManager::NotifySensingStartNow(ns3::Time duration) [member function]
     cls.add_method('NotifySensingStartNow', 
                    'void', 
@@ -1878,7 +1878,7 @@ def register_Ns3DcfState_methods(root_module, cls):
     ## dcf-manager.h (module 'wifi'): void ns3::DcfState::DoNotifyChannelSwitching() [member function]
     cls.add_method('DoNotifyChannelSwitching', 
                    'void', 
-                   [], 
+                   [param('ns3::Time', 'duration'), param('uint16_t', 'toChannel')], 
                    is_pure_virtual=True, visibility='private', is_virtual=True)
     ## dcf-manager.h (module 'wifi'): void ns3::DcfState::DoNotifyChannelSensing() [member function]
     cls.add_method('DoNotifyChannelSensing', 
@@ -3970,7 +3970,7 @@ def register_Ns3WifiPhyListener_methods(root_module, cls):
     ## wifi-phy.h (module 'wifi'): void ns3::WifiPhyListener::NotifySwitchingStart(ns3::Time duration) [member function]
     cls.add_method('NotifySwitchingStart', 
                    'void', 
-                   [param('ns3::Time', 'duration')], 
+                   [param('ns3::Time', 'duration'), param('uint16_t', 'toChannel')], 
                    is_pure_virtual=True, is_virtual=True)
     ## wifi-phy.h (module 'wifi'): void ns3::WifiPhyListener::NotifySensingStart(ns3::Time duration) [member function]
     cls.add_method('NotifySensingStart', 
@@ -8952,7 +8952,7 @@ def register_Ns3EdcaTxopN_methods(root_module, cls):
     ## edca-txop-n.h (module 'wifi'): void ns3::EdcaTxopN::NotifyChannelSwitching() [member function]
     cls.add_method('NotifyChannelSwitching', 
                    'void', 
-                   [])
+                   [param('ns3::Time', 'duration')])
     ## edca-txop-n.h (module 'wifi'): void ns3::EdcaTxopN::NotifyChannelSensing() [member function]
     cls.add_method('NotifyChannelSensing', 
                    'void', 

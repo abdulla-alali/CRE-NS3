@@ -413,7 +413,7 @@ WifiRadioEnergyModelPhyListener::NotifyMaybeCcaBusyStart (Time duration)
 }
 
 void
-WifiRadioEnergyModelPhyListener::NotifySwitchingStart (Time duration)
+WifiRadioEnergyModelPhyListener::NotifySwitchingStart (Time duration, uint16_t toChannel)
 {
   NS_LOG_FUNCTION (this << duration);
   if (m_changeStateCallback.IsNull ())

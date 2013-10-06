@@ -103,7 +103,7 @@ private:
   void NotifyAccessGranted (void);
   void NotifyCollision (void);
   void NotifyInternalCollision (void);
-  void NotifyChannelSwitching (void);
+  void NotifyChannelSwitching (Time duration, uint16_t toChannel);
   void NotifyChannelSensing (void);
 
 
@@ -142,7 +142,7 @@ private:
   * The subclass is expected to flush the queue of
   * packets.
   */
-  virtual void DoNotifyChannelSwitching () = 0;
+  virtual void DoNotifyChannelSwitching (Time duration, uint16_t toChannel) = 0;
   virtual void DoNotifyChannelSensing () = 0;
 
   uint32_t m_aifsn;
@@ -269,7 +269,7 @@ public:
    * During switching state, new packets can be enqueued in DcaTxop/EdcaTxop
    * but they won't access to the medium until the end of the channel switching.
    */
-  void NotifySwitchingStartNow (Time duration);
+  void NotifySwitchingStartNow (Time duration, uint16_t toChannel);
   void NotifySensingStartNow (Time duration);
   /**
    * \param duration the value of the received NAV.

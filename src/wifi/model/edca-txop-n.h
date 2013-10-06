@@ -113,7 +113,7 @@ public:
   /**
   * When a channel switching occurs, enqueued packets are removed.
   */
-  void NotifyChannelSwitching (void);
+  void NotifyChannelSwitching (Time duration);
   void NotifyChannelSensing (void);
 
   /*event handlers*/

@@ -236,11 +236,11 @@ WifiPhyStateHelper::NotifyMaybeCcaBusyStart (Time duration)
     }
 }
 void
-WifiPhyStateHelper::NotifySwitchingStart (Time duration)
+WifiPhyStateHelper::NotifySwitchingStart (Time duration, uint16_t toChannel)
 {
   for (Listeners::const_iterator i = m_listeners.begin (); i != m_listeners.end (); i++)
     {
-      (*i)->NotifySwitchingStart (duration);
+      (*i)->NotifySwitchingStart (duration, toChannel);
     }
 }
 void
@@ -348,9 +348,9 @@ WifiPhyStateHelper::SwitchToRx (Time rxDuration)
 }
 
 void
-WifiPhyStateHelper::SwitchToChannelSwitching (Time switchingDuration)
+WifiPhyStateHelper::SwitchToChannelSwitching (Time switchingDuration, uint16_t toChannel)
 {
-  NotifySwitchingStart (switchingDuration);
+  NotifySwitchingStart (switchingDuration, toChannel);
   Time now = Simulator::Now ();
   switch (GetState ())
     {

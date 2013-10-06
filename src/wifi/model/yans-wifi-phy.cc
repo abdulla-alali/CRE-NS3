@@ -360,7 +360,7 @@ YansWifiPhy::SetChannelNumber (uint16_t nch)
 switchChannel:
 
   NS_LOG_DEBUG ("switching channel " << m_channelNumber << " -> " << nch);
-  m_state->SwitchToChannelSwitching (m_channelSwitchDelay);
+  m_state->SwitchToChannelSwitching (m_channelSwitchDelay, nch);
   m_interference.EraseEvents ();
   /*
    * Needed here to be able to correctly sensed the medium for the first

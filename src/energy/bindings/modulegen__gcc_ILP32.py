@@ -2274,7 +2274,7 @@ def register_Ns3WifiPhyListener_methods(root_module, cls):
     ## wifi-phy.h (module 'wifi'): void ns3::WifiPhyListener::NotifySwitchingStart(ns3::Time duration) [member function]
     cls.add_method('NotifySwitchingStart', 
                    'void', 
-                   [param('ns3::Time', 'duration')], 
+                   [param('ns3::Time', 'duration'), param('uint16_t', 'toChannel')], 
                    is_pure_virtual=True, is_virtual=True)
     ## wifi-phy.h (module 'wifi'): void ns3::WifiPhyListener::NotifyTxStart(ns3::Time duration) [member function]
     cls.add_method('NotifyTxStart', 
@@ -2332,7 +2332,7 @@ def register_Ns3WifiRadioEnergyModelPhyListener_methods(root_module, cls):
     ## wifi-radio-energy-model.h (module 'energy'): void ns3::WifiRadioEnergyModelPhyListener::NotifySwitchingStart(ns3::Time duration) [member function]
     cls.add_method('NotifySwitchingStart', 
                    'void', 
-                   [param('ns3::Time', 'duration')], 
+                   [param('ns3::Time', 'duration'), param('uint16_t', 'toChannel')], 
                    is_virtual=True)
     ## wifi-radio-energy-model.h (module 'energy'): void ns3::WifiRadioEnergyModelPhyListener::NotifyTxStart(ns3::Time duration) [member function]
     cls.add_method('NotifyTxStart', 

@@ -62,9 +62,9 @@ private:
   {
     m_txop->NotifyCollision ();
   }
-  virtual void DoNotifyChannelSwitching (void)
+  virtual void DoNotifyChannelSwitching (Time duration, uint16_t toChannel)
   {
-    m_txop->NotifyChannelSwitching ();
+    m_txop->NotifyChannelSwitching (duration);
   }
   virtual void DoNotifyChannelSensing (void)
   {
@@ -552,7 +552,7 @@ EdcaTxopN::MissedCts (void)
 }
 
 void
-EdcaTxopN::NotifyChannelSwitching (void)
+EdcaTxopN::NotifyChannelSwitching (Time duration)
 {
   NS_LOG_FUNCTION (this);
   m_queue->Flush ();

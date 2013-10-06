@@ -56,7 +56,7 @@ public:
 
   void SwitchToTx (Time txDuration, Ptr<const Packet> packet, WifiMode txMode, WifiPreamble preamble, uint8_t txPower);
   void SwitchToRx (Time rxDuration);
-  void SwitchToChannelSwitching (Time switchingDuration);
+  void SwitchToChannelSwitching (Time switchingDuration, uint16_t toChannel);
   void SwitchToChannelSensing (Time sensingDuration);
   void SwitchFromRxEndOk (Ptr<Packet> packet, double snr, WifiMode mode, enum WifiPreamble preamble);
   void SwitchFromRxEndError (Ptr<const Packet> packet, double snr);
@@ -74,7 +74,7 @@ private:
   void NotifyRxEndOk (void);
   void NotifyRxEndError (void);
   void NotifyMaybeCcaBusyStart (Time duration);
-  void NotifySwitchingStart (Time duration);
+  void NotifySwitchingStart (Time duration, uint16_t toChannel);
   void NotifySensingStart (Time duration);
   void DoSwitchFromRx (void);
 
