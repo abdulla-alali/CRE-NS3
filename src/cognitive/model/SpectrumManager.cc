@@ -5,6 +5,7 @@
 
 #include "SpectrumManager.h"
 #include "ns3/yans-wifi-phy.h"
+#include "ns3/aodv-routing-protocol.h"
 
 NS_LOG_COMPONENT_DEFINE ("CogSpectrumManager");
 
@@ -200,12 +201,6 @@ SpectrumManager::senseHandler() {
 
 #endif
 
-#ifdef ENABLE_SPECTRUM_HANDOFF_NOTIFICATION
-			// Notify the spectrum handoff to the upper layers
-			//TODO; make sure you tie up the mac layer
-			//mac_->notifyUpperLayer(current_channel);
-#endif
-
 #ifdef SENSING_VERBOSE_MODE
 			char buffer [100];
 			std::sprintf(buffer, "[SENSING-DBG] Node %d starts handoff on channel %d to channel %d",nodeId_,current_channel,next_channel);
@@ -250,6 +245,18 @@ SpectrumManager::senseHandler() {
 
 			// Sensing Time is on
 			sensing_=false;
+
+			if  (m_isSwitching)
+			{
+#ifdef ENABLE_SPECTRUM_HANDOFF_NOTIFICATION
+			  // Notify the spectrum handoff to the upper layers
+			  Ptr<YansWifiPhy> phy = DynamicCast<YansWifiPhy>(m_wifiPhy);
+			  Ptr<Ipv4RoutingProtocol> route = phy->GetMobility()->GetObject<Ipv4>()->GetRoutingProtocol();
+			  Ptr<aodv::RoutingProtocol> aodv = DynamicCast<aodv::RoutingProtocol>(route);
+			  aodv->SendHello();
+			  m_isSwitching = false;
+#endif
+			}
 
 			// No channel switching, the CR can start transmitting on the current channel
 			ttimer_.start(transmit_time_);
