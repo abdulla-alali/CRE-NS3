@@ -298,7 +298,6 @@ MacLow::MacLow ()
     m_sendDataEvent (),
     m_waitSifsEvent (),
     m_endTxNoAckEvent (),
-    m_switchQueueTimer (),
     m_currentPacket (0),
     m_listener (0)
 {
@@ -338,7 +337,6 @@ MacLow::DoDispose (void)
   m_sendDataEvent.Cancel ();
   m_waitSifsEvent.Cancel ();
   m_endTxNoAckEvent.Cancel ();
-  m_switchQueueTimer.Cancel ();
   m_phy = 0;
   m_stationManager = 0;
   delete m_phyMacLowListener;
@@ -403,11 +401,6 @@ MacLow::CancelAllEvents (void)
   if (m_endTxNoAckEvent.IsRunning ()) 
     {
       m_endTxNoAckEvent.Cancel ();
-      oneRunning = true;
-    }
-  if (m_switchQueueTimer.IsRunning ())
-    {
-      m_switchQueueTimer.Cancel ();
       oneRunning = true;
     }
   if (oneRunning && m_listener != 0)
@@ -575,15 +568,6 @@ MacLow::StartTransmission (Ptr<const Packet> packet,
 
   NS_LOG_DEBUG ("startTx size=" << GetSize (m_currentPacket, &m_currentHdr) <<
                 ", to=" << m_currentHdr.GetAddr1 () << ", listener=" << m_listener);
-
-  //MAC TX queue switching intervals start here
-  //Abdulla Al-Ali
-  if (!m_switchQueueTimer.IsRunning() && IsTxRadio ())
-    {
-      m_switchQueueTimer = Simulator::Schedule(Seconds(QUEUE_UTILIZATION_INTERVAL),
-          &MacLow::SwitchQueueHandler, this);
-    }
-
 
   if (m_txParams.MustSendRts ())
     {
@@ -1860,13 +1844,5 @@ bool
 MacLow::IsRxRadio()
 {
   return m_rx;
-}
-
-void
-MacLow::SwitchQueueHandler (void)
-{
-  NS_LOG_FUNCTION (this);
-  m_switchQueueTimer = Simulator::Schedule (Seconds(QUEUE_UTILIZATION_INTERVAL),
-      &MacLow::SwitchQueueHandler, this);
 }
 } // namespace ns3

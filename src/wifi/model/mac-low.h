@@ -39,7 +39,6 @@
 #include "ns3/event-id.h"
 #include "ns3/packet.h"
 #include "ns3/nstime.h"
-#include "ns3/commCognitiveHeader.h"
 #include "qos-utils.h"
 #include "block-ack-cache.h"
 
@@ -617,7 +616,6 @@ private:
   void ResetBlockAckInactivityTimerIfNeeded (BlockAckAgreement &agreement);
 
   void SetupPhyMacLowListener (Ptr<WifiPhy> phy);
-  void SwitchQueueHandler (void);
 
   Ptr<WifiPhy> m_phy;
   Ptr<WifiRemoteStationManager> m_stationManager;
@@ -638,7 +636,6 @@ private:
   EventId m_waitSifsEvent;
   EventId m_endTxNoAckEvent;
   EventId m_navCounterResetCtsMissed;
-  EventId m_switchQueueTimer;
 
   Ptr<Packet> m_currentPacket;
   WifiMacHeader m_currentHdr;
