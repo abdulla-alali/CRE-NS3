@@ -122,6 +122,7 @@ public:
   Ptr<ErrorRateModel> GetErrorRateModel (void) const;
   Ptr<Object> GetDevice (void) const;
   Ptr<Object> GetMobility (void);
+  Time GetSwitchingDelay(void);
 
 
 

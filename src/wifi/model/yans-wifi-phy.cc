@@ -109,7 +109,7 @@ YansWifiPhy::GetTypeId (void)
                    MakePointerAccessor (&YansWifiPhy::m_state),
                    MakePointerChecker<WifiPhyStateHelper> ())
     .AddAttribute ("ChannelSwitchDelay",
-                   "Delay between two short frames transmitted on different frequencies. NOTE: Unused now.",
+                   "Delay between two short frames transmitted on different frequencies.",
                    TimeValue (MicroSeconds (250)),
                    MakeTimeAccessor (&YansWifiPhy::m_channelSwitchDelay),
                    MakeTimeChecker ())
@@ -186,6 +186,11 @@ YansWifiPhy::ConfigureStandard (enum WifiPhyStandard standard)
     }
 }
 
+Time
+YansWifiPhy::GetSwitchingDelay (void)
+{
+  return m_channelSwitchDelay;
+}
 
 void
 YansWifiPhy::SetRxNoiseFigure (double noiseFigureDb)
@@ -478,7 +483,7 @@ YansWifiPhy::StartReceivePacket (Ptr<Packet> packet,
         }
       break;
     case YansWifiPhy::SENSING:
-      NS_LOG_DEBUG ("drop packet because of channel sensing");
+      NS_LOG_DEBUG ("drop packet because of channel sensing on channel " << GetChannelNumber());
       NotifyRxDrop(packet);
       if (endRx > Simulator::Now() + m_state->GetDelayUntilIdle ())
         {
