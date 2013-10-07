@@ -80,7 +80,7 @@ SpectrumDecision::decideSpectrum(int current_channel) {
 
 	// Policy RANDOM_SWITCH: next_channel -> random(1..MAX_CHANNELS)
 	case RANDOM_SWITCH:
-		uv1->SetAttribute ("Min", DoubleValue (1));
+		uv1->SetAttribute ("Min", DoubleValue (2));
 		uv1->SetAttribute ("Max", DoubleValue (MAX_CHANNELS));
 		next_channel=uv1->GetInteger();
 
@@ -92,7 +92,8 @@ SpectrumDecision::decideSpectrum(int current_channel) {
 	case ROUND_ROBIN_SWITCH:
 
 		next_channel=(current_channel+1) % MAX_CHANNELS;
-		if (next_channel ==0)
+		if (next_channel==0) next_channel += 2;
+		if (next_channel ==1)
 			next_channel++;
 		break;
 
