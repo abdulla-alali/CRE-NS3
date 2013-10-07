@@ -22,6 +22,7 @@
 #define DCA_TXOP_H
 
 #include <stdint.h>
+#include <list>
 #include "ns3/callback.h"
 #include "ns3/packet.h"
 #include "ns3/nstime.h"
@@ -126,6 +127,7 @@ private:
   class Dcf;
   friend class Dcf;
   friend class TransmissionListener;
+  struct ActiveChannels;
 
   DcaTxop &operator = (const DcaTxop &);
   DcaTxop (const DcaTxop &o);
@@ -151,6 +153,8 @@ private:
   void StartNext (void);
   void Cancel (void);
   void EndTxNoAck (void);
+  void UpdateActiveChannels (uint16_t channel);
+  uint16_t GetNextActiveChannel (void);
 
   void RestartAccessIfNeeded (void);
   void StartAccessIfNeeded (void);
@@ -165,6 +169,7 @@ private:
   void NextFragment (void);
   Ptr<Packet> GetFragmentPacket (WifiMacHeader *hdr);
   virtual void DoDispose (void);
+  void SwitchQueueHandler (void);
 
   Dcf *m_dcf;
   DcfManager *m_manager;
@@ -176,12 +181,25 @@ private:
   Ptr<WifiRemoteStationManager> m_stationManager;
   TransmissionListener *m_transmissionListener;
   RandomStream *m_rng;
+  typedef std::list<struct ActiveChannels> ListActiveChannels;
+  typedef std::list<struct ActiveChannels>::iterator ListActiveChannelsI;
 
   bool m_accessOngoing;
   Ptr<const Packet> m_currentPacket;
   WifiMacHeader m_currentHdr;
   uint8_t m_fragmentNumber;
   uint16_t m_currentChannel;
+  ListActiveChannels m_activeChannels;
+  EventId m_switchQueueTimer;
+  Time m_activeChannelTimeout;
+  Time m_queueUtilizationTime;
+
+  struct ActiveChannels
+    {
+      ActiveChannels(uint16_t channel, Time lastActive);
+      uint16_t channel;
+      Time lastActive;
+    };
 };
 
 } // namespace ns3

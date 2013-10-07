@@ -34,6 +34,7 @@
 #include "wifi-mac-trailer.h"
 #include "wifi-mac.h"
 #include "random-stream.h"
+#include "yans-wifi-phy.h"
 
 NS_LOG_COMPONENT_DEFINE ("DcaTxop");
 
@@ -41,6 +42,12 @@ NS_LOG_COMPONENT_DEFINE ("DcaTxop");
 #define NS_LOG_APPEND_CONTEXT if (m_low != 0) { std::clog << "[mac=" << m_low->GetAddress () << "] "; }
 
 namespace ns3 {
+
+DcaTxop::ActiveChannels::ActiveChannels(uint16_t channel, Time lastActive)
+  : channel (channel),
+    lastActive (lastActive)
+{
+}
 
 class DcaTxop::Dcf : public DcfState
 {
@@ -128,6 +135,16 @@ DcaTxop::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&DcaTxop::GetQueue),
                    MakePointerChecker<WifiMacQueue> ())
+    .AddAttribute ("ChannelActiveTimeout",
+                    "After how long should a channel be considered inactive if not used",
+                    TimeValue (Seconds (2)),
+                    MakeTimeAccessor (&DcaTxop::m_activeChannelTimeout),
+                    MakeTimeChecker ())
+    .AddAttribute ("QueueUtilizationInterval",
+                    "How long should we transmit on a queue for a specific channel",
+                    TimeValue (MilliSeconds (200)),
+                    MakeTimeAccessor (&DcaTxop::m_queueUtilizationTime),
+                    MakeTimeChecker ())
   ;
   return tid;
 }
@@ -135,7 +152,8 @@ DcaTxop::GetTypeId (void)
 DcaTxop::DcaTxop ()
   : m_manager (0),
     m_currentPacket (0),
-    m_currentChannel (1)
+    m_currentChannel (1),
+    m_switchQueueTimer ()
 {
   NS_LOG_FUNCTION (this);
   m_transmissionListener = new DcaTxop::TransmissionListener (this);
@@ -148,6 +166,7 @@ DcaTxop::DcaTxop ()
 DcaTxop::~DcaTxop ()
 {
   NS_LOG_FUNCTION (this);
+  m_switchQueueTimer.Cancel();
 }
 
 void
@@ -263,7 +282,104 @@ DcaTxop::Queue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
         }
     }
   m_queue->Enqueue (packet, hdr);
+  if (pcpt.GetChannel()!=1 && pcpt.GetChannel()!=0 &&
+      m_low->IsTxRadio())
+    UpdateActiveChannels(pcpt.GetChannel());
+  //start the switching queue timer
+  if (!m_switchQueueTimer.IsRunning() && m_low->IsTxRadio ())
+      {
+        m_switchQueueTimer = Simulator::Schedule(m_queueUtilizationTime,
+            &DcaTxop::SwitchQueueHandler, this);
+      }
   StartAccessIfNeeded ();
+}
+
+void
+DcaTxop::UpdateActiveChannels(uint16_t channel)
+{
+  NS_LOG_FUNCTION (this << channel);
+  bool found = false;
+  if (m_activeChannels.empty())
+    {
+      m_activeChannels.push_back(DcaTxop::ActiveChannels(channel, Simulator::Now()));
+      return;
+    }
+  else
+    {
+      ListActiveChannelsI it;
+      for (it = m_activeChannels.begin (); it != m_activeChannels.end (); ++it)
+      {
+        uint16_t chan = it->channel;
+        if (channel == chan)
+        {
+          //update current entry
+          it->lastActive = Simulator::Now();
+          found = true;
+          break;
+        }
+      }
+    }
+  if (!found)
+    {
+      m_activeChannels.push_back(DcaTxop::ActiveChannels(channel, Simulator::Now()));
+    }
+}
+
+uint16_t
+DcaTxop::GetNextActiveChannel (void)
+{
+  //Only traverse if we're not empty and not size = 1
+  if (!m_activeChannels.empty() && m_activeChannels.size()!=1)
+  {
+    ListActiveChannelsI it;
+    ListActiveChannelsI startIterator;
+    bool startLooking = false;
+    bool keepRunning = true;
+    while (keepRunning) {
+      keepRunning = false;
+      it = m_activeChannels.begin();
+      long unsigned int count = 0;
+      while (it != startIterator)
+      {
+        count++;
+        if (it->channel == m_currentChannel && !startLooking)
+        {
+          NS_LOG_LOGIC ("rotate STARTS: " << count);
+          startLooking = true;
+          startIterator = it;
+        }
+        if (startLooking)
+        {
+          if (Simulator::Now() - it->lastActive > m_activeChannelTimeout
+              && it->channel != m_currentChannel)
+          {
+            //record is too old. let's not use this channel anymore
+            NS_LOG_LOGIC ("Disabling channel " << it->channel << " usage in TX radio");
+            m_activeChannels.erase(it);
+            if (m_activeChannels.size() == 1) return m_currentChannel;
+            keepRunning = true;
+            break;
+          }
+          else if ( it->channel != m_currentChannel )
+          {
+            //record is good! let's switch
+            NS_LOG_LOGIC ("Found next active channel " << it->channel);
+            return it->channel;
+          }
+        }
+
+        //rotate
+        if (count == m_activeChannels.size()) {
+          it = m_activeChannels.begin();
+        }
+        else ++it;
+
+      }
+    }
+  }
+
+  NS_LOG_LOGIC ("No next active channel found");
+  return m_currentChannel;
 }
 
 int64_t
@@ -672,6 +788,33 @@ DcaTxop::EndTxNoAck (void)
   m_dcf->ResetCw ();
   m_dcf->StartBackoffNow (m_rng->GetNext (0, m_dcf->GetCw ()));
   StartAccessIfNeeded ();
+}
+
+void
+DcaTxop::SwitchQueueHandler (void)
+{
+  NS_LOG_FUNCTION (this);
+  //we must see which channels are TX active, and switch if necessary
+  uint16_t channel = GetNextActiveChannel();
+  Time nextQueueSwitch = m_queueUtilizationTime;
+  if (m_currentChannel != channel)
+  {
+    //we're switching
+    NS_LOG_DEBUG ("Queue switching on TX radio from channel "
+        << m_currentChannel << " to channel " << channel);
+
+    m_low->GetPhy()->SetChannelNumber(channel);
+
+    nextQueueSwitch = nextQueueSwitch + m_low->GetPhy()->GetDelayUntilIdle();
+
+    Ptr<YansWifiPhy> phy = DynamicCast<YansWifiPhy>(m_low->GetPhy());
+    if (phy->GetDelayUntilIdle()<phy->GetSwitchingDelay())
+      nextQueueSwitch = nextQueueSwitch + phy->GetSwitchingDelay();
+  }
+
+  //Call this function again
+  m_switchQueueTimer = Simulator::Schedule (nextQueueSwitch,
+      &DcaTxop::SwitchQueueHandler, this);
 }
 
 } // namespace ns3
