@@ -11,7 +11,7 @@ namespace ns3 {
 SpectrumDecision::SpectrumDecision(SpectrumManager *sm) {
 
 	decision_policy_=DECISION_POLICY_ALWAYS_SWITCH;
-	decision_policy_=DECISION_POLICY_NEVER_SWITCH;
+	//decision_policy_=DECISION_POLICY_NEVER_SWITCH;
 
 	spectrum_policy_=ROUND_ROBIN_SWITCH;
 
