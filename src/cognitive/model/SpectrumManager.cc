@@ -4,6 +4,7 @@
 
 
 #include "SpectrumManager.h"
+#include "ns3/yans-wifi-phy.h"
 
 NS_LOG_COMPONENT_DEFINE ("CogSpectrumManager");
 
@@ -38,6 +39,7 @@ SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, Ptr<WifiPhy> phy,
 	m_wifiPhy = phy;
 	pu_on_=false;
 	sensing_=false;	
+	m_isSwitching = false;
 
 	// State Initialization
 	sense_time_=sense_time;
@@ -174,15 +176,24 @@ SpectrumManager::senseHandler() {
 		if (need_to_switch) {
 
 			// Starts handoff timer
-			mobilityMod_->performHandoff();
+			//mobilityMod_->performHandoff();
 
 			// Channel allocation is decided at MAC Layer
 #ifdef CHANNEL_DECISION_MAC_LAYER
 
 			// Choose next channel and store the information in the shared repository
 			int next_channel=decisionMod_->decideSpectrum(current_channel);
-
+			m_wifiPhy->SetChannelNumber(next_channel);
 			m_repository->set_recv_channel(nodeId_,next_channel);
+			Ptr<YansWifiPhy> yansPhy = DynamicCast<YansWifiPhy>(m_wifiPhy);
+			Time handoffDelay = yansPhy->GetSwitchingDelay();
+			if (m_wifiPhy->GetDelayUntilIdle() < handoffDelay)
+			{
+			  handoffDelay = handoffDelay + m_wifiPhy->GetDelayUntilIdle();
+			}
+
+			Simulator::Schedule (handoffDelay, &SpectrumManager::endHandoff, this);
+			m_isSwitching = true;
 			// Load the spectrum data for the new channel
 			//TODO; make sure you tie up the mac layer
 			//mac_->load_spectrum(dataMod_->get_spectrum_data(next_channel));

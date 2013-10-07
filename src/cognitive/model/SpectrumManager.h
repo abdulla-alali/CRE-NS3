@@ -111,6 +111,8 @@ private:
 	bool pu_on_;
 	// sensing_ is true wheter a CR is performing sensing
 	bool sensing_;
+	// switching
+	bool m_isSwitching;
 
 
 	// MAC References and address
