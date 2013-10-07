@@ -75,6 +75,8 @@ public:
   virtual void SetIpv4 (Ptr<Ipv4> ipv4);
   virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const;
   void SetRepository(Ptr<Repository> repo);
+  /// Send hello
+  void SendHello ();
   //\}
 
   ///\name Handle protocol parameters
@@ -225,8 +227,6 @@ private:
   //\{
   /// Forward packet from route request queue
   void SendPacketFromQueue (Ipv4Address dst, Ptr<Ipv4Route> route, uint16_t channel);
-  /// Send hello
-  void SendHello ();
   /// Send RREQ
   void SendRequest (Ipv4Address dst);
   /// Send RREP
