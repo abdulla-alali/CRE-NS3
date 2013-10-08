@@ -273,6 +273,8 @@ DcaTxop::Queue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
                                      packet, fullPacketSize);
   PacketChannelPacketTag pcpt;
   bool found = packet->PeekPacketTag(pcpt);
+  NS_LOG_LOGIC ("Enqueue packet to channel : " << pcpt.GetChannel() <<
+      " current channel: " << m_low->GetPhy()->GetChannelNumber());
   if (m_low && found)
     {
       if (m_low->IsTxRadio() && m_low->GetPhy()->GetChannelNumber() == 1) //first packet
@@ -805,11 +807,14 @@ DcaTxop::SwitchQueueHandler (void)
 
     m_low->GetPhy()->SetChannelNumber(channel);
 
+    m_currentChannel = channel;
+
     nextQueueSwitch = nextQueueSwitch + m_low->GetPhy()->GetDelayUntilIdle();
 
     Ptr<YansWifiPhy> phy = DynamicCast<YansWifiPhy>(m_low->GetPhy());
     if (phy->GetDelayUntilIdle()<phy->GetSwitchingDelay())
       nextQueueSwitch = nextQueueSwitch + phy->GetSwitchingDelay();
+    Simulator::Schedule( (nextQueueSwitch-m_queueUtilizationTime), &DcaTxop::RestartAccessIfNeeded, this);
   }
 
   //Call this function again
