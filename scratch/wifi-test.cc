@@ -86,11 +86,13 @@ int main (int argc, char *argv[])
   Packet::EnablePrinting();
   std::string phyMode ("ErpOfdmRate54Mbps");
   bool verbose = false;
+  int hops = 2;
 
   CommandLine cmd;
 
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
   cmd.AddValue ("verbose", "turn on all WifiNetDevice log components", verbose);
+  cmd.AddValue ("numHops", "Number of hops", hops);
 
   cmd.Parse (argc, argv);
 
@@ -103,7 +105,7 @@ int main (int argc, char *argv[])
       StringValue (phyMode));
 
   NodeContainer c;
-  c.Create (2);
+  c.Create (hops);
 
   // The below set of helpers will help us to put together the wifi NICs we want
   WifiHelper wifi;
@@ -124,7 +126,7 @@ int main (int argc, char *argv[])
   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
   // The below FixedRssLossModel will cause the rss to be fixed regardless
   // of the distance between the two stations, and the transmit power
-  wifiChannel.AddPropagationLoss ("ns3::JakesPropagationLossModel");
+  wifiChannel.AddPropagationLoss ("ns3::LogDistancePropagationLossModel");
   wifiPhy.SetChannel (wifiChannel.Create ());
 
   // Add a non-QoS upper mac, and disable rate control
@@ -148,8 +150,8 @@ int main (int argc, char *argv[])
     devices_control.Add(devices.Get(i));
   }
 
-  for (int x=0; x<2; x++)
-    for (int i=0; i<3; i++) {
+  for (unsigned int x=0; x<c.GetN(); x++)
+    for (unsigned int i=0; i<c.Get(x)->GetNDevices(); i++) {
       //Address add = c.Get(x)->GetDevice(0)->GetAddress();
       //NS_LOG_UNCOND("before change: " << add);
       //add = add +1;
@@ -160,8 +162,11 @@ int main (int argc, char *argv[])
 
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-  positionAlloc->Add (Vector (110.0, 0.0, 0.0));
-  positionAlloc->Add (Vector (115.0, 0.0, 0.0)); //5 meters away
+  double start = 110.0;
+  for (int i=0; i<hops; i++) {
+    positionAlloc->Add (Vector (start, 0.0, 0.0));
+    start = start+20;
+  }
   mobility.SetPositionAllocator (positionAlloc);
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (c);
@@ -185,21 +190,21 @@ int main (int argc, char *argv[])
 
 
   BulkSendHelper source ("ns3::TcpSocketFactory",
-      InetSocketAddress (i.GetAddress (1), port));
+      InetSocketAddress (i.GetAddress (c.GetN()-1), port));
   // Set the amount of data to send in bytes.  Zero is unlimited.
   source.SetAttribute ("MaxBytes", UintegerValue (5000000));
   ApplicationContainer sourceApps = source.Install (c.Get (0));
   sourceApps.Start (Seconds (0.0));
-  sourceApps.Stop (Seconds (10.0));
+  sourceApps.Stop (Seconds (1490.0));
 
   //
   // Create a PacketSinkApplication and install it on node 1
   //
   PacketSinkHelper sink ("ns3::TcpSocketFactory",
       InetSocketAddress (Ipv4Address::GetAny (), port));
-  ApplicationContainer sinkApps = sink.Install (c.Get (1));
+  ApplicationContainer sinkApps = sink.Install (c.Get (c.GetN()-1));
   sinkApps.Start (Seconds (0.0));
-  sinkApps.Stop (Seconds (10.0));
+  sinkApps.Stop (Seconds (1490.0));
 
 
   // Tracing
@@ -211,7 +216,7 @@ int main (int argc, char *argv[])
   //sinkApps.Get(0)->TraceConnectWithoutContext("Rx", MakeCallback(&RxRcv));
   Config::Connect("/NodeList/*/ApplicationList/*/$ns3::PacketSink/Rx", MakeCallback(&RxRcv));
 
-  Simulator::Stop (Seconds (10.0));
+  Simulator::Stop (Seconds (1490.0));
   Simulator::Run ();
   Simulator::Destroy ();
 
