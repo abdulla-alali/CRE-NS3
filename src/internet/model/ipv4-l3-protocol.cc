@@ -455,7 +455,7 @@ Ipv4L3Protocol::Receive ( Ptr<NetDevice> device, Ptr<const Packet> p, uint16_t p
   NS_LOG_FUNCTION (this << device << p << protocol << from << to << packetType);
 
   NS_LOG_LOGIC ("Packet from " << from << " received on node " << 
-                m_node->GetId ());
+                m_node->GetId () << " on device: " << device->GetAddress());
 
   uint32_t interface = 0;
   Ptr<Packet> packet = p->Copy ();
