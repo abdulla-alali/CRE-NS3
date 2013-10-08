@@ -142,7 +142,7 @@ DcaTxop::GetTypeId (void)
                     MakeTimeChecker ())
     .AddAttribute ("QueueUtilizationInterval",
                     "How long should we transmit on a queue for a specific channel",
-                    TimeValue (MilliSeconds (200)),
+                    TimeValue (MilliSeconds (150)),
                     MakeTimeAccessor (&DcaTxop::m_queueUtilizationTime),
                     MakeTimeChecker ())
   ;
