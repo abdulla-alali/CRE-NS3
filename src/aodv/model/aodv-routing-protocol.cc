@@ -562,7 +562,14 @@ RoutingProtocol::Forwarding (Ptr<const Packet> p, const Ipv4Header & header,
           m_nb.Update (route->GetGateway (), ActiveRouteTimeout);
           m_nb.Update (toOrigin.GetNextHop (), ActiveRouteTimeout);
 
-          ucb (route, p, header);
+          //before sending out to dst, make sure you change the packet's tag
+          Ptr<Packet> packet = p->Copy();
+          PacketChannelPacketTag pcpt;
+          packet->RemovePacketTag(pcpt);
+          pcpt = ns3::PacketChannelPacketTag(toDst.GetChannel());
+          packet->AddPacketTag(pcpt);
+
+          ucb (route, packet, header);
           return true;
         }
       else
@@ -1181,6 +1188,7 @@ RoutingProtocol::RecvRequest (Ptr<Packet> p, Ipv4Address receiver, Ipv4Address s
       Ptr<Packet> packet = Create<Packet> ();
       PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
       packet->AddPacketTag(bt);
+      rreqHeader.SetRXChannel(m_crRepository->get_recv_channel(m_ipv4->GetObject<Node> ()->GetId()));
       packet->AddHeader (rreqHeader);
       TypeHeader tHeader (AODVTYPE_RREQ);
       packet->AddHeader (tHeader);
@@ -1236,7 +1244,8 @@ RoutingProtocol::SendReplyByIntermediateNode (RoutingTableEntry & toDst, Routing
 {
   NS_LOG_FUNCTION (this);
   RrepHeader rrepHeader (/*prefix size=*/ 0, /*hops=*/ toDst.GetHop (), /*dst=*/ toDst.GetDestination (), /*dst seqno=*/ toDst.GetSeqNo (),
-                                          /*origin=*/ toOrigin.GetDestination (), /*lifetime=*/ toDst.GetLifeTime (), toOrigin.GetChannel());
+                                          /*origin=*/ toOrigin.GetDestination (), /*lifetime=*/ toDst.GetLifeTime (),
+                                          m_crRepository->get_recv_channel(m_ipv4->GetObject<Node> ()->GetId()));
   /* If the node we received a RREQ for is a neighbor we are
    * probably facing a unidirectional link... Better request a RREP-ack
    */
@@ -1273,7 +1282,7 @@ RoutingProtocol::SendReplyByIntermediateNode (RoutingTableEntry & toDst, Routing
                                                  m_crRepository->get_recv_channel(m_ipv4->GetObject<Node>()->GetId()));
       Ptr<Packet> packetToDst = Create<Packet> ();
       PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
-      packet->AddPacketTag(bt);
+      packetToDst->AddPacketTag(bt);
       packetToDst->AddHeader (gratRepHeader);
       TypeHeader type (AODVTYPE_RREP);
       packetToDst->AddHeader (type);
@@ -1423,6 +1432,7 @@ RoutingProtocol::RecvReply (Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sen
   Ptr<Packet> packet = Create<Packet> ();
   PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
   packet->AddPacketTag(bt);
+  rrepHeader.SetRXChannel(m_crRepository->get_recv_channel(m_ipv4->GetObject <Node>()->GetId()));
   packet->AddHeader (rrepHeader);
   TypeHeader tHeader (AODVTYPE_RREP);
   packet->AddHeader (tHeader);
