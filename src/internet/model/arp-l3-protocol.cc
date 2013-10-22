@@ -285,7 +285,7 @@ ArpL3Protocol::Lookup (Ptr<Packet> packet, Ipv4Address destination,
               Address destAddress = entry->GetMacAddress();
               PacketTypePacketTag bt;
               int bytes = packet->PeekPacketTag(bt);
-              if (!bytes) {
+              if (!bytes && m_node->IsCognitiveRadio()) {
                 destAddress = destAddress + (RECEIVER_RADIO-CONTROL_RADIO); // go to RX MAC on receiver
               }
               *hardwareDestination = destAddress;
