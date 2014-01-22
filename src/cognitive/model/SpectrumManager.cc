@@ -70,6 +70,7 @@ SpectrumManager::start() {
 	//mac_->load_spectrum(dataMod_->get_spectrum_data(current_channel));
 
 	// Start sensing on the current channel for a sense_time_ interval
+  m_wifiPhy->StartSensing(sense_time_);
   Simulator::Schedule (sense_time_, &SpectrumManager::senseHandler, this);
 
 }
