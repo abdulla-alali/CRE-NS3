@@ -1,9 +1,21 @@
-// CRAHNs Model START
-// @author:  Marco Di Felice
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation;
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Author: Abdulla K. Al-Ali <abdulla.alali@qu.edu.qa>
+ */
 
-
-
-#include "SpectrumSensing.h"
+#include "spectrum-sensing.h"
 #include "ns3/mobility-model.h"
 
 NS_LOG_COMPONENT_DEFINE ("CogSpectrumSensing");
@@ -12,7 +24,7 @@ namespace ns3 {
 // SpectrumSensing initialization: PU model off
 SpectrumSensing::SpectrumSensing(SpectrumManager *sm) {
  	
-	smanager_=sm;
+	m_specManager=sm;
 }
 
 
@@ -21,9 +33,9 @@ SpectrumSensing::SpectrumSensing(SpectrumManager *sm) {
 // SpectrumSensing initialization: PU model on
 SpectrumSensing::SpectrumSensing(SpectrumManager *sm, double prob_misdetect, Ptr<PUModel> p) {
 	
-	pumodel_=p;
+	m_puModel=p;
 
-	prob_misdetect_=prob_misdetect;
+	m_probMisdetect=prob_misdetect;
 
 }               
 
@@ -32,7 +44,7 @@ SpectrumSensing::SpectrumSensing(SpectrumManager *sm, double prob_misdetect, Ptr
 
 // sense: return true if PU activity is detected in the time interval [current_time:current_time + sense_time]
 bool
-SpectrumSensing::sense(int id, Time sense_time, Time transmit_time, int channel) {
+SpectrumSensing::Sense(int id, Time sense_time, Time transmit_time, int channel) {
 	
 	NodeContainer const & n = NodeContainer::GetGlobal ();
 	Ptr<Node> node = n.Get(id);
@@ -42,14 +54,14 @@ SpectrumSensing::sense(int id, Time sense_time, Time transmit_time, int channel)
 	bool cr_on=false;
 	NS_LOG_DEBUG ("POSITIONS: x:" << x << " and y:" << y);
 
-	if (pumodel_) {
+	if (m_puModel) {
 
 		Ptr<UniformRandomVariable> uv = CreateObject<UniformRandomVariable>();
 		double randomValue = uv->GetValue(); //by default, min 0 and max 1
 		// Ask the PUmodel if a PU is active  in the time interval [current_time:current_time + sense_time]
-		cr_on=pumodel_->is_PU_active(Simulator::Now(),sense_time,x,y, channel);
+		cr_on=m_puModel->IsPuActive(Simulator::Now(),sense_time,x,y, channel);
 		// Apply the probability of false negative detection
-		if ((randomValue < prob_misdetect_) and cr_on)
+		if ((randomValue < m_probMisdetect) and cr_on)
 			cr_on=false;
 
 	}
@@ -61,11 +73,6 @@ SpectrumSensing::sense(int id, Time sense_time, Time transmit_time, int channel)
 }
 
 }
-
-// CRAHNs Model END
-// @author:  Marco Di Felice
-
-
 
 
 		

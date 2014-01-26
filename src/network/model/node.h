@@ -27,7 +27,7 @@
 #include "ns3/callback.h"
 #include "ns3/ptr.h"
 #include "ns3/net-device.h"
-#include "ns3/commCognitiveHeader.h"
+#include "ns3/common-cognitive-header.h"
 
 namespace ns3 {
 

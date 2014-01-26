@@ -1,6 +1,19 @@
-// CRAHNs Model END
-// @author:  Marco Di Felice
-
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation;
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Author: Abdulla K. Al-Ali <abdulla.alali@qu.edu.qa>
+ */
 
 /*
  * Implementation of the spectrum management activities performed by CRs
@@ -15,18 +28,14 @@
 #ifndef SPECTRUM_MANAGER_H
 #define SPECTRUM_MANAGER_H
 
-#include "SpectrumTimer.h"
-#include "SpectrumSensing.h"
-#include "SpectrumDecision.h"
-#include "SpectrumMobility.h"
-#include "SpectrumData.h"
+#include "spectrum-sensing.h"
+#include "spectrum-decision.h"
+#include "spectrum-data.h"
 
-#include "PUmodel.h"
+#include "pu-model.h"
 #include "repository.h"
 #include "ns3/wifi-mac.h"
 #include "ns3/nstime.h"
-//#include "mac/mac-802_11.h"
-//#include "common/packet.h"
 
 // Spectrum Manager modules
 // Enable/Disable channel allocation performed at MAC Layer, by the SpectrumDecision Module
@@ -36,11 +45,6 @@
 // Enable/Disable Notifications MAC->NET layers, in case of PU detection on the current channel
 #define ENABLE_SPECTRUM_HANDOFF_NOTIFICATION
 
-
-// Spectrum Manager constant values
-#define DEFAULT_SENSING_INTERVAL 	0.1    //Default Sensing duration
-#define DEFAULT_TRANSMITTING_INTERVAL 	0.5    //Default Transmitting duration
-#define DEFAULT_PROBABILITY_MISDETECT   0.0    //Accuracy of the sensing scheme 
 
 namespace ns3 {
 
@@ -70,54 +74,49 @@ public:
 
 	virtual ~SpectrumManager ();
 	// Start method: CR agent starts sensing activity on the current channel
-	void start();
+	void Start();
 
 	// Return true if CR is NOT doing sensing and is NOT doing spectrum handoff
-	bool is_channel_available();
+	bool IsChannelAvailable();
 	// Return true if a PU is active while receiving the packet, on the same channel
-	bool is_PU_interfering(Time txDuration);
+	bool IsPuInterfering(Time txDuration);
 
 	// Timer Handlers
 	// Handler for sensing timer
-	void senseHandler();
+	void SenseEnded();
 	// Handler for handoff management: start sensing on the new channel
-	void endHandoff();
+	void HandoffEnded();
 	// Handler for transmission timer: start sensing on the current channel
-	void transmitHandler();
+	void TransmitEnded();
 
 
 
 	// Setup Functions
-	void setPUmodel(double prob, Ptr<PUModel> p);
-	void setRepository(Ptr<Repository> rep);
-	void setSpectrumData(SpectrumData *sd);
+	void SetPuModel(double prob, Ptr<PUModel> p);
+	void SetRepository(Ptr<Repository> rep);
+	void SetSpectrumData(SpectrumData *sd);
 
 
 private:
 
 	// Spectrum Cycle Timers and Variables
-	// Sensing Timer
-	//SenseTimer stimer_;
-	// Transmitting Timer
-	TransmitTimer ttimer_;
 	// Sensing interval
-	Time sense_time_;
+	Time m_senseTime;
 	// Transmitting interval
-	Time transmit_time_;
-
+	Time m_transmitTime;
 
 	// State Variables
 	// pu_on_ is true wheter PU activity is detected in the current sensing cycle
-	bool pu_on_;
+	bool m_isPuOn;
 	// sensing_ is true wheter a CR is performing sensing
-	bool sensing_;
+	bool m_isSensing;
 	// switching
 	bool m_isSwitching;
 
 
 	// MAC References and address
-	Ptr<WifiMac> mac_;
-	int nodeId_;
+	Ptr<WifiMac> m_wifiMac;
+	int m_nodeId;
   // WifiPhy reference
   Ptr<WifiPhy> m_wifiPhy;
 
@@ -126,21 +125,16 @@ private:
 	Ptr<Repository> m_repository;
 
 	// Spectrum Sensing Module
-	SpectrumSensing  *sensingMod_;
+	SpectrumSensing  *m_sensingMod;
 	// Spectrum Decision Module
-	SpectrumDecision *decisionMod_;
-	// Spectrum Mobility Module
-	SpectrumMobility *mobilityMod_;
+	SpectrumDecision *m_decisionMod;
 	// Spectrum Data Loader Module
-	SpectrumData 	 *dataMod_;
+	SpectrumData 	 *m_dataMod;
 
 
 
 };
 }
 #endif
-
-// CRAHNs Model END
-// @author:  Marco Di Felice
 
 

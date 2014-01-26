@@ -1,9 +1,21 @@
-// CRAHNs Model START
-// @author:  Marco Di Felice
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation;
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Author: Abdulla K. Al-Ali <abdulla.alali@qu.edu.qa>
+ */
 
-
-
-#include "SpectrumData.h"
+#include "spectrum-data.h"
 
 
 namespace ns3 {
@@ -14,10 +26,6 @@ SpectrumData::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::SpectrumData")
     .SetParent<Object> ()
     .AddConstructor<SpectrumData> ()
-    //.AddAttribute ("DeviceList", "The list of devices associated to this Node.",
-    //               ObjectVectorValue (),
-    //               MakeObjectVectorAccessor (&Node::m_devices),
-    //               MakeObjectVectorChecker<NetDevice> ())
   ;
   return tid;
 }
@@ -31,9 +39,9 @@ SpectrumData::SpectrumData()  {
 
 
 
-// read_spectrum_file: load the information form the spectrum file into the spectrum_table_
+// ReadSpectrumFile: load the information form the spectrum file into the spectrum_table_
 void
-SpectrumData::read_spectrum_file(char *fileName) {
+SpectrumData::ReadSpectrumFile(char *fileName) {
 	
 	FILE* fd;	
 	
@@ -73,8 +81,8 @@ SpectrumData::read_spectrum_file(char *fileName) {
 			printf("[READING SPECTRUM FILE] #CHANNEL: %d #BANDWIDTH: %f PER: %f\n",channel, bandwidth, per); 
 	
 		// save the information in the spectrum_table_
-		spectrum_table_[channel].bandwidth=bandwidth;
-		spectrum_table_[channel].per=per;
+		m_spectrumTable_[channel].bandwidth=bandwidth;
+		m_spectrumTable_[channel].per=per;
 	 }
 	
 	 fclose(fd);
@@ -83,12 +91,12 @@ SpectrumData::read_spectrum_file(char *fileName) {
 
 
 
-// get_spectrum_data: return the spectrum_entry for the current channel
-spectrum_entry_t 
-SpectrumData::get_spectrum_data(int channel) {
+// GetSpectrumData: return the spectrum_entry for the current channel
+SpectrumEntry 
+SpectrumData::GetSpectrumData(int channel) {
 
 	if ((channel>=0) && (channel <MAX_CHANNELS)) 
-		return spectrum_table_[channel];
+		return m_spectrumTable_[channel];
 
 	else  {
 		printf(" ERROR. Can't retrive Spectrum Information for channel %d \n", channel);		
@@ -98,40 +106,4 @@ SpectrumData::get_spectrum_data(int channel) {
 	
 }
 
-
-
-
-
-// comman: get input from OTCL file
-/*int
-SpectrumData::command(int argc, const char*const* argv) {
- 	
-	if(argc == 3) {
-		
-		// Read the current spectrum file		
-		if(strcmp(argv[1], "set_input_map") == 0) {
-  		    read_spectrum_file((char*)argv[2]);
-   		    return TCL_OK;
-		
-		}
-	
-	} 
-
-	return TCL_OK;
 }
-
-
-
-
-// recv method: Receive a pkt (EMPTY METHOD)
-void 
-SpectrumData::recv(Packet*, Handler*) {
-
-}*/
-
-
-}
-// CRAHNs Model START
-// @author:  Marco Di Felice
-
-

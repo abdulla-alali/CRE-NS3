@@ -21,7 +21,7 @@
 #define REGULAR_WIFI_MAC_H
 
 #include "ns3/wifi-mac.h"
-#include "ns3/SpectrumManager.h"
+#include "ns3/spectrum-manager.h"
 
 #include "dca-txop.h"
 #include "edca-txop-n.h"

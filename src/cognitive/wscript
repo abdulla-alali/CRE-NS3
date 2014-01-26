@@ -10,13 +10,11 @@ def build(bld):
     module = bld.create_ns3_module('cognitive', ['core', 'network'])
     module.source = [
         'model/repository.cc',
-        'model/PUmodel.cc',
-        'model/SpectrumData.cc',
-        'model/SpectrumTimer.cc',
-        'model/SpectrumManager.cc',
-        'model/SpectrumDecision.cc',
-        'model/SpectrumMobility.cc',
-        'model/SpectrumSensing.cc',
+        'model/pu-model.cc',
+        'model/spectrum-data.cc',
+        'model/spectrum-manager.cc',
+        'model/spectrum-decision.cc',
+        'model/spectrum-sensing.cc',
         'model/cognitive-packet-tags.cc',
 #        'helper/cognitive-helper.cc',
         ]
@@ -30,14 +28,12 @@ def build(bld):
     headers.module = 'cognitive'
     headers.source = [
         'model/repository.h',
-        'model/PUmodel.h',
-        'model/SpectrumData.h',
-        'model/SpectrumTimer.h',
-        'model/SpectrumManager.h',
-        'model/SpectrumDecision.h',
-        'model/SpectrumMobility.h',
-        'model/SpectrumSensing.h',
-        'model/commCognitiveHeader.h',
+        'model/pu-model.h',
+        'model/spectrum-data.h',
+        'model/spectrum-manager.h',
+        'model/spectrum-decision.h',
+        'model/spectrum-sensing.h',
+        'model/common-cognitive-header.h',
         'model/cognitive-packet-tags.h',
 #        'helper/cognitive-helper.h',
         ]

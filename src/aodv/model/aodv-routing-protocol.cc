@@ -906,8 +906,8 @@ RoutingProtocol::SendRequest (Ipv4Address dst)
       Ipv4InterfaceAddress iface = j->second;
 
       rreqHeader.SetOrigin (iface.GetLocal ());
-      rreqHeader.SetRXChannel (m_crRepository->get_recv_channel(m_ipv4->GetObject <Node>()->GetId()));
-      NS_LOG_LOGIC ("sending request with channel = " << m_crRepository->get_recv_channel(m_ipv4->GetObject<Node>()->GetId()));
+      rreqHeader.SetRXChannel (m_crRepository->GetRxChannel(m_ipv4->GetObject <Node>()->GetId()));
+      NS_LOG_LOGIC ("sending request with channel = " << m_crRepository->GetRxChannel(m_ipv4->GetObject<Node>()->GetId()));
       m_rreqIdCache.IsDuplicate (iface.GetLocal (), m_requestId);
 
       Ptr<Packet> packet = Create<Packet> ();
@@ -1188,7 +1188,7 @@ RoutingProtocol::RecvRequest (Ptr<Packet> p, Ipv4Address receiver, Ipv4Address s
       Ptr<Packet> packet = Create<Packet> ();
       PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
       packet->AddPacketTag(bt);
-      rreqHeader.SetRXChannel(m_crRepository->get_recv_channel(m_ipv4->GetObject<Node> ()->GetId()));
+      rreqHeader.SetRXChannel(m_crRepository->GetRxChannel(m_ipv4->GetObject<Node> ()->GetId()));
       packet->AddHeader (rreqHeader);
       TypeHeader tHeader (AODVTYPE_RREQ);
       packet->AddHeader (tHeader);
@@ -1227,7 +1227,7 @@ RoutingProtocol::SendReply (RreqHeader const & rreqHeader, RoutingTableEntry con
     m_seqNo++;
   RrepHeader rrepHeader ( /*prefixSize=*/ 0, /*hops=*/ 0, /*dst=*/ rreqHeader.GetDst (),
                                           /*dstSeqNo=*/ m_seqNo, /*origin=*/ toOrigin.GetDestination (), /*lifeTime=*/ MyRouteTimeout,
-                                          m_crRepository->get_recv_channel(m_ipv4->GetObject<Node> ()->GetId()));
+                                          m_crRepository->GetRxChannel(m_ipv4->GetObject<Node> ()->GetId()));
   Ptr<Packet> packet = Create<Packet> ();
   PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
   packet->AddPacketTag(bt);
@@ -1245,7 +1245,7 @@ RoutingProtocol::SendReplyByIntermediateNode (RoutingTableEntry & toDst, Routing
   NS_LOG_FUNCTION (this);
   RrepHeader rrepHeader (/*prefix size=*/ 0, /*hops=*/ toDst.GetHop (), /*dst=*/ toDst.GetDestination (), /*dst seqno=*/ toDst.GetSeqNo (),
                                           /*origin=*/ toOrigin.GetDestination (), /*lifetime=*/ toDst.GetLifeTime (),
-                                          m_crRepository->get_recv_channel(m_ipv4->GetObject<Node> ()->GetId()));
+                                          m_crRepository->GetRxChannel(m_ipv4->GetObject<Node> ()->GetId()));
   /* If the node we received a RREQ for is a neighbor we are
    * probably facing a unidirectional link... Better request a RREP-ack
    */
@@ -1279,7 +1279,7 @@ RoutingProtocol::SendReplyByIntermediateNode (RoutingTableEntry & toDst, Routing
       RrepHeader gratRepHeader (/*prefix size=*/ 0, /*hops=*/ toOrigin.GetHop (), /*dst=*/ toOrigin.GetDestination (),
                                                  /*dst seqno=*/ toOrigin.GetSeqNo (), /*origin=*/ toDst.GetDestination (),
                                                  /*lifetime=*/ toOrigin.GetLifeTime (),
-                                                 m_crRepository->get_recv_channel(m_ipv4->GetObject<Node>()->GetId()));
+                                                 m_crRepository->GetRxChannel(m_ipv4->GetObject<Node>()->GetId()));
       Ptr<Packet> packetToDst = Create<Packet> ();
       PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
       packetToDst->AddPacketTag(bt);
@@ -1432,7 +1432,7 @@ RoutingProtocol::RecvReply (Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sen
   Ptr<Packet> packet = Create<Packet> ();
   PacketTypePacketTag bt = ns3::PacketTypePacketTag(CTRL_PACKET);
   packet->AddPacketTag(bt);
-  rrepHeader.SetRXChannel(m_crRepository->get_recv_channel(m_ipv4->GetObject <Node>()->GetId()));
+  rrepHeader.SetRXChannel(m_crRepository->GetRxChannel(m_ipv4->GetObject <Node>()->GetId()));
   packet->AddHeader (rrepHeader);
   TypeHeader tHeader (AODVTYPE_RREP);
   packet->AddHeader (tHeader);
@@ -1637,7 +1637,7 @@ RoutingProtocol::SendHello ()
       Ipv4InterfaceAddress iface = j->second;
       RrepHeader helloHeader (/*prefix size=*/ 0, /*hops=*/ 0, /*dst=*/ iface.GetLocal (), /*dst seqno=*/ m_seqNo,
                                                /*origin=*/ iface.GetLocal (),/*lifetime=*/ Time (AllowedHelloLoss * HelloInterval),
-                                               m_crRepository->get_recv_channel(m_ipv4->GetObject <Node>()->GetId()));
+                                               m_crRepository->GetRxChannel(m_ipv4->GetObject <Node>()->GetId()));
       Ptr<Packet> packet = Create<Packet> ();
       packet->AddHeader (helloHeader);
       TypeHeader tHeader (AODVTYPE_RREP);

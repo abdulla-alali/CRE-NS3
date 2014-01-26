@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "commCognitiveHeader.h"
+#include "common-cognitive-header.h"
 #include "ns3/object.h"
 #include "ns3/core-module.h"
 #include "ns3/tag.h"
@@ -18,15 +18,15 @@
 namespace ns3 {
 
 // Channel Entry for receiver nodes
-struct repository_entry_recv {
+struct RepositoryEntryRecv {
 	// receiving channel
-	int recv_channel;
+	int rxChannel;
 };
 
 
 
 // Channel Entry for sender nodes
-struct repository_entry_send {
+struct RepositoryEntrySend {
 	//Flag indicating wheter the channel is used for transmitting
 	bool active;
 	//Last time the channel was used
@@ -43,32 +43,23 @@ public:
 	static TypeId GetTypeId (void);
 	// Initializer
 	Repository();
-	int command(int argc, const char*const* argv);
-	//void recv(Packet*, Handler*);
-
 
 	// Set/Get Function for the Receiver Channel Table
-	int get_recv_channel(int node);
-	void set_recv_channel(int node, int channel);
+	int GetRxChannel(int node);
+	void SetRxChannel(int node, int channel);
 
 	// Set/Get Function for the Sender Channel Table
-	void update_send_channel(int node, int channel, double time);
-	bool is_channel_used_for_sending(int node, int channel, double timeNow);
-
-	void set_number_hops(int dst, int num);
-	int get_number_hops(int dst);
+	void UpdateTxChannel(int node, int channel, double time);
 
 
 private:
 
-	// Receiver Channel table: repository_table[i] contains the channels used for receiving by node i
-	repository_entry_recv repository_table[MAX_NODES];
+	// Receiver Channel table: m_repositoryTable[i] contains the channels used for receiving by node i
+	RepositoryEntryRecv m_repositoryTable[MAX_NODES];
 	// Sender Channel table: repository_table_sender[i][j] contains the information (active/time) for sending node i and channel j
-	repository_entry_send repository_table_sender[MAX_NODES][MAX_CHANNELS];
-	//to each destination, we have number of hops
-	int repository_num_hops[MAX_HOPS_STORE];
+	RepositoryEntrySend m_repositoryTableSender[MAX_NODES][MAX_CHANNELS];
 	// Returns a random channel between 1 and MAX_CHANNELS
-	int get_random_channel();
+	int GetRandomChannel();
 
 };
 

@@ -1,31 +1,41 @@
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation;
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Author: Abdulla K. Al-Ali <abdulla.alali@qu.edu.qa>
+ */
 
-// CRAHNs Model END
-// @author:  Marco Di Felice
-
-
-#include "SpectrumManager.h"
+#include "spectrum-manager.h"
 #include "ns3/yans-wifi-phy.h"
 #include "ns3/aodv-routing-protocol.h"
 
 NS_LOG_COMPONENT_DEFINE ("CogSpectrumManager");
 
 namespace ns3 {
-//SpectrumManager Initializer
-SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id): ttimer_(this) {
 
-	mac_=mac;
-	nodeId_=id;
+//SpectrumManager Initializer
+SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id) {
+
+	m_wifiMac=mac;
+	m_nodeId=id;
 
 	// State Initialization
-	pu_on_=false;	
-	sensing_=false;
+	m_isPuOn=false;	
+	m_isSensing=false;
 
 	// Spectrum Module Definition
-	sensingMod_=new SpectrumSensing(this);
-	decisionMod_=new SpectrumDecision(this);
-	mobilityMod_=new SpectrumMobility(this);
-
-
+	m_sensingMod=new SpectrumSensing(this);
+	m_decisionMod=new SpectrumDecision(this);
 
 }
 
@@ -33,23 +43,22 @@ SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id): ttimer_(this) {
 
 //SpectrumManager Initializer
 SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, Ptr<WifiPhy> phy,
-    int id, Time sense_time, Time transmit_time): ttimer_(this)  {
+    int id, Time sense_time, Time transmit_time)  {
 
-	mac_=mac;
-	nodeId_=id;
+	m_wifiMac=mac;
+	m_nodeId=id;
 	m_wifiPhy = phy;
-	pu_on_=false;
-	sensing_=false;	
+	m_isPuOn=false;
+	m_isSensing=false;	
 	m_isSwitching = false;
 
 	// State Initialization
-	sense_time_=sense_time;
-	transmit_time_=transmit_time;
+	m_senseTime=sense_time;
+	m_transmitTime=transmit_time;
 
 	// Spectrum Module Definition
-	sensingMod_=new SpectrumSensing(this);
-	decisionMod_=new SpectrumDecision(this);
-	mobilityMod_=new SpectrumMobility(this);
+	m_sensingMod=new SpectrumSensing(this);
+	m_decisionMod=new SpectrumDecision(this);
 
 }
 
@@ -59,7 +68,7 @@ SpectrumManager::~SpectrumManager() {
 
 //start: CR starts sensing on the current channel
 void
-SpectrumManager::start() {
+SpectrumManager::Start() {
 
 	// Retrive the current channel on which the CR is tuned on the RECEIVER interface
 
@@ -70,17 +79,17 @@ SpectrumManager::start() {
 	//mac_->load_spectrum(dataMod_->get_spectrum_data(current_channel));
 
 	// Start sensing on the current channel for a sense_time_ interval
-  m_wifiPhy->StartSensing(sense_time_);
-  Simulator::Schedule (sense_time_, &SpectrumManager::senseHandler, this);
+  m_wifiPhy->StartSensing(m_senseTime);
+  Simulator::Schedule (m_senseTime, &SpectrumManager::SenseEnded, this);
 
 }
 
 
 //is_channel_available: return true if CR is NOT doing sensing and is NOT doing spectrum handoff
 bool 
-SpectrumManager::is_channel_available() {
+SpectrumManager::IsChannelAvailable() {
 
-	bool available= !(sensing_ || mobilityMod_->is_switching());
+	bool available= !(m_isSensing || m_isSwitching);
 
 	return available;
 
@@ -90,19 +99,19 @@ SpectrumManager::is_channel_available() {
 
 // is_PU_interfering: return true if there is a PU which is transmitting on the same channel and within the tx range of the CR receiving a packet
 bool 
-SpectrumManager::is_PU_interfering(Time txDuration) {
+SpectrumManager::IsPuInterfering(Time txDuration) {
 
 	// Get the tx time of a packet
 	Time time_tx=txDuration;
 	// Check if a PU is active in the interval [now: now+time_tx]
-	int  current_channel=m_repository->get_recv_channel(nodeId_);
-	bool interference=sensingMod_->sense(nodeId_,time_tx,transmit_time_, current_channel);
+	int  current_channel=m_repository->GetRxChannel(m_nodeId);
+	bool interference=m_sensingMod->Sense(m_nodeId,time_tx,m_transmitTime, current_channel);
 
 #ifdef SENSING_VERBOSE_MODE
 	if (interference)
 	  {
 	    char buffer [50];
-	    std::sprintf(buffer, "[SENSING-DBG] Node %d sensed some PU activity on channel %d while receiving data\n", nodeId_,current_channel);
+	    std::sprintf(buffer, "[SENSING-DBG] Node %d sensed some PU activity on channel %d while receiving data\n", m_nodeId,current_channel);
 	    NS_LOG_DEBUG (buffer);
 	  }
 #endif
@@ -117,9 +126,9 @@ SpectrumManager::is_PU_interfering(Time txDuration) {
 
 //setPUmodel: set the current PU model
 void
-SpectrumManager::setPUmodel(double prob, Ptr<PUModel> p) {
+SpectrumManager::SetPuModel(double prob, Ptr<PUModel> p) {
 
-	sensingMod_=new SpectrumSensing(this,prob,p);
+	m_sensingMod=new SpectrumSensing(this,prob,p);
 
 }
 
@@ -127,18 +136,18 @@ SpectrumManager::setPUmodel(double prob, Ptr<PUModel> p) {
 
 //setRepository: set the current cross-layer repository
 void
-SpectrumManager::setRepository(Ptr<Repository> rep) {
+SpectrumManager::SetRepository(Ptr<Repository> rep) {
 
   m_repository=rep;
-  m_wifiPhy->SetChannelNumber(m_repository->get_recv_channel(nodeId_));
+  m_wifiPhy->SetChannelNumber(m_repository->GetRxChannel(m_nodeId));
 }
 
 
 //setSpectrumData: set the current Spectrum Loader module
 void 
-SpectrumManager::setSpectrumData(SpectrumData *sd) {
+SpectrumManager::SetSpectrumData(SpectrumData *sd) {
 
-	dataMod_=sd;
+	m_dataMod=sd;
 
 }
 
@@ -156,23 +165,23 @@ SpectrumManager::setSpectrumData(SpectrumData *sd) {
 //Check if PU was detected during the last sensing interval, in case ask the spectrumDecision to switch to a new channel.
 //In case of channel switching, use Spectrum Mobility to perform handoff, and notify the event to the upper layers.
 void 
-SpectrumManager::senseHandler() {
+SpectrumManager::SenseEnded() {
 
 	bool need_to_switch=false;
 
-	int  current_channel=m_repository->get_recv_channel(nodeId_);
+	int  current_channel=m_repository->GetRxChannel(m_nodeId);
 
 #ifdef SENSING_VERBOSE_MODE //abdulla
 	char buffer [100];
-	std::sprintf(buffer, "[SENSING-DBG] Node %d is on channel %d and PU activity is %s", nodeId_, current_channel, (pu_on_)?"true":"false");
+	std::sprintf(buffer, "[SENSING-DBG] Node %d is on channel %d and PU activity is %s", m_nodeId, current_channel, (m_isPuOn)?"true":"false");
 	NS_LOG_DEBUG(buffer);
 #endif
 
 	// Check if PU was detected 
-	if (pu_on_) {
+	if (m_isPuOn) {
 
 		// Ask the Spectrum Decision if channel switching is needed
-		need_to_switch=decisionMod_->decideSwitch();
+		need_to_switch=m_decisionMod->DecideSwitch();
 
 		// CR needs to vacate the channel
 		if (need_to_switch) {
@@ -184,9 +193,9 @@ SpectrumManager::senseHandler() {
 #ifdef CHANNEL_DECISION_MAC_LAYER
 
 			// Choose next channel and store the information in the shared repository
-			int next_channel=decisionMod_->decideSpectrum(current_channel);
+			int next_channel=m_decisionMod->DecideSpectrum(current_channel);
 			m_wifiPhy->SetChannelNumber(next_channel);
-			m_repository->set_recv_channel(nodeId_,next_channel);
+			m_repository->SetRxChannel(m_nodeId,next_channel);
 			Ptr<YansWifiPhy> yansPhy = DynamicCast<YansWifiPhy>(m_wifiPhy);
 			Time handoffDelay = yansPhy->GetSwitchingDelay();
 			if (m_wifiPhy->GetDelayUntilIdle() < handoffDelay)
@@ -194,7 +203,7 @@ SpectrumManager::senseHandler() {
 			  handoffDelay = handoffDelay + m_wifiPhy->GetDelayUntilIdle();
 			}
 
-			Simulator::Schedule (handoffDelay, &SpectrumManager::endHandoff, this);
+			Simulator::Schedule (handoffDelay, &SpectrumManager::HandoffEnded, this);
 			m_isSwitching = true;
 			// Load the spectrum data for the new channel
 			//TODO; make sure you tie up the mac layer
@@ -204,32 +213,32 @@ SpectrumManager::senseHandler() {
 
 #ifdef SENSING_VERBOSE_MODE
 			char buffer [100];
-			std::sprintf(buffer, "[SENSING-DBG] Node %d starts handoff on channel %d to channel %d",nodeId_,current_channel,next_channel);
+			std::sprintf(buffer, "[SENSING-DBG] Node %d starts handoff on channel %d to channel %d",m_nodeId,current_channel,next_channel);
 			NS_LOG_DEBUG (buffer);
 #endif
 
 			// Sensing Time is off, since the node is performing a spectrum handoff
-			sensing_=false;
+			m_isSensing=false;
 
 		} else  { //no need to switch
 
 			// CR does not vacate the spectrum, but it must not interfere with PU activity
 			// In this case, CR keeps sensing and waits for the channel to be free 	
-			pu_on_= sensingMod_->sense(nodeId_,sense_time_,transmit_time_, current_channel);
+			m_isPuOn= m_sensingMod->Sense(m_nodeId,m_senseTime,m_transmitTime, current_channel);
 
 
 			//printf("node: %i restarting sensor at time %f\n", nodeId_, Scheduler::instance().clock());
 			NS_LOG_DEBUG ("restarting sensor");
-			Time startTime = sense_time_;
+			Time startTime = m_senseTime;
 			if (m_wifiPhy->IsStateSensing()) {
-			  startTime = sense_time_ + m_wifiPhy->GetDelayUntilIdle();
-			  Simulator::Schedule(m_wifiPhy->GetDelayUntilIdle(), &WifiPhy::StartSensing, m_wifiPhy, sense_time_);
+			  startTime = m_senseTime + m_wifiPhy->GetDelayUntilIdle();
+			  Simulator::Schedule(m_wifiPhy->GetDelayUntilIdle(), &WifiPhy::StartSensing, m_wifiPhy, m_senseTime);
 			}
 			else
-			  m_wifiPhy->StartSensing(sense_time_);
+			  m_wifiPhy->StartSensing(m_senseTime);
 
-		  Simulator::Schedule (startTime, &SpectrumManager::senseHandler, this);
-		  sensing_=true;
+		  Simulator::Schedule (startTime, &SpectrumManager::SenseEnded, this);
+		  m_isSensing=true;
 
 		}
 
@@ -242,10 +251,10 @@ SpectrumManager::senseHandler() {
 		//mac_->checkBackoffTimer();
 
 		// The CR can transmit if PU is not detected
-		if ( !pu_on_ )  {
+		if ( !m_isPuOn )  {
 
 			// Sensing Time is on
-			sensing_=false;
+			m_isSensing=false;
 
 			if  (m_isSwitching)
 			{
@@ -260,11 +269,11 @@ SpectrumManager::senseHandler() {
 			}
 
 			// No channel switching, the CR can start transmitting on the current channel
-			ttimer_.start(transmit_time_);
+			Simulator::Schedule (m_transmitTime, &SpectrumManager::TransmitEnded, this);
 
 #ifdef SENSING_VERBOSE_MODE
 			char buffer [50];
-			std::sprintf(buffer, "[SENSING-DBG] Node %d starts transmitting on channel %d",nodeId_,current_channel);
+			std::sprintf(buffer, "[SENSING-DBG] Node %d starts transmitting on channel %d",m_nodeId,current_channel);
 			NS_LOG_DEBUG (buffer);
 #endif
 		}
@@ -278,22 +287,22 @@ SpectrumManager::senseHandler() {
 
 //transmitHandler: the CR stops transmitting, and starts sensing for PU detection
 void 
-SpectrumManager::transmitHandler() {
+SpectrumManager::TransmitEnded() {
 
-	int current_channel=m_repository->get_recv_channel(nodeId_);
+	int current_channel=m_repository->GetRxChannel(m_nodeId);
 
 	// Perform sensing on the current channel
-	pu_on_= sensingMod_->sense(nodeId_,sense_time_,transmit_time_, current_channel);
+	m_isPuOn= m_sensingMod->Sense(m_nodeId,m_senseTime,m_transmitTime, current_channel);
 
 	// Start the sensing interval
-	Simulator::Schedule (sense_time_, &SpectrumManager::senseHandler, this);
+	Simulator::Schedule (m_senseTime, &SpectrumManager::SenseEnded, this);
 
 	// Set the sensing ON
-	sensing_=true;
+	m_isSensing=true;
 
 #ifdef SENSING_VERBOSE_MODE
 	char buffer [50];
-	std::sprintf(buffer, "[SENSING-DBG] Node %d starts sensing on channel %d",nodeId_,current_channel);
+	std::sprintf(buffer, "[SENSING-DBG] Node %d starts sensing on channel %d",m_nodeId,current_channel);
 	NS_LOG_DEBUG (buffer);
 #endif
 
@@ -301,7 +310,7 @@ SpectrumManager::transmitHandler() {
 	//printf("starting sensing, calling backoff \n");
 	//TODO; make sure you tie up the mac layer
 	//mac_->checkBackoffTimer();
-	m_wifiPhy->StartSensing(sense_time_);
+	m_wifiPhy->StartSensing(m_senseTime);
 
 }
 
@@ -310,22 +319,22 @@ SpectrumManager::transmitHandler() {
 
 //endHandoff: the CR has performed spectrum handoff to a new channel. Then, it starts sensing on it to detect PU activity.
 void 
-SpectrumManager::endHandoff() {
+SpectrumManager::HandoffEnded() {
 
-	int current_channel=m_repository->get_recv_channel(nodeId_);
+	int current_channel=m_repository->GetRxChannel(m_nodeId);
 
 	// Perform sensing on the new channel
-	pu_on_ = sensingMod_->sense(nodeId_,sense_time_,transmit_time_, current_channel);
+	m_isPuOn = m_sensingMod->Sense(m_nodeId,m_senseTime,m_transmitTime, current_channel);
 
 	// Start the sensing interval
-  Simulator::Schedule (sense_time_, &SpectrumManager::senseHandler, this);
+  Simulator::Schedule (m_senseTime, &SpectrumManager::SenseEnded, this);
 
 #ifdef SENSING_VERBOSE_MODE
 
 	char buffer [50];
-	std::sprintf(buffer,"[SENSING-DBG] Node %d ends handoff on channel %d",nodeId_,current_channel);
+	std::sprintf(buffer,"[SENSING-DBG] Node %d ends handoff on channel %d",m_nodeId,current_channel);
 	NS_LOG_DEBUG (buffer);
-	std::sprintf(buffer, "[SENSING-DBG] Node %d starts sensing on channel %d",nodeId_,current_channel);
+	std::sprintf(buffer, "[SENSING-DBG] Node %d starts sensing on channel %d",m_nodeId,current_channel);
 	NS_LOG_DEBUG (buffer);
 
 #endif

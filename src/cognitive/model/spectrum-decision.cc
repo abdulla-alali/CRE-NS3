@@ -1,8 +1,21 @@
-// CRAHNs Model START
-// @author:  Marco Di Felice
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation;
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Author: Abdulla K. Al-Ali <abdulla.alali@qu.edu.qa>
+ */
 
-
-#include "SpectrumDecision.h"
+#include "spectrum-decision.h"
 #include "ns3/random-variable-stream.h"
 
 namespace ns3 {
@@ -10,27 +23,27 @@ namespace ns3 {
 // Spectrum Decision initializer
 SpectrumDecision::SpectrumDecision(SpectrumManager *sm) {
 
-	decision_policy_=DECISION_POLICY_ALWAYS_SWITCH;
+	m_decisionPolicy=DECISION_POLICY_ALWAYS_SWITCH;
 	//decision_policy_=DECISION_POLICY_NEVER_SWITCH;
 
-	spectrum_policy_=ROUND_ROBIN_SWITCH;
+	m_spectrumPolicy=ROUND_ROBIN_SWITCH;
 
-	smanager_=sm;
+	m_specManager=sm;
 
 }
 
 
 
 
-// decideSwitch: decide wether to stay or leave the current channel, when a PU is detected       
+// DecideSwitch: decide wether to stay or leave the current channel, when a PU is detected
 bool
-SpectrumDecision::decideSwitch() {
+SpectrumDecision::DecideSwitch() {
 
 	double randomValue;
 	bool switch_decision;
 
 	Ptr<UniformRandomVariable> uv = CreateObject<UniformRandomVariable>();
-	switch(decision_policy_) {
+	switch(m_decisionPolicy) {
 
 	// Switch with probability equal to THRESHOLD_SWITCH, stay otherwise
 	case DECISION_POLICY_PROBABILISTIC_SWITCH:
@@ -68,15 +81,15 @@ SpectrumDecision::decideSwitch() {
 
 
 
-// decideSpectrum: get the next spectrum to be used, based on the allocation policy
+// DecideSpectrum: get the next spectrum to be used, based on the allocation policy
 int
-SpectrumDecision::decideSpectrum(int current_channel) {
+SpectrumDecision::DecideSpectrum(int current_channel) {
 
 	int next_channel;
 
 	Ptr<UniformRandomVariable> uv1 = CreateObject<UniformRandomVariable>();
 
-	switch(spectrum_policy_) {
+	switch(m_spectrumPolicy) {
 
 	// Policy RANDOM_SWITCH: next_channel -> random(1..MAX_CHANNELS)
 	case RANDOM_SWITCH:
@@ -103,7 +116,5 @@ SpectrumDecision::decideSpectrum(int current_channel) {
 
 }
 
-// CRAHNs Model END
-// @author:  Marco Di Felice
 }
 

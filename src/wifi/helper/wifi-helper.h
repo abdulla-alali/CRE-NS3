@@ -29,8 +29,8 @@
 #include "ns3/net-device-container.h"
 #include "ns3/wifi-phy-standard.h"
 #include "ns3/trace-helper.h"
-#include "ns3/commCognitiveHeader.h"
-#include "ns3/PUmodel.h"
+#include "ns3/common-cognitive-header.h"
+#include "ns3/pu-model.h"
 #include "ns3/repository.h"
 
 namespace ns3 {
