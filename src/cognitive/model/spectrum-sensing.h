@@ -40,7 +40,7 @@ class SpectrumSensing {
 		SpectrumSensing(SpectrumManager *sm, double prob, Ptr<PUModel> p);
 	
 		// Perform sensing and return true if PU activity is detected on the current channel
-		bool Sense(int id, Time sense_time, Time transmit_time, int channel);
+		bool GetSenseResultsFuture(int id, Time sense_time, Time transmit_time, int channel);
 
 	
 	private:

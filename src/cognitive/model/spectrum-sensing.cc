@@ -44,7 +44,7 @@ SpectrumSensing::SpectrumSensing(SpectrumManager *sm, double prob_misdetect, Ptr
 
 // sense: return true if PU activity is detected in the time interval [current_time:current_time + sense_time]
 bool
-SpectrumSensing::Sense(int id, Time sense_time, Time transmit_time, int channel) {
+SpectrumSensing::GetSenseResultsFuture(int id, Time sense_time, Time transmit_time, int channel) {
 	
 	NodeContainer const & n = NodeContainer::GetGlobal ();
 	Ptr<Node> node = n.Get(id);

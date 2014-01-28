@@ -82,7 +82,8 @@ SpectrumManager::Start() {
 	//TODO load spectrum in mac layer
 	//mac_->load_spectrum(dataMod_->get_spectrum_data(current_channel));
 
-	// Start sensing on the current channel for a sense_time_ interval
+  // Start sensing on the current channel for a sense_time_ interval
+  m_isPuOn = m_sensingMod->GetSenseResultsFuture(m_nodeId,m_senseTime,m_transmitTime, m_repository->GetRxChannel(m_nodeId));
   m_wifiPhy->StartSensing(m_senseTime);
 
 }
@@ -108,7 +109,7 @@ SpectrumManager::IsPuInterfering(Time txDuration) {
 	Time time_tx=txDuration;
 	// Check if a PU is active in the interval [now: now+time_tx]
 	int  current_channel=m_repository->GetRxChannel(m_nodeId);
-	bool interference=m_sensingMod->Sense(m_nodeId,time_tx,m_transmitTime, current_channel);
+	bool interference=m_sensingMod->GetSenseResultsFuture(m_nodeId,time_tx,m_transmitTime, current_channel);
 
 #ifdef SENSING_VERBOSE_MODE
 	if (interference)
@@ -219,10 +220,8 @@ SpectrumManager::SenseEnded() {
 
 			// CR does not vacate the spectrum, but it must not interfere with PU activity
 			// In this case, CR keeps sensing and waits for the channel to be free 	
-			m_isPuOn= m_sensingMod->Sense(m_nodeId,m_senseTime,m_transmitTime, current_channel);
+			m_isPuOn = m_sensingMod->GetSenseResultsFuture(m_nodeId,m_senseTime,m_transmitTime, current_channel);
 
-
-			//printf("node: %i restarting sensor at time %f\n", nodeId_, Scheduler::instance().clock());
 			NS_LOG_DEBUG ("restarting sensor");
 			m_wifiPhy->StartSensing(m_senseTime);
 
@@ -281,8 +280,7 @@ SpectrumManager::TransmitEnded() {
 	int current_channel=m_repository->GetRxChannel(m_nodeId);
 
 	// Perform sensing on the current channel
-	m_isPuOn= m_sensingMod->Sense(m_nodeId,m_senseTime,m_transmitTime, current_channel);
-
+	m_isPuOn= m_sensingMod->GetSenseResultsFuture(m_nodeId,m_senseTime,m_transmitTime, current_channel);
 
 	// Set the sensing ON
 	m_isSensing=true;
@@ -311,8 +309,7 @@ SpectrumManager::HandoffEnded() {
 	int current_channel=m_repository->GetRxChannel(m_nodeId);
 
 	// Perform sensing on the new channel
-	m_isPuOn = m_sensingMod->Sense(m_nodeId,m_senseTime,m_transmitTime, current_channel);
-
+	m_isPuOn = m_sensingMod->GetSenseResultsFuture(m_nodeId,m_senseTime,m_transmitTime, current_channel);
 	m_wifiPhy->StartSensing(m_senseTime);
 	m_isSensing = true;
 	//Do not disable m_isSwitching now. We do that after sensing concluded and no PU is there (for aodv to broadcast stuff)
