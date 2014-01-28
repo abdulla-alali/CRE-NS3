@@ -375,6 +375,8 @@ switchChannel:
    * out the state of the medium after the switching.
    */
   m_channelNumber = nch;
+  if (!m_handoffEndedCallback.IsNull())
+    Simulator::Schedule (m_channelSwitchDelay, &YansWifiPhy::m_handoffEndedCallback, this);
 }
 
 void
@@ -408,8 +410,7 @@ startSensing:
   NS_LOG_DEBUG ("sensing started for duration " << duration);
   m_state->SwitchToChannelSensing (duration);
   m_interference.EraseEvents ();
-  //TODO 1: Must call back spectrumManager via a listener when sensing is done
-  // we are currently having an assert fire up in this function
+  Simulator::Schedule (duration, &YansWifiPhy::m_senseEndedCallback, this);
   //TODO 2: must see what happens to packets received during sensing
   /*
    * Needed here to be able to correctly sensed the medium for the first
