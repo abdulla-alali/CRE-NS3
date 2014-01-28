@@ -137,13 +137,23 @@ int main (int argc, char *argv[])
   // Set it to adhoc mode
   wifiMac.SetType ("ns3::AdhocWifiMac");
 
+  MobilityHelper mobility;
+  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+  double start = 110.0;
+  for (int i=0; i<hops; i++) {
+    positionAlloc->Add (Vector (start, 0.0, 0.0));
+    start = start+20;
+  }
+  mobility.SetPositionAllocator (positionAlloc);
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+
   //Read PU file
   Ptr<PUModel> puModel = CreateObject<PUModel>();
   std::string map_file = "map_PUs_multiple.txt";
   //Create repository
   Ptr<Repository> repo = CreateObject<Repository>();
   puModel->SetPuMapFile((char*)map_file.c_str());
-  NetDeviceContainer devices = wifi.InstallCR (repo, puModel, wifiPhy, wifiMac, c);
+  NetDeviceContainer devices = wifi.InstallCR (repo, puModel, mobility, wifiPhy, wifiMac, c);
 
   NetDeviceContainer devices_control;
   for (uint32_t i=0; i<devices.GetN(); i=i+3) {
@@ -159,18 +169,6 @@ int main (int argc, char *argv[])
 
       NS_LOG_UNCOND( "node[" <<x<< "] address " << i << " is: " << c.Get(x)->GetDevice(i)->GetAddress());
     }
-
-  MobilityHelper mobility;
-  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-  double start = 110.0;
-  for (int i=0; i<hops; i++) {
-    positionAlloc->Add (Vector (start, 0.0, 0.0));
-    start = start+20;
-  }
-  mobility.SetPositionAllocator (positionAlloc);
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.Install (c);
-
 
   InternetStackHelper internet;
   AodvHelper aodv;

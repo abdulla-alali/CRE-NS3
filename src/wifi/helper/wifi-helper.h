@@ -32,6 +32,7 @@
 #include "ns3/common-cognitive-header.h"
 #include "ns3/pu-model.h"
 #include "ns3/repository.h"
+#include "ns3/mobility-helper.h"
 
 namespace ns3 {
 
@@ -172,6 +173,7 @@ public:
    * a CCC, RX and TX device
    */
   NetDeviceContainer InstallCR (Ptr<Repository> repo, Ptr<PUModel> puModel,
+                              const MobilityHelper &mobiHelper,
                               const WifiPhyHelper &phy, const WifiMacHelper &mac,
                               NodeContainer c) const;
 

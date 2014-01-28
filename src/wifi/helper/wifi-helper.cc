@@ -135,9 +135,12 @@ WifiHelper::Install (const WifiPhyHelper &phy,
 
 NetDeviceContainer
 WifiHelper::InstallCR (Ptr<Repository> repo, Ptr<PUModel> puModel,
-                      const WifiPhyHelper &phyHelper, const WifiMacHelper &macHelper,
+                      const MobilityHelper &mobiHelper,
+                      const WifiPhyHelper &phyHelper,
+                      const WifiMacHelper &macHelper,
                       NodeContainer c) const
 {
+  mobiHelper.Install(c);
 	  NetDeviceContainer devices;
 	  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
 	    {
