@@ -60,6 +60,10 @@ SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, Ptr<WifiPhy> phy,
 	m_sensingMod=new SpectrumSensing(this);
 	m_decisionMod=new SpectrumDecision(this);
 
+	// Setup sense and handoff ended callback at PHY
+	m_wifiPhy->SetSenseEndedCallback(MakeCallback (&SpectrumManager::SenseEnded, this));
+	m_wifiPhy->SetHandoffEndedCallback(MakeCallback(&SpectrumManager::HandoffEnded, this));
+
 }
 
 SpectrumManager::~SpectrumManager() {
@@ -80,7 +84,6 @@ SpectrumManager::Start() {
 
 	// Start sensing on the current channel for a sense_time_ interval
   m_wifiPhy->StartSensing(m_senseTime);
-  Simulator::Schedule (m_senseTime, &SpectrumManager::SenseEnded, this);
 
 }
 
@@ -196,14 +199,6 @@ SpectrumManager::SenseEnded() {
 			int next_channel=m_decisionMod->DecideSpectrum(current_channel);
 			m_wifiPhy->SetChannelNumber(next_channel);
 			m_repository->SetRxChannel(m_nodeId,next_channel);
-			Ptr<YansWifiPhy> yansPhy = DynamicCast<YansWifiPhy>(m_wifiPhy);
-			Time handoffDelay = yansPhy->GetSwitchingDelay();
-			if (m_wifiPhy->GetDelayUntilIdle() < handoffDelay)
-			{
-			  handoffDelay = handoffDelay + m_wifiPhy->GetDelayUntilIdle();
-			}
-
-			Simulator::Schedule (handoffDelay, &SpectrumManager::HandoffEnded, this);
 			m_isSwitching = true;
 			// Load the spectrum data for the new channel
 			//TODO; make sure you tie up the mac layer
@@ -229,15 +224,8 @@ SpectrumManager::SenseEnded() {
 
 			//printf("node: %i restarting sensor at time %f\n", nodeId_, Scheduler::instance().clock());
 			NS_LOG_DEBUG ("restarting sensor");
-			Time startTime = m_senseTime;
-			if (m_wifiPhy->IsStateSensing()) {
-			  startTime = m_senseTime + m_wifiPhy->GetDelayUntilIdle();
-			  Simulator::Schedule(m_wifiPhy->GetDelayUntilIdle(), &WifiPhy::StartSensing, m_wifiPhy, m_senseTime);
-			}
-			else
-			  m_wifiPhy->StartSensing(m_senseTime);
+			m_wifiPhy->StartSensing(m_senseTime);
 
-		  Simulator::Schedule (startTime, &SpectrumManager::SenseEnded, this);
 		  m_isSensing=true;
 
 		}
@@ -294,8 +282,6 @@ SpectrumManager::TransmitEnded() {
 	// Perform sensing on the current channel
 	m_isPuOn= m_sensingMod->Sense(m_nodeId,m_senseTime,m_transmitTime, current_channel);
 
-	// Start the sensing interval
-	Simulator::Schedule (m_senseTime, &SpectrumManager::SenseEnded, this);
 
 	// Set the sensing ON
 	m_isSensing=true;
@@ -326,8 +312,9 @@ SpectrumManager::HandoffEnded() {
 	// Perform sensing on the new channel
 	m_isPuOn = m_sensingMod->Sense(m_nodeId,m_senseTime,m_transmitTime, current_channel);
 
-	// Start the sensing interval
-  Simulator::Schedule (m_senseTime, &SpectrumManager::SenseEnded, this);
+	m_wifiPhy->StartSensing(m_senseTime);
+	m_isSensing = true;
+	//Do not disable m_isSwitching now. We do that after sensing concluded and no PU is there (for aodv to broadcast stuff)
 
 #ifdef SENSING_VERBOSE_MODE
 
