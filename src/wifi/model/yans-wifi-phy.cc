@@ -444,6 +444,16 @@ YansWifiPhy::SetReceiveErrorCallback (RxErrorCallback callback)
   m_state->SetReceiveErrorCallback (callback);
 }
 void
+YansWifiPhy::SetSenseEndedCallback(SnsEndedCallback callback)
+{
+  m_senseEndedCallback = callback;
+}
+void
+YansWifiPhy::SetHandoffEndedCallback(SnsEndedCallback callback)
+{
+  m_handoffEndedCallback = callback;
+}
+void
 YansWifiPhy::StartReceivePacket (Ptr<Packet> packet,
                                  double rxPowerDbm,
                                  WifiMode txMode,

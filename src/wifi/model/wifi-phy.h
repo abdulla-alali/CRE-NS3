@@ -165,6 +165,9 @@ public:
    */
   typedef Callback<void,Ptr<const Packet>, double> RxErrorCallback;
 
+  typedef Callback<void> SnsEndedCallback;
+  typedef Callback<void> HandoffEndedCallback;
+
   static TypeId GetTypeId (void);
 
   WifiPhy ();
@@ -187,6 +190,16 @@ public:
    *        upon erroneous packet reception.
    */
   virtual void SetReceiveErrorCallback (RxErrorCallback callback) = 0;
+  /**
+   * \param callback the callback to invoke
+   *        when sensing is ended
+   */
+  virtual void SetSenseEndedCallback(SnsEndedCallback callback) = 0;
+  /**
+   * \param callback the callback to invoke
+   *        when sensing is ended
+   */
+  virtual void SetHandoffEndedCallback(HandoffEndedCallback callback) = 0;
 
   /**
    * \param packet the packet to send

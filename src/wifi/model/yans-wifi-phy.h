@@ -132,6 +132,8 @@ public:
   virtual uint32_t GetNTxPower (void) const;
   virtual void SetReceiveOkCallback (WifiPhy::RxOkCallback callback);
   virtual void SetReceiveErrorCallback (WifiPhy::RxErrorCallback callback);
+  virtual void SetSenseEndedCallback(WifiPhy::SnsEndedCallback callback);
+  virtual void SetHandoffEndedCallback(WifiPhy::HandoffEndedCallback callback);
   virtual void SendPacket (Ptr<const Packet> packet, WifiMode mode, enum WifiPreamble preamble, uint8_t txPowerLevel);
   virtual void RegisterListener (WifiPhyListener *listener);
   virtual bool IsStateCcaBusy (void);
@@ -239,6 +241,12 @@ private:
   Ptr<WifiPhyStateHelper> m_state;
   InterferenceHelper m_interference;
   Time m_channelSwitchDelay;
+
+  //sensing ended callback
+  SnsEndedCallback m_senseEndedCallback;
+  //handoff ended callback
+  HandoffEndedCallback m_handoffEndedCallback;
+
 
 };
 
