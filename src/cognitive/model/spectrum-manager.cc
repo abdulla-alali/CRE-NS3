@@ -70,18 +70,9 @@ SpectrumManager::~SpectrumManager() {
 
 }
 
-//start: CR starts sensing on the current channel
+//start: CR starts the sensing/handoff/transmission cycle on the RX iface.
 void
 SpectrumManager::Start() {
-
-	// Retrive the current channel on which the CR is tuned on the RECEIVER interface
-
-	//int current_channel=m_repository->get_recv_channel(nodeId_);
-	// Load spectrum characteristics (bandwidth, PER, ...)
-
-	//TODO load spectrum in mac layer
-	//mac_->load_spectrum(dataMod_->get_spectrum_data(current_channel));
-
   // Start sensing on the current channel for a sense_time_ interval
   m_isPuOn = m_sensingMod->GetSenseResultsFuture(m_nodeId,m_senseTime,m_transmitTime, m_repository->GetRxChannel(m_nodeId));
   m_wifiPhy->StartSensing(m_senseTime);
@@ -156,11 +147,6 @@ SpectrumManager::SetSpectrumData(SpectrumData *sd) {
 }
 
 
-
-
-
-
-
 /*********************************************************
  * TIMER METHODS
  * *******************************************************/
@@ -171,7 +157,7 @@ SpectrumManager::SetSpectrumData(SpectrumData *sd) {
 void 
 SpectrumManager::SenseEnded() {
 
-	bool need_to_switch=false;
+  bool need_to_switch=false;
 
 	int  current_channel=m_repository->GetRxChannel(m_nodeId);
 
@@ -190,9 +176,6 @@ SpectrumManager::SenseEnded() {
 		// CR needs to vacate the channel
 		if (need_to_switch) {
 
-			// Starts handoff timer
-			//mobilityMod_->performHandoff();
-
 			// Channel allocation is decided at MAC Layer
 #ifdef CHANNEL_DECISION_MAC_LAYER
 
@@ -201,9 +184,6 @@ SpectrumManager::SenseEnded() {
 			m_wifiPhy->SetChannelNumber(next_channel);
 			m_repository->SetRxChannel(m_nodeId,next_channel);
 			m_isSwitching = true;
-			// Load the spectrum data for the new channel
-			//TODO; make sure you tie up the mac layer
-			//mac_->load_spectrum(dataMod_->get_spectrum_data(next_channel));
 
 #endif
 
@@ -232,12 +212,7 @@ SpectrumManager::SenseEnded() {
 	} else { //if pu is not on. without this else, sensetimer gets scheduled twice
 
 
-
-		// Start/Stop the backoff timer
-		//TODO; make sure you tie up the mac layer
-		//mac_->checkBackoffTimer();
-
-		// The CR can transmit if PU is not detected
+	  // The CR can transmit if PU is not detected
 		if ( !m_isPuOn )  {
 
 			// Sensing Time is on
@@ -273,7 +248,7 @@ SpectrumManager::SenseEnded() {
 
 
 
-//transmitHandler: the CR stops transmitting, and starts sensing for PU detection
+//TransmitEnded: the CR stops transmitting, and starts sensing for PU detection
 void 
 SpectrumManager::TransmitEnded() {
 
@@ -291,10 +266,6 @@ SpectrumManager::TransmitEnded() {
 	NS_LOG_DEBUG (buffer);
 #endif
 
-	// Stop any current backoff attempt
-	//printf("starting sensing, calling backoff \n");
-	//TODO; make sure you tie up the mac layer
-	//mac_->checkBackoffTimer();
 	m_wifiPhy->StartSensing(m_senseTime);
 
 }
@@ -302,11 +273,11 @@ SpectrumManager::TransmitEnded() {
 
 
 
-//endHandoff: the CR has performed spectrum handoff to a new channel. Then, it starts sensing on it to detect PU activity.
+//HandoffEnded: the CR has performed spectrum handoff to a new channel. Then, it starts sensing on it to detect PU activity.
 void 
 SpectrumManager::HandoffEnded() {
 
-	int current_channel=m_repository->GetRxChannel(m_nodeId);
+  int current_channel=m_repository->GetRxChannel(m_nodeId);
 
 	// Perform sensing on the new channel
 	m_isPuOn = m_sensingMod->GetSenseResultsFuture(m_nodeId,m_senseTime,m_transmitTime, current_channel);
@@ -327,7 +298,4 @@ SpectrumManager::HandoffEnded() {
 }
 
 }
-// CRAHNs Model END
-// @author:  Marco Di Felice
-
 
