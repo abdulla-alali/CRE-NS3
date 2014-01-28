@@ -210,6 +210,10 @@ public:
   virtual Time GetBasicBlockAckTimeout (void) const;
   virtual void SetCompressedBlockAckTimeout (Time blockAckTimeout);
   virtual Time GetCompressedBlockAckTimeout (void) const;
+  /**
+   * Restart backoff access at mac layer
+   */
+  void RestartAccess(void);
 
 protected:
   virtual void DoInitialize ();

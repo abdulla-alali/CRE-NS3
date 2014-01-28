@@ -24,7 +24,7 @@ NS_LOG_COMPONENT_DEFINE ("CogSpectrumManager");
 namespace ns3 {
 
 //SpectrumManager Initializer
-SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id) {
+SpectrumManager::SpectrumManager(Ptr<RegularWifiMac> mac, int id) {
 
 	m_wifiMac=mac;
 	m_nodeId=id;
@@ -42,7 +42,7 @@ SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, int id) {
 
 
 //SpectrumManager Initializer
-SpectrumManager::SpectrumManager(Ptr<WifiMac> mac, Ptr<WifiPhy> phy,
+SpectrumManager::SpectrumManager(Ptr<RegularWifiMac> mac, Ptr<WifiPhy> phy,
     int id, Time sense_time, Time transmit_time)  {
 
 	m_wifiMac=mac;
@@ -258,6 +258,7 @@ SpectrumManager::SenseEnded() {
 
 			// No channel switching, the CR can start transmitting on the current channel
 			Simulator::Schedule (m_transmitTime, &SpectrumManager::TransmitEnded, this);
+			m_wifiMac->RestartAccess();
 
 #ifdef SENSING_VERBOSE_MODE
 			char buffer [50];

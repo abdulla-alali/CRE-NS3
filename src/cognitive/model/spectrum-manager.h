@@ -34,7 +34,7 @@
 
 #include "pu-model.h"
 #include "repository.h"
-#include "ns3/wifi-mac.h"
+#include "ns3/regular-wifi-mac.h"
 #include "ns3/nstime.h"
 
 // Spectrum Manager modules
@@ -55,7 +55,7 @@ class SpectrumMobility;
 class HandoffTimer;
 class SenseTimer;
 class TransmitTimer;
-class Mac802_11;
+class RegularWifiMac;
 
 // Spectrum Manager Implementation
 class SpectrumManager  {
@@ -66,10 +66,10 @@ class SpectrumManager  {
 public:
 
 	// Initialize a new Spectrum Manager
-	SpectrumManager(Ptr<WifiMac> mac, int id);
+	SpectrumManager(Ptr<RegularWifiMac> mac, int id);
 
 	// Initialize a new Spectrum Manager
-	SpectrumManager(Ptr<WifiMac> mac, Ptr<WifiPhy> phy,
+	SpectrumManager(Ptr<RegularWifiMac> mac, Ptr<WifiPhy> phy,
 	    int id, Time sense_time, Time transmit_time);
 
 	virtual ~SpectrumManager ();
@@ -115,7 +115,7 @@ private:
 
 
 	// MAC References and address
-	Ptr<WifiMac> m_wifiMac;
+	Ptr<RegularWifiMac> m_wifiMac;
 	int m_nodeId;
   // WifiPhy reference
   Ptr<WifiPhy> m_wifiPhy;

@@ -120,6 +120,12 @@ public:
   */
   int64_t AssignStreams (int64_t stream);
 
+  /**
+   * Restart the backoff timer if packets are queued
+   * This can be used after sensing/handoff in CR networks
+   */
+  void RestartAccessIfNeeded (void);
+
 private:
   class TransmissionListener;
   class NavListener;
@@ -156,7 +162,6 @@ private:
   void UpdateActiveChannels (uint16_t channel);
   uint16_t GetNextActiveChannel (void);
 
-  void RestartAccessIfNeeded (void);
   void StartAccessIfNeeded (void);
   bool NeedRts (Ptr<const Packet> packet, const WifiMacHeader *header);
   bool NeedRtsRetransmission (void);

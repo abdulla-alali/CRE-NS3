@@ -529,6 +529,13 @@ RegularWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
 }
 
 void
+RegularWifiMac::RestartAccess()
+{
+  NS_LOG_FUNCTION (this);
+  m_dca->RestartAccessIfNeeded();
+}
+
+void
 RegularWifiMac::DeaggregateAmsduAndForward (Ptr<Packet> aggregatedPacket,
                                             const WifiMacHeader *hdr)
 {
