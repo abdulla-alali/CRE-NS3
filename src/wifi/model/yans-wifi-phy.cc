@@ -331,7 +331,7 @@ YansWifiPhy::SetChannel (Ptr<YansWifiChannel> channel)
 void
 YansWifiPhy::SetChannelNumber (uint16_t nch)
 {
-  if (Simulator::Now () == Seconds (0))
+  if (Simulator::Now () == Seconds (0) || IsStateSwitching())
     {
       // this is not channel switch, this is initialization
       NS_LOG_DEBUG ("start at channel " << nch);
