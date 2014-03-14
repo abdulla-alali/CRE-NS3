@@ -164,6 +164,9 @@ public:
                               const WifiMacHelper &mac, std::string nodeName) const;
 
   /**
+   * \param repo the global repository that will be shared among CR nodes
+   * \param puModel the map of PU on and off times that is instantiated via PUModel
+   * \param mobiHelper the mobility helper of the nodes
    * \param phy the PHY helper to create PHY objects
    * \param mac the MAC helper to create MAC objects
    * \param c the name(s) container on which a wifi device must be created
