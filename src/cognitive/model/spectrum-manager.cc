@@ -138,15 +138,6 @@ SpectrumManager::SetRepository(Ptr<Repository> rep) {
 }
 
 
-//setSpectrumData: set the current Spectrum Loader module
-void 
-SpectrumManager::SetSpectrumData(SpectrumData *sd) {
-
-	m_dataMod=sd;
-
-}
-
-
 /*********************************************************
  * TIMER METHODS
  * *******************************************************/

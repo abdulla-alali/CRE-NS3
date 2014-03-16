@@ -57,7 +57,15 @@ class SenseTimer;
 class TransmitTimer;
 class RegularWifiMac;
 
-// Spectrum Manager Implementation
+/**
+ * \brief APIs for Cognitive Radio extension
+ *
+ * This class can helps put together all cognitive
+ * radio exposed functions (APIs) in one class.
+ * A researcher must instantiate this class in the run script
+ * and use a reference to it whenever it wants to call any of the
+ * cognitive radio functions from any given network layer.
+ */
 class SpectrumManager  {
 
 	friend class SenseTimer;
@@ -65,37 +73,74 @@ class SpectrumManager  {
 
 public:
 
-	// Initialize a new Spectrum Manager
+  /**
+   * \param mac the mac of the RX interface. This will be used for the cognitive cycle
+   * \param id the node id
+   *
+   * Spectrum Manager initializer
+   */
 	SpectrumManager(Ptr<RegularWifiMac> mac, int id);
 
-	// Initialize a new Spectrum Manager
+	/**
+	 * \param mac the mac of the RX interface. This will be used for the cognitive cycle
+	 * \param phy the PHY of the RX interface. This will be used for the cognitive cycle
+	 * \param id the node id (integer)
+	 * \param sense_time the duration of the sensing time
+	 * \param transmit_time the duration of the transmission time
+	 *
+	 * Spectrum Manager initializer
+	 */
 	SpectrumManager(Ptr<RegularWifiMac> mac, Ptr<WifiPhy> phy,
 	    int id, Time sense_time, Time transmit_time);
 
 	virtual ~SpectrumManager ();
-	// Start method: CR agent starts sensing activity on the current channel
+
+
+	/**
+	 * Start the sensing/handoff/transmission cycle on the RX iface.
+	 */
 	void Start();
 
-	// Return true if CR is NOT doing sensing and is NOT doing spectrum handoff
+	/**
+	 * \returns true if CR is not sensing or performing hand off.
+	 */
 	bool IsChannelAvailable();
-	// Return true if a PU is active while receiving the packet, on the same channel
+
+	/**
+	 * \returns true if PU is active while receiving the packet, on the current listening channel.
+	 */
 	bool IsPuInterfering(Time txDuration);
 
-	// Timer Handlers
-	// Handler for sensing timer
+	/**
+	 * Callback for when sensing is finished by the PHY layer
+	 */
 	void SenseEnded();
-	// Handler for handoff management: start sensing on the new channel
+
+	/**
+	 * Callback for when handoff is finished by the PHY layer
+	 */
 	void HandoffEnded();
-	// Handler for transmission timer: start sensing on the current channel
+
+	/**
+	 * Callback for when the transmission period has ended.
+	 * Now we usually start sensing
+	 */
 	void TransmitEnded();
 
-
-
-	// Setup Functions
+	/**
+	 * \param prob Probability of mis-detecting the PU. Set to zero for 100% reliability
+	 * \param p a reference to the PUModel
+	 *
+	 * Sets the PU model and probability of misdetection in the spectrum manager
+	 */
 	void SetPuModel(double prob, Ptr<PUModel> p);
-	void SetRepository(Ptr<Repository> rep);
-	void SetSpectrumData(SpectrumData *sd);
 
+	/**
+	 * \param rep a reference to the global repository
+	 *
+	 * Sets the reference the global repository that is shared among all nodes
+	 */
+	void SetRepository(Ptr<Repository> rep);
 
 private:
 
@@ -128,10 +173,6 @@ private:
 	SpectrumSensing  *m_sensingMod;
 	// Spectrum Decision Module
 	SpectrumDecision *m_decisionMod;
-	// Spectrum Data Loader Module
-	SpectrumData 	 *m_dataMod;
-
-
 
 };
 }
