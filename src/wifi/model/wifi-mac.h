@@ -24,7 +24,7 @@
 #include "ns3/mac48-address.h"
 #include "ns3/node.h"
 #include "ns3/repository.h"
-#include "ns3/PUmodel.h"
+#include "ns3/pu-model.h"
 
 #include "wifi-phy.h"
 #include "wifi-remote-station-manager.h"
